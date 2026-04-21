@@ -1,10 +1,17 @@
 import { collectSubtreeIds, getParent, isDescendant } from './scene';
+import {
+  isEmptyPatch,
+  mergeTransform,
+  transformEqual,
+  type TransformPatch,
+} from './transform';
 import type { Scene, SceneNode } from './types';
 
 export type Command =
   | { type: 'ADD_NODE'; parentId: string; node: SceneNode }
   | { type: 'DELETE_NODE'; nodeId: string }
-  | { type: 'MOVE_NODE'; nodeId: string; newParentId: string };
+  | { type: 'MOVE_NODE'; nodeId: string; newParentId: string }
+  | { type: 'UPDATE_TRANSFORM'; nodeId: string; patch: TransformPatch };
 
 const addChild = (node: SceneNode, childId: string): SceneNode => ({
   ...node,
@@ -85,6 +92,25 @@ const applyMoveNode = (
   return { ...scene, nodes: nextNodes };
 };
 
+const applyUpdateTransform = (
+  scene: Scene,
+  nodeId: string,
+  patch: TransformPatch,
+): Scene => {
+  const node = scene.nodes[nodeId];
+  if (!node) return scene;
+  if (isEmptyPatch(patch)) return scene;
+
+  const nextTransform = mergeTransform(node.transform, patch);
+  if (transformEqual(node.transform, nextTransform)) return scene;
+
+  const nextNode: SceneNode = { ...node, transform: nextTransform };
+  return {
+    ...scene,
+    nodes: { ...scene.nodes, [nodeId]: nextNode },
+  };
+};
+
 export const applyCommand = (scene: Scene, command: Command): Scene => {
   switch (command.type) {
     case 'ADD_NODE':
@@ -93,6 +119,8 @@ export const applyCommand = (scene: Scene, command: Command): Scene => {
       return applyDeleteNode(scene, command.nodeId);
     case 'MOVE_NODE':
       return applyMoveNode(scene, command.nodeId, command.newParentId);
+    case 'UPDATE_TRANSFORM':
+      return applyUpdateTransform(scene, command.nodeId, command.patch);
     default: {
       const _exhaustive: never = command;
       return _exhaustive;

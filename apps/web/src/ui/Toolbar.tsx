@@ -16,6 +16,10 @@ export function Toolbar() {
   const selectedId = useSceneStore((s) => s.selectedId);
   const dispatch = useSceneStore((s) => s.dispatch);
   const reset = useSceneStore((s) => s.reset);
+  const undo = useSceneStore((s) => s.undo);
+  const redo = useSceneStore((s) => s.redo);
+  const pastCount = useSceneStore((s) => s.past.length);
+  const futureCount = useSceneStore((s) => s.future.length);
 
   const selectedNode = selectedId ? scene.nodes[selectedId] : null;
   const isRootSelected = selectedId === scene.rootId;
@@ -52,6 +56,25 @@ export function Toolbar() {
       </div>
 
       <div className="toolbar__actions">
+        <div className="toolbar__group">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={pastCount === 0}
+            title="Undo (Ctrl/Cmd+Z)"
+          >
+            Undo
+          </button>
+          <button
+            type="button"
+            onClick={redo}
+            disabled={futureCount === 0}
+            title="Redo (Ctrl/Cmd+Shift+Z)"
+          >
+            Redo
+          </button>
+        </div>
+        <div className="toolbar__divider" aria-hidden="true" />
         <button type="button" onClick={handleAdd}>
           Add Cube
         </button>

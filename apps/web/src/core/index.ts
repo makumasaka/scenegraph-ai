@@ -12,3 +12,5 @@ export {
 export type { CreateNodeInput } from './scene';
 export { applyCommand } from './commands';
 export type { Command } from './commands';
+export { mergeTransform, transformEqual, isEmptyPatch } from './transform';
+export type { TransformPatch } from './transform';
