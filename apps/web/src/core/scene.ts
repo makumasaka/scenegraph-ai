@@ -6,7 +6,8 @@ export const identityTransform = (): Transform => ({
   scale: [1, 1, 1],
 });
 
-const newId = (): string => {
+/** Generates a new unique node id (used by createNode and duplicate). */
+export const createId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
   }
@@ -23,7 +24,7 @@ export interface CreateNodeInput {
 export const createNode = (input: CreateNodeInput = {}): SceneNode => {
   const base = identityTransform();
   return {
-    id: input.id ?? newId(),
+    id: input.id ?? createId(),
     name: input.name ?? 'Node',
     children: input.children ?? [],
     transform: {

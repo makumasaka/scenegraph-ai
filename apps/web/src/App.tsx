@@ -1,4 +1,5 @@
 import './App.css';
+import { CommandLog } from './ui/CommandLog';
 import { Inspector } from './ui/Inspector';
 import { Toolbar } from './ui/Toolbar';
 import { TreeView } from './ui/TreeView';
@@ -11,11 +12,14 @@ function App() {
   return (
     <div className="app">
       <Toolbar />
-      <main className="main">
-        <TreeView />
-        <Viewport />
-        <Inspector />
-      </main>
+      <div className="editor-body">
+        <main className="main">
+          <TreeView />
+          <Viewport />
+          <Inspector />
+        </main>
+        <CommandLog />
+      </div>
     </div>
   );
 }

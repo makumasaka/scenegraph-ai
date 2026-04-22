@@ -1,32 +1,30 @@
 import { create } from 'zustand';
 import {
   applyCommand,
-  createEmptyScene,
-  createNode,
+  getStarterScene,
+  parseSceneJson,
+  serializeScene,
   type Command,
   type Scene,
 } from '../core';
 
 const HISTORY_LIMIT = 100;
+const LOG_LIMIT = 200;
+
+let logSeq = 0;
+
+export interface CommandLogEntry {
+  id: string;
+  ts: number;
+  command: Command;
+}
 
 interface CoalesceTag {
   type: 'UPDATE_TRANSFORM';
   nodeId: string;
 }
 
-const buildInitialScene = (): Scene => {
-  let scene = createEmptyScene('Root');
-  const firstCube = createNode({
-    name: 'Cube 1',
-    transform: { position: [0, 0.5, 0] },
-  });
-  scene = applyCommand(scene, {
-    type: 'ADD_NODE',
-    parentId: scene.rootId,
-    node: firstCube,
-  });
-  return scene;
-};
+const buildInitialScene = (): Scene => getStarterScene('default');
 
 const pushPast = (past: Scene[], entry: Scene): Scene[] => {
   const next = past.length >= HISTORY_LIMIT ? past.slice(1) : past.slice();
@@ -45,12 +43,24 @@ const sameTag = (a: CoalesceTag | null, b: CoalesceTag | null): boolean =>
   a.type === b.type &&
   a.nodeId === b.nodeId;
 
+const pushLog = (log: CommandLogEntry[], command: Command): CommandLogEntry[] => {
+  const entry: CommandLogEntry = {
+    id: `log_${++logSeq}`,
+    ts: Date.now(),
+    command,
+  };
+  const next = [...log, entry];
+  if (next.length > LOG_LIMIT) return next.slice(-LOG_LIMIT);
+  return next;
+};
+
 export interface SceneState {
   scene: Scene;
   selectedId: string | null;
   past: Scene[];
   future: Scene[];
   lastTag: CoalesceTag | null;
+  commandLog: CommandLogEntry[];
   dispatch: (command: Command) => void;
   select: (id: string | null) => void;
   undo: () => void;
@@ -58,6 +68,8 @@ export interface SceneState {
   canUndo: () => boolean;
   canRedo: () => boolean;
   reset: () => void;
+  exportSceneJson: () => string;
+  importSceneJson: (text: string) => boolean;
 }
 
 const reconcileSelection = (
@@ -74,11 +86,24 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   past: [],
   future: [],
   lastTag: null,
+  commandLog: [],
 
   dispatch: (command) => {
     const state = get();
     const nextScene = applyCommand(state.scene, command);
     if (nextScene === state.scene) return;
+
+    if (command.type === 'REPLACE_SCENE') {
+      set({
+        scene: nextScene,
+        selectedId: reconcileSelection(nextScene, state.selectedId),
+        past: [],
+        future: [],
+        lastTag: null,
+        commandLog: [],
+      });
+      return;
+    }
 
     const tag = getCoalesceTag(command);
     const shouldCoalesce = sameTag(state.lastTag, tag) && state.past.length > 0;
@@ -93,6 +118,7 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       future: [],
       lastTag: tag,
       selectedId: reconcileSelection(nextScene, state.selectedId),
+      commandLog: pushLog(state.commandLog, command),
     });
   },
 
@@ -138,5 +164,15 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       past: [],
       future: [],
       lastTag: null,
+      commandLog: [],
     }),
+
+  exportSceneJson: () => serializeScene(get().scene),
+
+  importSceneJson: (text) => {
+    const parsed = parseSceneJson(text);
+    if (!parsed) return false;
+    get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
+    return true;
+  },
 }));
