@@ -1,5 +1,5 @@
 {
-  "name": "scenegraph-ai",
+  "name": "diorama",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "dev": "npm run dev -w web",
-    "build": "npm run build -w web",
+    "typecheck": "npm run build -w @diorama/schema && npm run build -w @diorama/core && npm run build -w @diorama/export-r3f && npm run build -w @diorama/mcp && npm run build -w @diorama/examples",
+    "test": "npm run test -w @diorama/core",
+    "build": "npm run typecheck && npm run build -w web",
     "lint": "npm run lint -w web",
     "preview": "npm run preview -w web"
   }

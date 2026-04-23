@@ -6,7 +6,7 @@ import {
   serializeScene,
   type Command,
   type Scene,
-} from '../core';
+} from '@diorama/core';
 
 const HISTORY_LIMIT = 100;
 const LOG_LIMIT = 200;
@@ -56,7 +56,6 @@ const pushLog = (log: CommandLogEntry[], command: Command): CommandLogEntry[] =>
 
 export interface SceneState {
   scene: Scene;
-  selectedId: string | null;
   past: Scene[];
   future: Scene[];
   lastTag: CoalesceTag | null;
@@ -72,17 +71,8 @@ export interface SceneState {
   importSceneJson: (text: string) => boolean;
 }
 
-const reconcileSelection = (
-  scene: Scene,
-  selectedId: string | null,
-): string | null => {
-  if (selectedId === null) return null;
-  return scene.nodes[selectedId] ? selectedId : null;
-};
-
 export const useSceneStore = create<SceneState>()((set, get) => ({
   scene: buildInitialScene(),
-  selectedId: null,
   past: [],
   future: [],
   lastTag: null,
@@ -96,7 +86,6 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
     if (command.type === 'REPLACE_SCENE') {
       set({
         scene: nextScene,
-        selectedId: reconcileSelection(nextScene, state.selectedId),
         past: [],
         future: [],
         lastTag: null,
@@ -117,12 +106,14 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       past: nextPast,
       future: [],
       lastTag: tag,
-      selectedId: reconcileSelection(nextScene, state.selectedId),
-      commandLog: pushLog(state.commandLog, command),
+      commandLog:
+        command.type === 'SET_SELECTION'
+          ? state.commandLog
+          : pushLog(state.commandLog, command),
     });
   },
 
-  select: (id) => set({ selectedId: id }),
+  select: (id) => get().dispatch({ type: 'SET_SELECTION', nodeId: id }),
 
   undo: () => {
     const state = get();
@@ -135,7 +126,6 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       past: nextPast,
       future: nextFuture,
       lastTag: null,
-      selectedId: reconcileSelection(previous, state.selectedId),
     });
   },
 
@@ -150,7 +140,6 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       past: nextPast,
       future: nextFuture,
       lastTag: null,
-      selectedId: reconcileSelection(next, state.selectedId),
     });
   },
 
@@ -160,7 +149,6 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   reset: () =>
     set({
       scene: buildInitialScene(),
-      selectedId: null,
       past: [],
       future: [],
       lastTag: null,

@@ -1,4 +1,4 @@
-import type { Scene, SceneNode, Vec3 } from '../core';
+import type { Scene, SceneNode, Vec3 } from '@diorama/schema';
 
 export interface R3fExportOptions {
   includeLights?: boolean;

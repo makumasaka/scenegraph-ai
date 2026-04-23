@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
 import { useSceneStore } from '../store/sceneStore';
-import type { Scene } from '../core';
+import type { Scene } from '@diorama/core';
 import { NodeMesh } from './NodeMesh';
 
 function SceneNodes({ scene }: { scene: Scene }) {

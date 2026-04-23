@@ -1,5 +1,5 @@
 import { useSceneStore } from '../store/sceneStore';
-import type { Scene } from '../core';
+import type { Scene } from '@diorama/core';
 
 interface TreeRowProps {
   scene: Scene;
@@ -45,8 +45,8 @@ function TreeRow({ scene, nodeId, depth, selectedId, onSelect }: TreeRowProps) {
 
 export function TreeView() {
   const scene = useSceneStore((s) => s.scene);
-  const selectedId = useSceneStore((s) => s.selectedId);
   const select = useSceneStore((s) => s.select);
+  const selectedId = scene.selection;
 
   return (
     <div className="tree-view">

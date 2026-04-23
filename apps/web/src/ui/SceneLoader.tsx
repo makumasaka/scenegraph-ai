@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { getStarterScene, type StarterKitId } from '../core';
-import { exportSceneToR3fJsx } from '../export/r3f';
+import { getStarterScene, type StarterKitId } from '@diorama/core';
+import { exportSceneToR3fJsx } from '@diorama/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
 
 export function SceneLoader() {

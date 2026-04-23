@@ -1,5 +1,5 @@
 import { useSceneStore } from '../store/sceneStore';
-import { getParent, type TransformPatch, type Vec3 } from '../core';
+import { getParent, type TransformPatch, type Vec3 } from '@diorama/core';
 
 const RAD_TO_DEG = 180 / Math.PI;
 const DEG_TO_RAD = Math.PI / 180;
@@ -61,8 +61,8 @@ const round = (n: number): number => Math.round(n * 1000) / 1000;
 
 export function Inspector() {
   const scene = useSceneStore((s) => s.scene);
-  const selectedId = useSceneStore((s) => s.selectedId);
   const dispatch = useSceneStore((s) => s.dispatch);
+  const selectedId = scene.selection;
 
   const node = selectedId ? scene.nodes[selectedId] : null;
 

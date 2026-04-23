@@ -1,5 +1,5 @@
 import { useSceneStore } from '../store/sceneStore';
-import { createNode, getParent, type Scene, type Vec3 } from '../core';
+import { createNode, getParent, type Scene, type Vec3 } from '@diorama/core';
 import { SceneLoader } from './SceneLoader';
 
 const PALETTE: Vec3[] = [
@@ -23,7 +23,7 @@ const arrangeTargets = (scene: Scene, selectedId: string | null): string[] => {
 
 export function Toolbar() {
   const scene = useSceneStore((s) => s.scene);
-  const selectedId = useSceneStore((s) => s.selectedId);
+  const selectedId = scene.selection;
   const dispatch = useSceneStore((s) => s.dispatch);
   const reset = useSceneStore((s) => s.reset);
   const undo = useSceneStore((s) => s.undo);

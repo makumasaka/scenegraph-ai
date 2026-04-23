@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
-import type { SceneNode } from '../core';
+import type { SceneNode } from '@diorama/core';
 import { useSceneStore } from '../store/sceneStore';
 
 interface NodeMeshProps {
@@ -8,7 +8,7 @@ interface NodeMeshProps {
 }
 
 export function NodeMesh({ node }: NodeMeshProps) {
-  const selectedId = useSceneStore((s) => s.selectedId);
+  const selectedId = useSceneStore((s) => s.scene.selection);
   const select = useSceneStore((s) => s.select);
 
   const isSelected = selectedId === node.id;
