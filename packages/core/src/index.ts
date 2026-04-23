@@ -1,0 +1,46 @@
+export type { Vec3, Transform, SceneNode, Scene } from '@diorama/schema';
+export {
+  serializeScene,
+  parseSceneJson,
+  cloneSceneFromJson,
+  validateScene,
+  cloneSceneImmutable,
+} from '@diorama/schema';
+export {
+  createEmptyScene,
+  createNode,
+  createId,
+  identityTransform,
+  getNode,
+  getChildren,
+  getParent,
+  isDescendant,
+  collectSubtreeIds,
+  getAncestorPath,
+} from './scene';
+export { getWorldMatrix, matrixToTransform } from './worldTransform';
+export type { CreateNodeInput } from './scene';
+export { applyCommand, applyReparent } from './commands';
+export type { Command } from './commands';
+export {
+  mergeTransform,
+  transformEqual,
+  isEmptyPatch,
+  vec3Equal,
+} from './transform';
+export type { TransformPatch } from './transform';
+export { computeArrangement } from './layout';
+export type { ArrangeLayout, ArrangeOptions } from './layout';
+export {
+  duplicateNodeInScene,
+  collectSubtreeBfsOrder,
+} from './duplicate';
+export { summarizeCommand } from './commandLog';
+export type { CommandSummary } from './commandLog';
+export {
+  getStarterScene,
+  defaultFixtureScene,
+  showroomScene,
+  galleryScene,
+} from './fixtures';
+export type { StarterKitId } from './fixtures';
