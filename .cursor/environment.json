@@ -1,0 +1,13 @@
+{
+    "install": "npm install",
+    "terminals": [
+      {
+        "name": "Web app",
+        "command": "npm --filter web dev"
+      },
+      {
+        "name": "Tests",
+        "command": "npm test --watch"
+      }
+    ]
+}
