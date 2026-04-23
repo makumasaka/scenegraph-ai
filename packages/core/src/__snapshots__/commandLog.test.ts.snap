@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`summarizeCommand (command log regression) > produces stable titles and details for every command variant 1`] = `
+[
+  {
+    "detail": "Sample → parent cmd-log-… · id cmd-node",
+    "title": "Add node",
+  },
+  {
+    "detail": "node cmd-node",
+    "title": "Delete node",
+  },
+  {
+    "detail": "node cmd-log-…",
+    "title": "Update transform",
+  },
+  {
+    "detail": "cmd-node · subtree=true → cmd-log-…",
+    "title": "Duplicate node",
+  },
+  {
+    "detail": "cmd-node → cmd-log-… · preserve world",
+    "title": "Set parent",
+  },
+  {
+    "detail": "2 node(s): a, b",
+    "title": "Arrange (grid)",
+  },
+  {
+    "detail": "root cmd-log-… · 1 nodes",
+    "title": "Replace scene",
+  },
+  {
+    "detail": "clear",
+    "title": "Selection",
+  },
+  {
+    "detail": "node cmd-log-…",
+    "title": "Selection",
+  },
+]
+`;

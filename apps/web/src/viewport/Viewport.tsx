@@ -1,24 +1,29 @@
 import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
+import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
-import type { Scene } from '@diorama/core';
 import { NodeMesh } from './NodeMesh';
 
-function SceneNodes({ scene }: { scene: Scene }) {
-  const meshes = Object.values(scene.nodes).filter(
-    (n) => n.id !== scene.rootId,
-  );
+function meshNodeIdsFromScene(rootId: string, nodes: Record<string, { id: string }>): string[] {
+  return Object.keys(nodes)
+    .filter((id) => id !== rootId)
+    .sort();
+}
+
+function SceneNodes({ nodeIds }: { nodeIds: string[] }) {
   return (
     <>
-      {meshes.map((node) => (
-        <NodeMesh key={node.id} node={node} />
+      {nodeIds.map((id) => (
+        <NodeMesh key={id} nodeId={id} />
       ))}
     </>
   );
 }
 
 export function Viewport() {
-  const scene = useSceneStore((s) => s.scene);
+  const nodeIds = useSceneStore(
+    useShallow((s) => meshNodeIdsFromScene(s.scene.rootId, s.scene.nodes)),
+  );
   const select = useSceneStore((s) => s.select);
 
   return (
@@ -51,7 +56,7 @@ export function Viewport() {
           infiniteGrid
         />
 
-        <SceneNodes scene={scene} />
+        <SceneNodes nodeIds={nodeIds} />
 
         <OrbitControls makeDefault enableDamping />
       </Canvas>

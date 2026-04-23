@@ -12,9 +12,14 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@diorama/schema": "*"
+  },
+  "devDependencies": {
+    "@diorama/core": "*",
+    "vitest": "^3.2.4"
   }
 }

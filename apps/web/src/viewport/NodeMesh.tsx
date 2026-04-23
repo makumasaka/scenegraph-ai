@@ -1,48 +1,101 @@
-import { useMemo } from 'react';
+import { useLayoutEffect, useCallback, useMemo, useRef, memo, type RefObject } from 'react';
+import { TransformControls } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
-import type { SceneNode } from '@diorama/core';
+import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
+import type { Mesh, Object3D } from 'three';
+import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
+import { transformPatchFromObject3D } from './object3dTransform';
 
 interface NodeMeshProps {
-  node: SceneNode;
+  nodeId: string;
 }
 
-export function NodeMesh({ node }: NodeMeshProps) {
-  const selectedId = useSceneStore((s) => s.scene.selection);
-  const select = useSceneStore((s) => s.select);
+function NodeMeshInner({ nodeId }: NodeMeshProps) {
+  const meshRef = useRef<Mesh | null>(null);
+  const tcRef = useRef<TransformControlsImpl | null>(null);
 
-  const isSelected = selectedId === node.id;
+  const { node, isSelected, gizmoMode, dispatch, select } = useSceneStore(
+    useShallow((s) => {
+      const self = s.scene.nodes[nodeId];
+      const isSel = s.scene.selection === nodeId;
+      return {
+        node: self,
+        isSelected: isSel,
+        gizmoMode: isSel ? s.gizmoMode : 'translate',
+        dispatch: s.dispatch,
+        select: s.select,
+      };
+    }),
+  );
+
+  const commitGizmo = useCallback(() => {
+    const m = meshRef.current;
+    if (!m) return;
+    dispatch({
+      type: 'UPDATE_TRANSFORM',
+      nodeId,
+      patch: transformPatchFromObject3D(m),
+    });
+  }, [dispatch, nodeId]);
+
+  useLayoutEffect(() => {
+    if (!isSelected) return;
+    const c = tcRef.current as unknown as { addEventListener: (n: 'dragging-changed', f: (e: { value: boolean }) => void) => void; removeEventListener: (n: 'dragging-changed', f: (e: { value: boolean }) => void) => void };
+    if (!c) return;
+    const onDraggingChanged = (e: { value: boolean }): void => {
+      if (e.value) return;
+      commitGizmo();
+    };
+    c.addEventListener('dragging-changed', onDraggingChanged);
+    return () => c.removeEventListener('dragging-changed', onDraggingChanged);
+  }, [isSelected, commitGizmo]);
 
   const color = useMemo(() => {
     if (isSelected) return '#fbbf24';
     let hash = 0;
-    for (let i = 0; i < node.id.length; i += 1) {
-      hash = (hash * 31 + node.id.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < nodeId.length; i += 1) {
+      hash = (hash * 31 + nodeId.charCodeAt(i)) >>> 0;
     }
     const hue = hash % 360;
     return `hsl(${hue}, 65%, 55%)`;
-  }, [isSelected, node.id]);
+  }, [isSelected, nodeId]);
 
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+  if (!node) return null;
+
+  const handleClick = (e: ThreeEvent<MouseEvent>): void => {
     e.stopPropagation();
-    select(node.id);
+    select(nodeId);
   };
 
   return (
-    <mesh
-      position={node.transform.position}
-      rotation={node.transform.rotation}
-      scale={node.transform.scale}
-      onClick={handleClick}
-      castShadow
-      receiveShadow
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial
-        color={color}
-        emissive={isSelected ? '#f59e0b' : '#000000'}
-        emissiveIntensity={isSelected ? 0.35 : 0}
-      />
-    </mesh>
+    <>
+      <mesh
+        ref={meshRef}
+        position={node.transform.position}
+        rotation={node.transform.rotation}
+        scale={node.transform.scale}
+        onClick={handleClick}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={isSelected ? '#f59e0b' : '#000000'}
+          emissiveIntensity={isSelected ? 0.35 : 0}
+        />
+      </mesh>
+      {isSelected ? (
+        <TransformControls
+          key={`tc-${nodeId}`}
+          ref={tcRef}
+          object={meshRef as RefObject<Object3D | null> as RefObject<Object3D>}
+          mode={gizmoMode}
+        />
+      ) : null}
+    </>
   );
 }
+
+export const NodeMesh = memo(NodeMeshInner);

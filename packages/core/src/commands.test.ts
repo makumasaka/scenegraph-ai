@@ -153,6 +153,23 @@ describe('applyCommand', () => {
     assertValid(s);
   });
 
+  it('DUPLICATE_NODE copies optional light', () => {
+    let s = createEmptyScene();
+    const root = s.rootId;
+    const sun = createNode({
+      id: 'sun',
+      name: 'Sun',
+      children: [],
+      light: { kind: 'directional', intensity: 1.2 },
+    });
+    s = applyCommand(s, { type: 'ADD_NODE', parentId: root, node: sun });
+    s = applyCommand(s, { type: 'DUPLICATE_NODE', nodeId: 'sun', includeSubtree: false });
+    const dupId = s.nodes[root]?.children.find((c) => c !== 'sun');
+    expect(dupId).toBeDefined();
+    expect(s.nodes[dupId!]?.light).toEqual({ kind: 'directional', intensity: 1.2 });
+    assertValid(s);
+  });
+
   it('ARRANGE_NODES ignores unknown ids and root', () => {
     const scene = createEmptyScene();
     const next = applyCommand(scene, {

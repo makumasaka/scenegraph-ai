@@ -1,0 +1,11 @@
+---
+description: Rules for agent-facing tool surface
+globs: packages/mcp/**
+alwaysApply: false
+---
+
+- Keep the tool surface small, typed, and reversible.
+- Prefer getScene, getSelection, applyCommand, loadScene, exportScene.
+- Validate all payloads before execution.
+- Support preview/dry-run flows where possible.
+- Never allow direct hidden state mutation.

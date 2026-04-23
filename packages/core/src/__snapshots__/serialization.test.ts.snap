@@ -1,0 +1,189 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`versioned serialization > matches snapshot bytes for default + showroom fixtures 1`] = `
+"{
+  "data": {
+    "nodes": {
+      "default-cube-1": {
+        "children": [],
+        "id": "default-cube-1",
+        "name": "Cube 1",
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "default-root": {
+        "children": [
+          "default-cube-1"
+        ],
+        "id": "default-root",
+        "name": "Root",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    "rootId": "default-root",
+    "selection": null
+  },
+  "format": "diorama-scene",
+  "version": 1
+}"
+`;
+
+exports[`versioned serialization > matches snapshot bytes for default + showroom fixtures 2`] = `
+"{
+  "data": {
+    "nodes": {
+      "showroom-accent": {
+        "children": [],
+        "id": "showroom-accent",
+        "name": "Accent",
+        "transform": {
+          "position": [
+            0,
+            1.1,
+            0
+          ],
+          "rotation": [
+            0,
+            0.35,
+            0
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ]
+        }
+      },
+      "showroom-floor": {
+        "children": [
+          "showroom-pedestal-west",
+          "showroom-pedestal-east"
+        ],
+        "id": "showroom-floor",
+        "name": "Floor",
+        "transform": {
+          "position": [
+            0,
+            0.05,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            7,
+            0.1,
+            5
+          ]
+        }
+      },
+      "showroom-pedestal-east": {
+        "children": [],
+        "id": "showroom-pedestal-east",
+        "name": "Pedestal East",
+        "transform": {
+          "position": [
+            2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "showroom-pedestal-west": {
+        "children": [],
+        "id": "showroom-pedestal-west",
+        "name": "Pedestal West",
+        "transform": {
+          "position": [
+            -2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "showroom-root": {
+        "children": [
+          "showroom-floor",
+          "showroom-accent"
+        ],
+        "id": "showroom-root",
+        "name": "Showroom",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    "rootId": "showroom-root",
+    "selection": null
+  },
+  "format": "diorama-scene",
+  "version": 1
+}"
+`;

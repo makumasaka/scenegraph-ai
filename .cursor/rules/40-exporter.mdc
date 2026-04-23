@@ -1,0 +1,10 @@
+---
+description: Rules for export code
+globs: packages/export-r3f/**
+alwaysApply: false
+---
+
+- Output readable React Three Fiber code, not maximally abstract code.
+- Prioritize clarity over total feature coverage.
+- Keep export deterministic and stable.
+- Avoid leaking internal implementation details into output.

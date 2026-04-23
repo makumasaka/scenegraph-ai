@@ -1,0 +1,10 @@
+---
+description: Rules for testing Diorama
+alwaysApply: true
+---
+
+- New behavior must include tests.
+- Prefer reducer tests for command semantics.
+- Add roundtrip tests for serialization/export changes.
+- Add browser/component tests for UI regressions.
+- Flag missing edge-case coverage explicitly.

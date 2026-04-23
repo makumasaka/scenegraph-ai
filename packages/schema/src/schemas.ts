@@ -30,6 +30,21 @@ export const MaterialRefSchema = z.discriminatedUnion('kind', [
 
 export type MaterialRef = z.infer<typeof MaterialRefSchema>;
 
+/** Optional authored light; viewport may ignore until wired. */
+export const SceneLightSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('ambient'),
+    intensity: z.number().finite().optional(),
+  }),
+  z.object({
+    kind: z.literal('directional'),
+    intensity: z.number().finite().optional(),
+    castShadow: z.boolean().optional(),
+  }),
+]);
+
+export type SceneLight = z.infer<typeof SceneLightSchema>;
+
 export const SceneNodeSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
@@ -37,6 +52,7 @@ export const SceneNodeSchema = z.object({
   transform: TransformSchema,
   assetRef: AssetRefSchema.optional(),
   materialRef: MaterialRefSchema.optional(),
+  light: SceneLightSchema.optional(),
 });
 
 export type SceneNode = z.infer<typeof SceneNodeSchema>;

@@ -3,6 +3,7 @@ export type {
   Transform,
   SceneNode,
   Scene,
+  SceneLight,
   AssetRef,
   MaterialRef,
 } from './schemas';

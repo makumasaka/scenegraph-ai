@@ -6,6 +6,7 @@ import {
   validateScene,
 } from '@diorama/schema';
 import { applyCommand } from './commands';
+import { defaultFixtureScene, galleryScene, showroomScene } from './fixtures';
 import { createEmptyScene, createNode } from './scene';
 
 describe('versioned serialization', () => {
@@ -73,5 +74,63 @@ describe('versioned serialization', () => {
     const a = stableStringify({ z: 1, a: { m: 2, b: 3 } });
     const b = stableStringify({ a: { b: 3, m: 2 }, z: 1 });
     expect(a).toBe(b);
+  });
+
+  it('roundtrips fixture scenes with structural equality', () => {
+    for (const scene of [defaultFixtureScene, showroomScene, galleryScene]) {
+      const again = parseSceneJson(serializeScene(scene));
+      expect(again).not.toBeNull();
+      expect(again).toEqual(scene);
+    }
+  });
+
+  it('roundtrips child order and optional light metadata', () => {
+    let scene = createEmptyScene();
+    const root = scene.rootId;
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: root,
+      node: createNode({
+        id: 'branch',
+        name: 'Branch',
+        children: [],
+        transform: { position: [1, 2, 3] },
+      }),
+    });
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: 'branch',
+      node: createNode({ id: 'z-first', name: 'Z' }),
+    });
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: 'branch',
+      node: createNode({
+        id: 'a-second',
+        name: 'Key',
+        children: [],
+        light: { kind: 'directional', intensity: 0.8, castShadow: true },
+      }),
+    });
+    const text = serializeScene(scene);
+    const parsed = parseSceneJson(text);
+    expect(parsed).toEqual(scene);
+    expect(parsed!.nodes.branch?.children).toEqual(['z-first', 'a-second']);
+    expect(parsed!.nodes['a-second']?.light).toEqual({
+      kind: 'directional',
+      intensity: 0.8,
+      castShadow: true,
+    });
+  });
+
+  it('is idempotent on bytes for a fixed scene', () => {
+    const once = serializeScene(showroomScene);
+    const twice = serializeScene(parseSceneJson(once)!);
+    expect(twice).toBe(once);
+  });
+
+  it('matches snapshot bytes for default + showroom fixtures', () => {
+    expect(serializeScene(defaultFixtureScene)).toMatchSnapshot();
+    expect(serializeScene(showroomScene)).toMatchSnapshot();
   });
 });

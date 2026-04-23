@@ -21,6 +21,11 @@ export const stableStringify = (value: unknown, space = 2): string => {
   return JSON.stringify(norm(value), null, space);
 };
 
+/**
+ * Canonical JSON export: `diorama-scene` document wrapper, version tag, and
+ * {@link stableStringify} so object keys sort lexicographically at every depth
+ * (arrays such as `children` keep graph order).
+ */
 export const serializeScene = (scene: Scene): string => {
   const doc = {
     format: SCENE_DOCUMENT_FORMAT,
@@ -61,6 +66,7 @@ export const cloneSceneFromJson = (scene: Scene): Scene => ({
         },
         ...(node.assetRef !== undefined ? { assetRef: node.assetRef } : {}),
         ...(node.materialRef !== undefined ? { materialRef: node.materialRef } : {}),
+        ...(node.light !== undefined ? { light: node.light } : {}),
       },
     ]),
   ),

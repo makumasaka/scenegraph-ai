@@ -54,14 +54,19 @@ const pushLog = (log: CommandLogEntry[], command: Command): CommandLogEntry[] =>
   return next;
 };
 
+export type GizmoMode = 'translate' | 'rotate' | 'scale';
+
 export interface SceneState {
   scene: Scene;
+  /** Viewport gizmo (TransformControls) mode; not part of the scene graph. */
+  gizmoMode: GizmoMode;
   past: Scene[];
   future: Scene[];
   lastTag: CoalesceTag | null;
   commandLog: CommandLogEntry[];
   dispatch: (command: Command) => void;
   select: (id: string | null) => void;
+  setGizmoMode: (mode: GizmoMode) => void;
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
@@ -73,6 +78,7 @@ export interface SceneState {
 
 export const useSceneStore = create<SceneState>()((set, get) => ({
   scene: buildInitialScene(),
+  gizmoMode: 'translate',
   past: [],
   future: [],
   lastTag: null,
@@ -86,6 +92,7 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
     if (command.type === 'REPLACE_SCENE') {
       set({
         scene: nextScene,
+        gizmoMode: 'translate',
         past: [],
         future: [],
         lastTag: null,
@@ -114,6 +121,8 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   },
 
   select: (id) => get().dispatch({ type: 'SET_SELECTION', nodeId: id }),
+
+  setGizmoMode: (gizmoMode) => set({ gizmoMode }),
 
   undo: () => {
     const state = get();
@@ -149,6 +158,7 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   reset: () =>
     set({
       scene: buildInitialScene(),
+      gizmoMode: 'translate',
       past: [],
       future: [],
       lastTag: null,

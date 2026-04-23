@@ -100,6 +100,7 @@ export const duplicateNodeInScene = (
     };
     if (old.assetRef !== undefined) dup.assetRef = old.assetRef;
     if (old.materialRef !== undefined) dup.materialRef = old.materialRef;
+    if (old.light !== undefined) dup.light = old.light;
     nextNodes[newId] = dup;
   }
 

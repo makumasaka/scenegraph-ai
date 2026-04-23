@@ -21,6 +21,7 @@ export interface CreateNodeInput {
   children?: string[];
   assetRef?: SceneNode['assetRef'];
   materialRef?: SceneNode['materialRef'];
+  light?: SceneNode['light'];
 }
 
 export const createNode = (input: CreateNodeInput = {}): SceneNode => {
@@ -37,6 +38,7 @@ export const createNode = (input: CreateNodeInput = {}): SceneNode => {
   };
   if (input.assetRef !== undefined) node.assetRef = input.assetRef;
   if (input.materialRef !== undefined) node.materialRef = input.materialRef;
+  if (input.light !== undefined) node.light = input.light;
   return node;
 };
 
