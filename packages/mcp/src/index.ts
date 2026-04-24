@@ -1,6 +1,4 @@
 /**
- * TODO: MCP server wiring — expose small typed tools (getScene, getSelection,
- * applyCommand, loadScene, exportScene) with payload validation; route edits
- * only through `applyCommand` from `@diorama/core`.
+ * Re-exports `@diorama/agent-interface` so MCP tool handlers share one typed surface.
  */
-export const MCP_SURFACE_PLACEHOLDER = true;
+export * from '@diorama/agent-interface';

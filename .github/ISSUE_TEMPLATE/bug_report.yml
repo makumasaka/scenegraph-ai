@@ -1,0 +1,58 @@
+name: Bug report
+description: Something is broken or incorrect
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search existing issues first.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong, in one short paragraph.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Ordered steps, including OS and browser if relevant.
+      placeholder: |
+        1. npm run dev
+        2. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Version / environment
+      description: Node version, npm version, commit SHA if not on main.
+      placeholder: Node 22, Windows 11, commit abc1234
+    validations:
+      required: false
+
+  - type: textarea
+    id: scene
+    attributes:
+      label: Scene or command data (optional)
+      description: If the bug involves scene JSON or commands, attach a minimal redacted example.
+    validations:
+      required: false

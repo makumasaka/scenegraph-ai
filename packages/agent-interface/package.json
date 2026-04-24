@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/mcp",
+  "name": "@diorama/agent-interface",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,9 +12,16 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/agent-interface": "*"
+    "@diorama/core": "*",
+    "@diorama/export-r3f": "*",
+    "@diorama/schema": "*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
   }
 }

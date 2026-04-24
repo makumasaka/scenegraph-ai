@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose new behavior or a meaningful improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Diorama prioritizes a **command-first**, **deterministic** scene model. Requests that fit that model are easier to adopt.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to accomplish? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch commands, schema fields, UX, or API changes. Links to prior art welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check (read AGENTS.md non-goals)
+      options:
+        - label: This stays within deterministic scene editing / export / agent surface (not full DCC scope)
+          required: false
