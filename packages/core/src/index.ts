@@ -42,5 +42,6 @@ export {
   defaultFixtureScene,
   showroomScene,
   galleryScene,
+  livingSpaceScene,
 } from './fixtures';
 export type { StarterKitId } from './fixtures';

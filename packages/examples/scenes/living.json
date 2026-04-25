@@ -1,0 +1,189 @@
+{
+  "data": {
+    "nodes": {
+      "living-floor": {
+        "children": [],
+        "id": "living-floor",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.floor"
+        },
+        "name": "Floor",
+        "transform": {
+          "position": [
+            0,
+            0.04,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            6,
+            0.08,
+            4.5
+          ]
+        }
+      },
+      "living-furniture-group": {
+        "children": [
+          "living-sofa",
+          "living-table",
+          "living-lamp"
+        ],
+        "id": "living-furniture-group",
+        "name": "Furniture",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "living-lamp": {
+        "children": [],
+        "id": "living-lamp",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.metal"
+        },
+        "name": "Floor lamp",
+        "transform": {
+          "position": [
+            1.9,
+            0.95,
+            -0.6
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.2,
+            1.9,
+            0.2
+          ]
+        }
+      },
+      "living-room": {
+        "children": [
+          "living-floor",
+          "living-furniture-group"
+        ],
+        "id": "living-room",
+        "name": "Room",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "living-root": {
+        "children": [
+          "living-room"
+        ],
+        "id": "living-root",
+        "name": "Living space",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "living-sofa": {
+        "children": [],
+        "id": "living-sofa",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.fabric"
+        },
+        "name": "Sofa",
+        "transform": {
+          "position": [
+            -1.2,
+            0.45,
+            0.5
+          ],
+          "rotation": [
+            0,
+            0.25,
+            0
+          ],
+          "scale": [
+            1.8,
+            0.55,
+            0.85
+          ]
+        }
+      },
+      "living-table": {
+        "children": [],
+        "id": "living-table",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.wood"
+        },
+        "name": "Coffee table",
+        "transform": {
+          "position": [
+            0.6,
+            0.32,
+            0.4
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.1,
+            0.12,
+            0.65
+          ]
+        }
+      }
+    },
+    "rootId": "living-root",
+    "selection": null
+  },
+  "format": "diorama-scene",
+  "version": 1
+}

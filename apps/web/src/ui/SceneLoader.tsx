@@ -74,6 +74,7 @@ export function SceneLoader() {
           <option value="default">Default</option>
           <option value="showroom">Showroom</option>
           <option value="gallery">Gallery</option>
+          <option value="living">Living space</option>
         </select>
       </label>
       <button type="button" onClick={loadKit}>
