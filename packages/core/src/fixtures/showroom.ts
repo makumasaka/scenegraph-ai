@@ -6,11 +6,13 @@ export const showroomScene: Scene = (() => {
   const root = createNode({
     id: 'showroom-root',
     name: 'Showroom',
+    type: 'root',
     children: ['showroom-floor', 'showroom-accent'],
   });
   const floor = createNode({
     id: 'showroom-floor',
     name: 'Floor',
+    type: 'mesh',
     children: ['showroom-pedestal-west', 'showroom-pedestal-east'],
     transform: {
       position: [0, 0.05, 0],

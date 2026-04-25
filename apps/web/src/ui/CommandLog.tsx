@@ -20,6 +20,10 @@ function LogRow({ entry }: { entry: CommandLogEntry }) {
       <div className="command-log__text">
         <div className="command-log__title">{title}</div>
         <div className="command-log__detail">{detail}</div>
+        <details className="command-log__payload">
+          <summary>Payload</summary>
+          <pre>{JSON.stringify(entry.command, null, 2)}</pre>
+        </details>
       </div>
     </div>
   );

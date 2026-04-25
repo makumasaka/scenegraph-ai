@@ -1,4 +1,12 @@
-export type { Vec3, Transform, SceneNode, Scene } from '@diorama/schema';
+export type {
+  Vec3,
+  Transform,
+  SceneNode,
+  Scene,
+  NodeType,
+  Metadata,
+  JsonValue,
+} from '@diorama/schema';
 export {
   serializeScene,
   parseSceneJson,
@@ -20,8 +28,8 @@ export {
 } from './scene';
 export { getWorldMatrix, matrixToTransform } from './worldTransform';
 export type { CreateNodeInput } from './scene';
-export { applyCommand, applyReparent } from './commands';
-export type { Command } from './commands';
+export { applyCommand, applyCommandWithResult, applyReparent } from './commands';
+export type { Command, CommandResult } from './commands';
 export {
   mergeTransform,
   transformEqual,

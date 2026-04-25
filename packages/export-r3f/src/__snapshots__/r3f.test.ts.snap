@@ -2,11 +2,11 @@
 
 exports[`exportSceneToR3fJsx > matches snapshot for default fixture 1`] = `
 "/* eslint-disable */
-/* Auto-generated for React Three Fiber — paste inside <Canvas> */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
 <>
-    {/* default-root · Root */}
+    {/* default-root - Root */}
     <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-      {/* default-cube-1 · Cube 1 */}
+      {/* default-cube-1 - Cube 1 */}
       <group name="Cube 1" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[1, 1, 1]} />
@@ -20,69 +20,69 @@ exports[`exportSceneToR3fJsx > matches snapshot for default fixture 1`] = `
 
 exports[`exportSceneToR3fJsx > matches snapshot for gallery kit 1`] = `
 "/* eslint-disable */
-/* Auto-generated for React Three Fiber — paste inside <Canvas> */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
 <>
-    {/* gallery-root · Gallery */}
+    {/* gallery-root - Gallery */}
     <group name="Gallery" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-      {/* gallery-hall · Hall */}
+      {/* gallery-hall - Hall */}
       <group name="Hall" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-        {/* gallery-frame-0-0 · Frame 1-1 */}
+        {/* gallery-frame-0-0 - Frame 1-1 */}
         <group name="Frame 1-1" position={[-1.1, 0.45, -1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-0-1 · Frame 1-2 */}
+        {/* gallery-frame-0-1 - Frame 1-2 */}
         <group name="Frame 1-2" position={[0, 0.45, -1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-0-2 · Frame 1-3 */}
+        {/* gallery-frame-0-2 - Frame 1-3 */}
         <group name="Frame 1-3" position={[1.1, 0.45, -1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-1-0 · Frame 2-1 */}
+        {/* gallery-frame-1-0 - Frame 2-1 */}
         <group name="Frame 2-1" position={[-1.1, 0.45, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-1-1 · Frame 2-2 */}
+        {/* gallery-frame-1-1 - Frame 2-2 */}
         <group name="Frame 2-2" position={[0, 0.45, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-1-2 · Frame 2-3 */}
+        {/* gallery-frame-1-2 - Frame 2-3 */}
         <group name="Frame 2-3" position={[1.1, 0.45, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-2-0 · Frame 3-1 */}
+        {/* gallery-frame-2-0 - Frame 3-1 */}
         <group name="Frame 3-1" position={[-1.1, 0.45, 1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-2-1 · Frame 3-2 */}
+        {/* gallery-frame-2-1 - Frame 3-2 */}
         <group name="Frame 3-2" position={[0, 0.45, 1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* gallery-frame-2-2 · Frame 3-3 */}
+        {/* gallery-frame-2-2 - Frame 3-3 */}
         <group name="Frame 3-3" position={[1.1, 0.45, 1.1]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
@@ -95,17 +95,62 @@ exports[`exportSceneToR3fJsx > matches snapshot for gallery kit 1`] = `
 "
 `;
 
+exports[`exportSceneToR3fJsx > matches snapshot for living kit 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* living-root - Living space */}
+    <group name="Living space" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* living-room - Room */}
+      <group name="Room" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* living-floor - Floor */}
+        <group name="Floor" position={[0, 0.04, 0]} rotation={[0, 0, 0]} scale={[6, 0.08, 4.5]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* living-furniture-group - Furniture */}
+        <group name="Furniture" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          {/* living-sofa - Sofa */}
+          <group name="Sofa" position={[-1.2, 0.45, 0.5]} rotation={[0, 0.25, 0]} scale={[1.8, 0.55, 0.85]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+          {/* living-table - Coffee table */}
+          <group name="Coffee table" position={[0.6, 0.32, 0.4]} rotation={[0, 0, 0]} scale={[1.1, 0.12, 0.65]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+          {/* living-lamp - Floor lamp */}
+          <group name="Floor lamp" position={[1.9, 0.95, -0.6]} rotation={[0, 0, 0]} scale={[0.2, 1.9, 0.2]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+        </group>
+      </group>
+    </group>
+</>
+"
+`;
+
 exports[`exportSceneToR3fJsx > matches snapshot for scene light nodes 1`] = `
 "/* eslint-disable */
-/* Auto-generated for React Three Fiber — paste inside <Canvas> */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
 <>
-    {/* r3f-light-root · Root */}
+    {/* r3f-light-root - Root */}
     <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-      {/* sky · Sky fill */}
+      {/* sky - Sky fill */}
       <group name="Sky fill" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
         <ambientLight intensity={0.32} />
       </group>
-      {/* sun · Sun */}
+      {/* sun - Sun */}
       <group name="Sun" position={[4, 10, 6]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
         <directionalLight intensity={1.05} castShadow />
       </group>
@@ -116,20 +161,24 @@ exports[`exportSceneToR3fJsx > matches snapshot for scene light nodes 1`] = `
 
 exports[`exportSceneToR3fJsx > matches snapshot for showroom (nested branches) 1`] = `
 "/* eslint-disable */
-/* Auto-generated for React Three Fiber — paste inside <Canvas> */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
 <>
-    {/* showroom-root · Showroom */}
+    {/* showroom-root - Showroom */}
     <group name="Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-      {/* showroom-floor · Floor */}
+      {/* showroom-floor - Floor */}
       <group name="Floor" position={[0, 0.05, 0]} rotation={[0, 0, 0]} scale={[7, 0.1, 5]}>
-        {/* showroom-pedestal-west · Pedestal West */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+        {/* showroom-pedestal-west - Pedestal West */}
         <group name="Pedestal West" position={[-2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#9ca3af" />
           </mesh>
         </group>
-        {/* showroom-pedestal-east · Pedestal East */}
+        {/* showroom-pedestal-east - Pedestal East */}
         <group name="Pedestal East" position={[2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
@@ -137,7 +186,7 @@ exports[`exportSceneToR3fJsx > matches snapshot for showroom (nested branches) 1
           </mesh>
         </group>
       </group>
-      {/* showroom-accent · Accent */}
+      {/* showroom-accent - Accent */}
       <group name="Accent" position={[0, 1.1, 0]} rotation={[0, 0.35, 0]} scale={[1.2, 1.2, 1.2]}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[1, 1, 1]} />

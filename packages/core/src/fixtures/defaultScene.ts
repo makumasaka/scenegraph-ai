@@ -6,6 +6,7 @@ export const defaultFixtureScene: Scene = (() => {
   const root = createNode({
     id: 'default-root',
     name: 'Root',
+    type: 'root',
     children: ['default-cube-1'],
   });
   const cube = createNode({

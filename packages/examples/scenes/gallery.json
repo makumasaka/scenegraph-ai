@@ -1,0 +1,297 @@
+{
+  "data": {
+    "nodes": {
+      "gallery-frame-0-0": {
+        "children": [],
+        "id": "gallery-frame-0-0",
+        "metadata": {},
+        "name": "Frame 1-1",
+        "transform": {
+          "position": [
+            -1.1,
+            0.45,
+            -1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-0-1": {
+        "children": [],
+        "id": "gallery-frame-0-1",
+        "metadata": {},
+        "name": "Frame 1-2",
+        "transform": {
+          "position": [
+            0,
+            0.45,
+            -1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-0-2": {
+        "children": [],
+        "id": "gallery-frame-0-2",
+        "metadata": {},
+        "name": "Frame 1-3",
+        "transform": {
+          "position": [
+            1.1,
+            0.45,
+            -1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-0": {
+        "children": [],
+        "id": "gallery-frame-1-0",
+        "metadata": {},
+        "name": "Frame 2-1",
+        "transform": {
+          "position": [
+            -1.1,
+            0.45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-1": {
+        "children": [],
+        "id": "gallery-frame-1-1",
+        "metadata": {},
+        "name": "Frame 2-2",
+        "transform": {
+          "position": [
+            0,
+            0.45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-2": {
+        "children": [],
+        "id": "gallery-frame-1-2",
+        "metadata": {},
+        "name": "Frame 2-3",
+        "transform": {
+          "position": [
+            1.1,
+            0.45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-0": {
+        "children": [],
+        "id": "gallery-frame-2-0",
+        "metadata": {},
+        "name": "Frame 3-1",
+        "transform": {
+          "position": [
+            -1.1,
+            0.45,
+            1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-1": {
+        "children": [],
+        "id": "gallery-frame-2-1",
+        "metadata": {},
+        "name": "Frame 3-2",
+        "transform": {
+          "position": [
+            0,
+            0.45,
+            1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-2": {
+        "children": [],
+        "id": "gallery-frame-2-2",
+        "metadata": {},
+        "name": "Frame 3-3",
+        "transform": {
+          "position": [
+            1.1,
+            0.45,
+            1.1
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-hall": {
+        "children": [
+          "gallery-frame-0-0",
+          "gallery-frame-0-1",
+          "gallery-frame-0-2",
+          "gallery-frame-1-0",
+          "gallery-frame-1-1",
+          "gallery-frame-1-2",
+          "gallery-frame-2-0",
+          "gallery-frame-2-1",
+          "gallery-frame-2-2"
+        ],
+        "id": "gallery-hall",
+        "metadata": {},
+        "name": "Hall",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "group",
+        "visible": true
+      },
+      "gallery-root": {
+        "children": [
+          "gallery-hall"
+        ],
+        "id": "gallery-root",
+        "metadata": {},
+        "name": "Gallery",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "root",
+        "visible": true
+      }
+    },
+    "rootId": "gallery-root",
+    "selection": null
+  },
+  "format": "diorama-scene",
+  "version": 1
+}

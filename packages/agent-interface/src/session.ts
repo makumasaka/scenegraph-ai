@@ -1,5 +1,5 @@
 import {
-  applyCommand,
+  applyCommandWithResult,
   createEmptyScene,
   type Command,
 } from '@diorama/core';
@@ -79,8 +79,9 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
       }
       const command: Command = parsed.data;
       const dryRun = options?.dryRun === true;
-      const next = applyCommand(scene, command);
-      const changed = next !== scene;
+      const result = applyCommandWithResult(scene, command);
+      const next = result.scene;
+      const changed = result.changed;
       const snapshot = cloneSceneFromJson(next);
       if (!dryRun) {
         scene = next;

@@ -63,7 +63,7 @@ const applyAddNode = (
   if (!parent) return scene;
   if (scene.nodes[node.id]) return scene;
 
-  return {
+  const nextScene: Scene = {
     ...scene,
     nodes: {
       ...scene.nodes,
@@ -71,6 +71,8 @@ const applyAddNode = (
       [node.id]: node,
     },
   };
+  if (!validateScene(nextScene)) return scene;
+  return nextScene;
 };
 
 const applyDeleteNode = (scene: Scene, nodeId: string): Scene => {
@@ -263,4 +265,22 @@ export const applyCommand = (scene: Scene, command: Command): Scene => {
       return _exhaustive;
     }
   }
+};
+
+export interface CommandResult {
+  scene: Scene;
+  changed: boolean;
+  command: Command;
+}
+
+export const applyCommandWithResult = (
+  scene: Scene,
+  command: Command,
+): CommandResult => {
+  const next = applyCommand(scene, command);
+  return {
+    scene: next,
+    changed: next !== scene,
+    command,
+  };
 };

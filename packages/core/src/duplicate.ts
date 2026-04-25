@@ -95,8 +95,11 @@ export const duplicateNodeInScene = (
     const dup: SceneNode = {
       id: newId,
       name,
+      type: old.type,
       children: newChildren,
       transform: cloneTransform(old.transform),
+      visible: old.visible,
+      metadata: { ...old.metadata },
     };
     if (old.assetRef !== undefined) dup.assetRef = old.assetRef;
     if (old.materialRef !== undefined) dup.materialRef = old.materialRef;

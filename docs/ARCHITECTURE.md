@@ -11,18 +11,18 @@ flowchart TB
     AIF["@diorama/agent-interface"]
   end
   subgraph app [Application]
-    Web["apps/web — React + R3F"]
-    Store["Zustand store — dispatch only"]
+    Web["apps/web - React + R3F"]
+    Store["Zustand store - dispatch only"]
   end
   subgraph core [Core]
     Cmd["Command union + applyCommand"]
-    Scene["Scene graph — Zod-validated"]
+    Scene["Scene graph - Zod-validated"]
   end
   subgraph io [I/O]
     Ser["serializeScene / parseSceneJson"]
     Exp["@diorama/export-r3f"]
   end
-  Schema["@diorama/schema — types + validation"]
+  Schema["@diorama/schema - types + validation"]
   Schema --> Scene
   Schema --> Ser
   Cmd --> Scene
@@ -42,18 +42,20 @@ flowchart TB
 
 ## `@diorama/core`
 
-- **`Command`** — Discriminated union (`ADD_NODE`, `DELETE_NODE`, `UPDATE_TRANSFORM`, `SET_PARENT`, `DUPLICATE_NODE`, `ARRANGE_NODES`, `REPLACE_SCENE`, `SET_SELECTION`).
-- **`applyCommand(scene, command)`** — Pure, deterministic reducer entry point.
-- **Fixtures** — `getStarterScene` and static scenes for tests and the web “kits” UI.
-- **Layout** — Helpers such as `ARRANGE_NODES` for grid-like positioning.
+- **`Command`** - Discriminated union (`ADD_NODE`, `DELETE_NODE`, `UPDATE_TRANSFORM`, `SET_PARENT`, `DUPLICATE_NODE`, `ARRANGE_NODES`, `REPLACE_SCENE`, `SET_SELECTION`).
+- **`applyCommand(scene, command)`** - Pure, deterministic reducer entry point.
+- **Fixtures** - `getStarterScene` and static scenes for tests and the web kits UI.
+- **Layout** - Helpers such as `ARRANGE_NODES` for grid-like positioning.
 
-No React, no Three.js imports in core—only graph logic and math that serves commands.
+No React imports in core. Three.js math is allowed in core only for TRS
+composition/decomposition that serves command semantics, as documented in ADR
+010. Core remains renderer-independent even though it uses Three.js math types.
 
 ## `apps/web`
 
 - Renders the scene graph in the viewport.
 - User actions should **dispatch commands** through the scene store, not rewrite `scene.nodes` imperatively.
-- Import/export and “Load kit” use the same schema and command paths as automation would.
+- Import/export and Load kit use the same schema and command paths as automation would.
 
 ## `@diorama/export-r3f`
 

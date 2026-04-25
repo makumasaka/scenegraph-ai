@@ -42,6 +42,7 @@ export const livingSpaceScene: Scene = (() => {
   const furnitureGroup = createNode({
     id: 'living-furniture-group',
     name: 'Furniture',
+    type: 'group',
     children: [sofa.id, table.id, lamp.id],
     transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
   });
@@ -59,12 +60,14 @@ export const livingSpaceScene: Scene = (() => {
   const room = createNode({
     id: 'living-room',
     name: 'Room',
+    type: 'group',
     children: [floor.id, furnitureGroup.id],
     transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
   });
   const root = createNode({
     id: 'living-root',
     name: 'Living space',
+    type: 'root',
     children: [room.id],
   });
 

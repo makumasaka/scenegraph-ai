@@ -38,6 +38,7 @@ const placeholderMesh = (indent: string): string =>
 const emitNode = (scene: Scene, id: string, depth: number): string => {
   const node: SceneNode | undefined = scene.nodes[id];
   if (!node) return '';
+  if (node.visible === false) return '';
 
   const ind = '  '.repeat(depth);
   const inner = '  '.repeat(depth + 1);
@@ -46,12 +47,11 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
   const scale = fmtVec(node.transform.scale);
 
   const isRoot = id === scene.rootId;
-  const isLeaf = node.children.length === 0;
-  const hasLight = node.light !== undefined;
-  const showPlaceholderMesh = !isRoot && isLeaf && !hasLight;
+  const hasLight = node.light !== undefined || node.type === 'light';
+  const showPlaceholderMesh = !isRoot && node.type === 'mesh' && !hasLight;
 
   const open =
-    `${ind}{/* ${escapeComment(node.id)} · ${escapeComment(node.name)} */}\n` +
+    `${ind}{/* ${escapeComment(node.id)} - ${escapeComment(node.name)} */}\n` +
     `${ind}<group name="${escapeAttr(node.name)}" position={${pos}} rotation={${rot}} scale={${scale}}>\n`;
 
   let body = '';
@@ -67,10 +67,10 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
  * Readable React Three Fiber-style JSX string for a {@link Scene}.
  *
  * Mapping (minimal):
- * - Every node → `<group>` with local `position` / `rotation` / `scale` (Euler radians, same as Three).
- * - Branch nodes (children.length > 0) → group only.
- * - Leaf nodes → placeholder `<mesh>` (unit cube + neutral material) unless `light` is set.
- * - `light` → `<ambientLight>` or `<directionalLight>` inside the node's group.
+ * - Every node -> `<group>` with local `position` / `rotation` / `scale` (Euler radians, same as Three).
+ * - Group/root/empty nodes -> group only.
+ * - Mesh nodes -> placeholder `<mesh>` (unit cube + neutral material) unless `light` is set.
+ * - `light` -> `<ambientLight>` or `<directionalLight>` inside the node's group.
  *
  * Not exported: `selection`, internal ids beyond comments, `assetRef` / `materialRef` (comment-only future).
  */
@@ -82,14 +82,14 @@ export const exportSceneToR3fJsx = (
   const studioWanted =
     options.includeStudioLights === true || options.includeLights === true;
   const studio = studioWanted
-      ? '  {/* Studio fill — not from scene graph */}\n' +
+      ? '  {/* Studio fill - not from scene graph */}\n' +
         '  <ambientLight intensity={0.4} />\n' +
         '  <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />\n'
       : '';
 
   return (
     `/* eslint-disable */\n` +
-    `/* Auto-generated for React Three Fiber — paste inside <Canvas> */\n` +
+    `/* Auto-generated for React Three Fiber - paste inside <Canvas> */\n` +
     `<>\n` +
     `${studio}${tree}` +
     `</>\n`

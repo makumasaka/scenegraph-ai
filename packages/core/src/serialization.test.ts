@@ -6,7 +6,12 @@ import {
   validateScene,
 } from '@diorama/schema';
 import { applyCommand } from './commands';
-import { defaultFixtureScene, galleryScene, showroomScene } from './fixtures';
+import {
+  defaultFixtureScene,
+  galleryScene,
+  livingSpaceScene,
+  showroomScene,
+} from './fixtures';
 import { createEmptyScene, createNode } from './scene';
 
 describe('versioned serialization', () => {
@@ -77,7 +82,12 @@ describe('versioned serialization', () => {
   });
 
   it('roundtrips fixture scenes with structural equality', () => {
-    for (const scene of [defaultFixtureScene, showroomScene, galleryScene]) {
+    for (const scene of [
+      defaultFixtureScene,
+      showroomScene,
+      galleryScene,
+      livingSpaceScene,
+    ]) {
       const again = parseSceneJson(serializeScene(scene));
       expect(again).not.toBeNull();
       expect(again).toEqual(scene);
@@ -132,5 +142,24 @@ describe('versioned serialization', () => {
   it('matches snapshot bytes for default + showroom fixtures', () => {
     expect(serializeScene(defaultFixtureScene)).toMatchSnapshot();
     expect(serializeScene(showroomScene)).toMatchSnapshot();
+  });
+
+  it('preserves node type, visibility, and metadata', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({
+        id: 'meta-node',
+        name: 'Meta',
+        type: 'empty',
+        visible: false,
+        metadata: { kit: 'test', count: 1 },
+      }),
+    });
+    const parsed = parseSceneJson(serializeScene(scene));
+    expect(parsed?.nodes['meta-node']?.type).toBe('empty');
+    expect(parsed?.nodes['meta-node']?.visible).toBe(false);
+    expect(parsed?.nodes['meta-node']?.metadata).toEqual({ kit: 'test', count: 1 });
   });
 });

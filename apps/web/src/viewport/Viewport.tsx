@@ -3,28 +3,26 @@ import { Grid, OrbitControls } from '@react-three/drei';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
 import { NodeMesh } from './NodeMesh';
+import type { Scene } from '@diorama/core';
 
-function meshNodeIdsFromScene(rootId: string, nodes: Record<string, { id: string }>): string[] {
-  return Object.keys(nodes)
-    .filter((id) => id !== rootId)
-    .sort();
-}
-
-function SceneNodes({ nodeIds }: { nodeIds: string[] }) {
+function SceneNodeTree({ scene, nodeId }: { scene: Scene; nodeId: string }) {
+  const node = scene.nodes[nodeId];
+  if (!node) return null;
   return (
-    <>
-      {nodeIds.map((id) => (
-        <NodeMesh key={id} nodeId={id} />
+    <NodeMesh nodeId={nodeId}>
+      {node.children.map((childId) => (
+        <SceneNodeTree key={childId} scene={scene} nodeId={childId} />
       ))}
-    </>
+    </NodeMesh>
   );
 }
 
 export function Viewport() {
-  const nodeIds = useSceneStore(
-    useShallow((s) => meshNodeIdsFromScene(s.scene.rootId, s.scene.nodes)),
+  const scene = useSceneStore(
+    useShallow((s) => s.scene),
   );
   const select = useSceneStore((s) => s.select);
+  const root = scene.nodes[scene.rootId];
 
   return (
     <div className="viewport">
@@ -56,7 +54,11 @@ export function Viewport() {
           infiniteGrid
         />
 
-        <SceneNodes nodeIds={nodeIds} />
+        {root
+          ? root.children.map((childId) => (
+              <SceneNodeTree key={childId} scene={scene} nodeId={childId} />
+            ))
+          : null}
 
         <OrbitControls makeDefault enableDamping />
       </Canvas>

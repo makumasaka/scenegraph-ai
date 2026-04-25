@@ -1,5 +1,11 @@
-/**
- * TODO: Add static example JSON under `scenes/`, regression fixtures, or
- * lightweight scripts that consume `@diorama/core` for demos and docs.
- */
-export const EXAMPLES_TODO = true;
+export const EXAMPLE_SCENE_IDS = [
+  'default',
+  'showroom',
+  'gallery',
+  'living',
+] as const;
+
+export type ExampleSceneId = (typeof EXAMPLE_SCENE_IDS)[number];
+
+export const exampleScenePath = (id: ExampleSceneId): string =>
+  `packages/examples/scenes/${id}.json`;

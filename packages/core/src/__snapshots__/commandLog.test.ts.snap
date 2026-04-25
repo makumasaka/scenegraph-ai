@@ -3,7 +3,7 @@
 exports[`summarizeCommand (command log regression) > produces stable titles and details for every command variant 1`] = `
 [
   {
-    "detail": "Sample → parent cmd-log-… · id cmd-node",
+    "detail": "Sample -> parent cmd-log-... - id cmd-node",
     "title": "Add node",
   },
   {
@@ -11,15 +11,15 @@ exports[`summarizeCommand (command log regression) > produces stable titles and 
     "title": "Delete node",
   },
   {
-    "detail": "node cmd-log-…",
+    "detail": "node cmd-log-...",
     "title": "Update transform",
   },
   {
-    "detail": "cmd-node · subtree=true → cmd-log-…",
+    "detail": "cmd-node - subtree=true -> cmd-log-...",
     "title": "Duplicate node",
   },
   {
-    "detail": "cmd-node → cmd-log-… · preserve world",
+    "detail": "cmd-node -> cmd-log-... - preserve world",
     "title": "Set parent",
   },
   {
@@ -27,7 +27,7 @@ exports[`summarizeCommand (command log regression) > produces stable titles and 
     "title": "Arrange (grid)",
   },
   {
-    "detail": "root cmd-log-… · 1 nodes",
+    "detail": "root cmd-log-... - 1 nodes",
     "title": "Replace scene",
   },
   {
@@ -35,7 +35,7 @@ exports[`summarizeCommand (command log regression) > produces stable titles and 
     "title": "Selection",
   },
   {
-    "detail": "node cmd-log-…",
+    "detail": "node cmd-log-...",
     "title": "Selection",
   },
 ]

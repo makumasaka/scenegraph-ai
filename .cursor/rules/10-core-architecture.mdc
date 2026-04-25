@@ -1,3 +1,20 @@
 ---
 alwaysApply: true
 ---
+
+- `packages/schema` owns the runtime scene shape, document format, validation,
+  parsing, serialization, and migrations.
+- `packages/core` owns scene helpers, command semantics, pure reducers,
+  invariants, layout utilities, transform math, fixtures, and reducer tests.
+- Keep reducers deterministic and side-effect free. No DOM, network, storage,
+  clocks, or random IDs inside command application.
+- Return the same scene reference for no-op commands where practical.
+- Preserve graph invariants after every changing command: one root, no cycles,
+  no orphans, valid child refs, one parent per non-root node, and valid
+  selection.
+- Store local transforms only. Compute world transforms from hierarchy when
+  needed.
+- Euler rotations are radians in storage. Three.js math is allowed in core only
+  for TRS composition/decomposition that serves command semantics.
+- Command contract changes must update `packages/core/src/commands.ts`,
+  `packages/agent-interface/src/commandSchema.ts`, docs, and tests together.

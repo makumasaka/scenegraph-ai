@@ -4,6 +4,7 @@ import {
   createNode,
   defaultFixtureScene,
   galleryScene,
+  livingSpaceScene,
   showroomScene,
 } from '@diorama/core';
 import type { Scene } from '@diorama/schema';
@@ -20,6 +21,10 @@ describe('exportSceneToR3fJsx', () => {
 
   it('matches snapshot for gallery kit', () => {
     expect(exportSceneToR3fJsx(galleryScene)).toMatchSnapshot();
+  });
+
+  it('matches snapshot for living kit', () => {
+    expect(exportSceneToR3fJsx(livingSpaceScene)).toMatchSnapshot();
   });
 
   it('matches snapshot for scene light nodes', () => {
@@ -50,8 +55,36 @@ describe('exportSceneToR3fJsx', () => {
   });
 
   it('prepends optional studio lights when requested', () => {
-    const out = exportSceneToR3fJsx(defaultFixtureScene, { includeLights: true });
+    const out = exportSceneToR3fJsx(defaultFixtureScene, { includeStudioLights: true });
     expect(out).toContain('Studio fill');
     expect(out).toContain('<ambientLight');
+  });
+
+  it('omits hidden nodes and their descendants', () => {
+    const root = createNode({
+      id: 'hidden-root',
+      name: 'Hidden root',
+      type: 'root',
+      children: ['hidden-branch'],
+    });
+    const hidden = createNode({
+      id: 'hidden-branch',
+      name: 'Hidden branch',
+      visible: false,
+      children: ['hidden-child'],
+    });
+    const child = createNode({ id: 'hidden-child', name: 'Hidden child' });
+    const scene: Scene = {
+      rootId: root.id,
+      selection: null,
+      nodes: {
+        [root.id]: root,
+        [hidden.id]: hidden,
+        [child.id]: child,
+      },
+    };
+    const out = exportSceneToR3fJsx(scene);
+    expect(out).not.toContain('Hidden branch');
+    expect(out).not.toContain('Hidden child');
   });
 });

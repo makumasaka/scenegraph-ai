@@ -30,6 +30,33 @@ export const MaterialRefSchema = z.discriminatedUnion('kind', [
 
 export type MaterialRef = z.infer<typeof MaterialRefSchema>;
 
+export const NodeTypeSchema = z.enum(['root', 'group', 'mesh', 'light', 'empty']);
+
+export type NodeType = z.infer<typeof NodeTypeSchema>;
+
+export type JsonValue =
+  | null
+  | string
+  | number
+  | boolean
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([
+    z.null(),
+    z.string(),
+    z.number().finite(),
+    z.boolean(),
+    z.array(JsonValueSchema),
+    z.record(JsonValueSchema),
+  ]),
+);
+
+export const MetadataSchema = z.record(JsonValueSchema);
+
+export type Metadata = z.infer<typeof MetadataSchema>;
+
 /** Optional authored light; viewport may ignore until wired. */
 export const SceneLightSchema = z.discriminatedUnion('kind', [
   z.object({
@@ -48,11 +75,14 @@ export type SceneLight = z.infer<typeof SceneLightSchema>;
 export const SceneNodeSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
+  type: NodeTypeSchema.default('mesh'),
   children: z.array(z.string()),
   transform: TransformSchema,
+  visible: z.boolean().default(true),
   assetRef: AssetRefSchema.optional(),
   materialRef: MaterialRefSchema.optional(),
   light: SceneLightSchema.optional(),
+  metadata: MetadataSchema.default({}),
 });
 
 export type SceneNode = z.infer<typeof SceneNodeSchema>;

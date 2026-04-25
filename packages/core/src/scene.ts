@@ -17,24 +17,31 @@ export const createId = (): string => {
 export interface CreateNodeInput {
   id?: string;
   name?: string;
+  type?: SceneNode['type'];
   transform?: Partial<Transform>;
   children?: string[];
+  visible?: boolean;
   assetRef?: SceneNode['assetRef'];
   materialRef?: SceneNode['materialRef'];
   light?: SceneNode['light'];
+  metadata?: SceneNode['metadata'];
 }
 
 export const createNode = (input: CreateNodeInput = {}): SceneNode => {
   const base = identityTransform();
+  const children = input.children ?? [];
   const node: SceneNode = {
     id: input.id ?? createId(),
     name: input.name ?? 'Node',
-    children: input.children ?? [],
+    type: input.type ?? 'mesh',
+    children,
     transform: {
       position: input.transform?.position ?? base.position,
       rotation: input.transform?.rotation ?? base.rotation,
       scale: input.transform?.scale ?? base.scale,
     },
+    visible: input.visible ?? true,
+    metadata: input.metadata ?? {},
   };
   if (input.assetRef !== undefined) node.assetRef = input.assetRef;
   if (input.materialRef !== undefined) node.materialRef = input.materialRef;
@@ -43,7 +50,7 @@ export const createNode = (input: CreateNodeInput = {}): SceneNode => {
 };
 
 export const createEmptyScene = (rootName = 'Root'): Scene => {
-  const root = createNode({ name: rootName });
+  const root = createNode({ name: rootName, type: 'root' });
   return {
     rootId: root.id,
     selection: null,

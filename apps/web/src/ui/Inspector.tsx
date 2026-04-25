@@ -107,7 +107,21 @@ export function Inspector() {
         <div className="inspector__row">
           <span className="inspector__key">Parent</span>
           <span className="inspector__value inspector__value--mono">
-            {isRoot ? '—' : parent ? `${parent.name} (${parent.id.slice(0, 8)})` : '—'}
+            {isRoot ? '-' : parent ? `${parent.name} (${parent.id.slice(0, 8)})` : '-'}
+          </span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Type</span>
+          <span className="inspector__value">{node.type}</span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Visible</span>
+          <span className="inspector__value">{node.visible ? 'Yes' : 'No'}</span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Metadata</span>
+          <span className="inspector__value inspector__value--mono">
+            {Object.keys(node.metadata).length}
           </span>
         </div>
       </section>

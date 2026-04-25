@@ -53,7 +53,7 @@ export function SceneLoader() {
   };
 
   const handleCopyR3f = async () => {
-    const jsx = exportSceneToR3fJsx(scene, { includeLights: true });
+    const jsx = exportSceneToR3fJsx(scene, { includeStudioLights: true });
     try {
       await navigator.clipboard.writeText(jsx);
       setStatus('Copied R3F JSX');

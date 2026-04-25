@@ -1,18 +1,27 @@
-import { useLayoutEffect, useCallback, useMemo, useRef, memo, type RefObject } from 'react';
+import {
+  useLayoutEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  memo,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { TransformControls } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
-import type { Mesh, Object3D } from 'three';
+import type { Group, Object3D } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
 import { transformPatchFromObject3D } from './object3dTransform';
 
 interface NodeMeshProps {
   nodeId: string;
+  children?: ReactNode;
 }
 
-function NodeMeshInner({ nodeId }: NodeMeshProps) {
-  const meshRef = useRef<Mesh | null>(null);
+function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
+  const groupRef = useRef<Group | null>(null);
   const tcRef = useRef<TransformControlsImpl | null>(null);
 
   const { node, isSelected, gizmoMode, dispatch, select } = useSceneStore(
@@ -30,12 +39,12 @@ function NodeMeshInner({ nodeId }: NodeMeshProps) {
   );
 
   const commitGizmo = useCallback(() => {
-    const m = meshRef.current;
-    if (!m) return;
+    const group = groupRef.current;
+    if (!group) return;
     dispatch({
       type: 'UPDATE_TRANSFORM',
       nodeId,
-      patch: transformPatchFromObject3D(m),
+      patch: transformPatchFromObject3D(group),
     });
   }, [dispatch, nodeId]);
 
@@ -61,36 +70,51 @@ function NodeMeshInner({ nodeId }: NodeMeshProps) {
     return `hsl(${hue}, 65%, 55%)`;
   }, [isSelected, nodeId]);
 
-  if (!node) return null;
+  if (!node || node.visible === false) return null;
 
   const handleClick = (e: ThreeEvent<MouseEvent>): void => {
     e.stopPropagation();
     select(nodeId);
   };
 
+  const showLight = node.light !== undefined || node.type === 'light';
+  const showMesh = node.type === 'mesh' && !showLight;
+
   return (
     <>
-      <mesh
-        ref={meshRef}
+      <group
+        ref={groupRef}
         position={node.transform.position}
         rotation={node.transform.rotation}
         scale={node.transform.scale}
         onClick={handleClick}
-        castShadow
-        receiveShadow
       >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={isSelected ? '#f59e0b' : '#000000'}
-          emissiveIntensity={isSelected ? 0.35 : 0}
-        />
-      </mesh>
+        {showLight && node.light?.kind === 'ambient' ? (
+          <ambientLight intensity={node.light.intensity ?? 0.4} />
+        ) : null}
+        {showLight && node.light?.kind === 'directional' ? (
+          <directionalLight
+            castShadow={node.light.castShadow}
+            intensity={node.light.intensity ?? 1}
+          />
+        ) : null}
+        {showMesh ? (
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={isSelected ? '#f59e0b' : '#000000'}
+              emissiveIntensity={isSelected ? 0.35 : 0}
+            />
+          </mesh>
+        ) : null}
+        {children}
+      </group>
       {isSelected ? (
         <TransformControls
           key={`tc-${nodeId}`}
           ref={tcRef}
-          object={meshRef as RefObject<Object3D | null> as RefObject<Object3D>}
+          object={groupRef as RefObject<Object3D | null> as RefObject<Object3D>}
           mode={gizmoMode}
         />
       ) : null}

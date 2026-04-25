@@ -30,6 +30,7 @@ export const galleryScene: Scene = (() => {
   const hall = createNode({
     id: 'gallery-hall',
     name: 'Hall',
+    type: 'group',
     children: frameIds,
     transform: { position: [0, 0, 0] },
   });
@@ -38,6 +39,7 @@ export const galleryScene: Scene = (() => {
   const root = createNode({
     id: 'gallery-root',
     name: 'Gallery',
+    type: 'root',
     children: [hall.id],
   });
   nodes[root.id] = root;

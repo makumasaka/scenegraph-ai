@@ -4,10 +4,7 @@
       "living-floor": {
         "children": [],
         "id": "living-floor",
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.floor"
-        },
+        "metadata": {},
         "name": "Floor",
         "transform": {
           "position": [
@@ -25,6 +22,12 @@
             0.08,
             4.5
           ]
+        },
+        "type": "mesh",
+        "visible": true,
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.floor"
         }
       },
       "living-furniture-group": {
@@ -34,6 +37,7 @@
           "living-lamp"
         ],
         "id": "living-furniture-group",
+        "metadata": {},
         "name": "Furniture",
         "transform": {
           "position": [
@@ -51,15 +55,14 @@
             1,
             1
           ]
-        }
+        },
+        "type": "group",
+        "visible": true
       },
       "living-lamp": {
         "children": [],
         "id": "living-lamp",
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.metal"
-        },
+        "metadata": {},
         "name": "Floor lamp",
         "transform": {
           "position": [
@@ -77,6 +80,12 @@
             1.9,
             0.2
           ]
+        },
+        "type": "mesh",
+        "visible": true,
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.metal"
         }
       },
       "living-room": {
@@ -85,6 +94,7 @@
           "living-furniture-group"
         ],
         "id": "living-room",
+        "metadata": {},
         "name": "Room",
         "transform": {
           "position": [
@@ -102,13 +112,16 @@
             1,
             1
           ]
-        }
+        },
+        "type": "group",
+        "visible": true
       },
       "living-root": {
         "children": [
           "living-room"
         ],
         "id": "living-root",
+        "metadata": {},
         "name": "Living space",
         "transform": {
           "position": [
@@ -126,15 +139,14 @@
             1,
             1
           ]
-        }
+        },
+        "type": "root",
+        "visible": true
       },
       "living-sofa": {
         "children": [],
         "id": "living-sofa",
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.fabric"
-        },
+        "metadata": {},
         "name": "Sofa",
         "transform": {
           "position": [
@@ -152,15 +164,18 @@
             0.55,
             0.85
           ]
+        },
+        "type": "mesh",
+        "visible": true,
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.fabric"
         }
       },
       "living-table": {
         "children": [],
         "id": "living-table",
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.wood"
-        },
+        "metadata": {},
         "name": "Coffee table",
         "transform": {
           "position": [
@@ -178,6 +193,12 @@
             0.12,
             0.65
           ]
+        },
+        "type": "mesh",
+        "visible": true,
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.wood"
         }
       }
     },

@@ -1,72 +1,4 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`versioned serialization > matches snapshot bytes for default + showroom fixtures 1`] = `
-"{
-  "data": {
-    "nodes": {
-      "default-cube-1": {
-        "children": [],
-        "id": "default-cube-1",
-        "metadata": {},
-        "name": "Cube 1",
-        "transform": {
-          "position": [
-            0,
-            0.5,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "default-root": {
-        "children": [
-          "default-cube-1"
-        ],
-        "id": "default-root",
-        "metadata": {},
-        "name": "Root",
-        "transform": {
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "root",
-        "visible": true
-      }
-    },
-    "rootId": "default-root",
-    "selection": null
-  },
-  "format": "diorama-scene",
-  "version": 1
-}"
-`;
-
-exports[`versioned serialization > matches snapshot bytes for default + showroom fixtures 2`] = `
-"{
+{
   "data": {
     "nodes": {
       "showroom-accent": {
@@ -206,5 +138,4 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
   },
   "format": "diorama-scene",
   "version": 1
-}"
-`;
+}

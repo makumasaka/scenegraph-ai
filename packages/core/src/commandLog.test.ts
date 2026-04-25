@@ -54,6 +54,6 @@ describe('summarizeCommand (command log regression)', () => {
     });
     expect(s.title).toBe('Delete node');
     expect(s.detail.length).toBeLessThan(longId.length);
-    expect(s.detail).toContain('…');
+    expect(s.detail).toContain('...');
   });
 });

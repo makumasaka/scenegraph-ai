@@ -226,6 +226,26 @@
   word-break: break-word;
 }
 
+.command-log__payload {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.command-log__payload summary {
+  cursor: pointer;
+}
+
+.command-log__payload pre {
+  max-height: 140px;
+  overflow: auto;
+  margin: 4px 0 0;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
 .toolbar__status {
   color: var(--text-muted);
   font-family: var(--mono);
