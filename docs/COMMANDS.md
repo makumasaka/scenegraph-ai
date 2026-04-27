@@ -20,6 +20,11 @@ The reducer entry point is `applyCommand(scene, command)` in
 
 ## ADD_NODE
 
+Purpose: create a new scene node under an existing parent.
+
+Ownership: Core Agent owns reducer semantics and tests. UI, Export, QA, and
+future MCP agents may only consume this behavior.
+
 Payload:
 
 ```ts
@@ -48,6 +53,11 @@ Tests:
 
 ## DELETE_NODE
 
+Purpose: remove a node and its descendants from the scenegraph.
+
+Ownership: Core Agent owns reducer semantics and tests. UI actions must dispatch
+this command instead of removing nodes directly.
+
 Payload:
 
 ```ts
@@ -74,6 +84,12 @@ Tests:
 - Delete root returns no change.
 
 ## UPDATE_TRANSFORM
+
+Purpose: update a node's local transform.
+
+Ownership: Core Agent owns transform merge semantics. UI Agent may build payloads
+from inspector fields or viewport gizmos, but must not apply transforms outside
+the reducer.
 
 Payload:
 
@@ -110,6 +126,11 @@ Tests:
 - Same values return no change.
 
 ## DUPLICATE_NODE
+
+Purpose: duplicate a node or subtree with fresh, deterministic IDs when supplied.
+
+Ownership: Core Agent owns ID mapping, subtree behavior, and graph invariants.
+QA Agent owns replay tests for deterministic duplication.
 
 Payload:
 
@@ -148,6 +169,12 @@ Tests:
 
 ## SET_PARENT
 
+Purpose: reparent a node while preserving either local transform or, when
+requested, world transform.
+
+Ownership: Core Agent owns hierarchy and transform semantics. UI Agent may expose
+reparenting only through this command.
+
 Payload:
 
 ```ts
@@ -183,6 +210,11 @@ Tests:
 - Reject self-parent and descendant-parent cases.
 
 ## ARRANGE_NODES
+
+Purpose: apply deterministic layout positions to a set of nodes.
+
+Ownership: Core Agent owns layout semantics. UI Agent may choose node sets and
+options but must not compute persistent layout state in the app.
 
 Payload:
 
@@ -224,6 +256,11 @@ Tests:
 
 ## SET_SELECTION
 
+Purpose: update canonical scene selection.
+
+Ownership: Core Agent owns validity semantics. UI Agent may dispatch selection
+from outliner or viewport interactions.
+
 Payload:
 
 ```ts
@@ -248,6 +285,12 @@ Tests:
 - Product store does not add selection changes to the visible command log.
 
 ## REPLACE_SCENE
+
+Purpose: replace the current scene with a validated scene, usually for import or
+starter kit loading.
+
+Ownership: Core Agent owns validation behavior. UI Agent owns session-boundary
+effects such as clearing browser history and command log state.
 
 Payload:
 
