@@ -7,17 +7,41 @@ This document describes how scenes are represented in the repo, which **starter 
 Exported files use a small wrapper so tooling can detect version and format:
 
 - **`format`**: `diorama-scene` (see `SCENE_DOCUMENT_FORMAT` in `@diorama/schema`).
-- **`version`**: Integer data version (`SCENE_DATA_VERSION`).
+- **`version`**: Integer data version (`SCENE_DATA_VERSION`). Canonical exports currently use version 2.
 - **`data`**: The `Scene` object: `rootId`, `selection`, and `nodes` (id -> node record).
 
-Each **node** includes at least:
+Each canonical version 2 **node** includes:
 
-- `id`, `name`, `children` (ordered list of child ids)
+- `id`
+- `name`
+- `type` (`root`, `group`, `mesh`, `light`, or `empty`)
+- `children` (ordered list of child ids)
 - `transform`: `position`, `rotation`, `scale` as 3-tuples of finite numbers
+- `visible`
+- optional `assetRef`
+- optional `materialRef`
+- optional `light`
+- `metadata`
 
-Optional fields include `assetRef`, `materialRef`, and `light`, per the Zod schemas.
+The `rootId` node must have `type: "root"`. Scene transforms are local; world
+transforms are computed from hierarchy when needed.
 
 Serialization uses **stable key ordering** at every object depth so diffs stay readable; array order (for example `children`) is preserved.
+
+## Legacy import policy
+
+`parseSceneJson` still accepts wrapped version 1 documents and legacy bare scene
+graphs while that compatibility path is retained. Those inputs are migrated to
+the canonical version 2 scene shape before callers receive them.
+
+Migration/defaulting behavior:
+
+- `selection` defaults to `null` when omitted.
+- `visible` defaults to `true`.
+- `metadata` defaults to `{}`.
+- missing node `type` defaults through the schema, and the `rootId` node is
+  rewritten to `type: "root"` for legacy imports.
+- unsupported document versions are rejected.
 
 ## Starter kits (built-in)
 
@@ -53,6 +77,7 @@ future eval harnesses.
 ## Authoring JSON by hand
 
 - Ensure `rootId` exists in `nodes` and matches the root node's `id`.
+- Ensure the `rootId` node has `type: "root"`.
 - Every non-root node must appear exactly once in some parent's `children` array.
 - Do not attach the root as a child of any node.
 - Avoid duplicate ids and cycles.

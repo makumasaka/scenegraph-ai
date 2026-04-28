@@ -24,6 +24,7 @@ export {
   SceneDocumentSchema,
   SCENE_DOCUMENT_FORMAT,
   SCENE_DATA_VERSION,
+  SCENE_LEGACY_DATA_VERSION,
 } from './schemas';
 export type { SceneDocument } from './schemas';
 export { validateScene, cloneSceneImmutable, parseSceneGraph } from './sceneValidation';

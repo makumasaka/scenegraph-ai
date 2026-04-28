@@ -8,6 +8,28 @@ The reducer entry point is `applyCommand(scene, command)` in
 `packages/core/src/commands.ts`. Untrusted payloads are validated by
 `CommandSchema` in `packages/agent-interface/src/commandSchema.ts`.
 
+## Scene Contract
+
+Commands operate on canonical version 2 `Scene` state from `@diorama/schema`.
+Import code may accept wrapped v1 documents or legacy bare scenes, but those
+inputs are normalized before reducers receive them.
+
+Canonical `SceneNode` fields are:
+
+- `id`
+- `name`
+- `type`
+- `children`
+- `transform`
+- `visible`
+- optional `assetRef`
+- optional `materialRef`
+- optional `light`
+- `metadata`
+
+`rootId` must point to a node whose `type` is `root`. Persistent transforms are
+local; world transforms are computed from scene hierarchy.
+
 ## Reducer Contract
 
 - Reducers are pure, deterministic functions.

@@ -1,11 +1,13 @@
 import type { Vec3 } from './types';
 import {
+  LegacySceneDocumentSchema,
+  LegacySceneGraphSchema,
   SCENE_DATA_VERSION,
   SCENE_DOCUMENT_FORMAT,
   SceneDocumentSchema,
+  SceneGraphSchema,
   type Scene,
 } from './schemas';
-import { parseSceneGraph } from './sceneValidation';
 
 /** Deterministic JSON: sorted object keys at every depth (arrays keep order). */
 export const stableStringify = (value: unknown, space = 2): string => {
@@ -35,14 +37,48 @@ export const serializeScene = (scene: Scene): string => {
   return stableStringify(doc);
 };
 
+const migrateLegacyScene = (scene: Scene): Scene | null => {
+  const root = scene.nodes[scene.rootId];
+  if (!root) return null;
+
+  const migrated = {
+    ...scene,
+    nodes: {
+      ...scene.nodes,
+      [scene.rootId]: {
+        ...root,
+        type: 'root' as const,
+      },
+    },
+  };
+
+  const current = SceneGraphSchema.safeParse(migrated);
+  return current.success ? current.data : null;
+};
+
 export const parseSceneJson = (text: string): Scene | null => {
   try {
     const parsed: unknown = JSON.parse(text);
     const doc = SceneDocumentSchema.safeParse(parsed);
     if (doc.success) return cloneSceneFromJson(doc.data.data);
 
-    const legacy = parseSceneGraph(parsed);
-    if (legacy) return cloneSceneFromJson(legacy);
+    /*
+     * Legacy support is intentionally limited to this documented migration path:
+     * v1 document wrappers and pre-wrapper bare scene graphs are parsed with
+     * legacy Zod schemas, default type/visible/metadata, then rewritten to the
+     * current canonical root type contract.
+     */
+    const legacyDoc = LegacySceneDocumentSchema.safeParse(parsed);
+    if (legacyDoc.success) {
+      const migrated = migrateLegacyScene(legacyDoc.data.data);
+      return migrated ? cloneSceneFromJson(migrated) : null;
+    }
+
+    const legacyBare = LegacySceneGraphSchema.safeParse(parsed);
+    if (legacyBare.success) {
+      const migrated = migrateLegacyScene(legacyBare.data);
+      return migrated ? cloneSceneFromJson(migrated) : null;
+    }
     return null;
   } catch {
     return null;

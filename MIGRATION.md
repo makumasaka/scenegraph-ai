@@ -22,16 +22,50 @@
 
 Application code should use workspace packages:
 
-- `@diorama/schema` — when you need types or validation at the edge without pulling commands.
-- `@diorama/core` — commands, fixtures, `applyCommand`, re-exports of common schema helpers used by the app today.
-- `@diorama/export-r3f` — `exportSceneToR3fJsx`.
+- `@diorama/schema` - when you need types or validation at the edge without pulling commands.
+- `@diorama/core` - commands, fixtures, `applyCommand`, re-exports of common schema helpers used by the app today.
+- `@diorama/export-r3f` - `exportSceneToR3fJsx`.
 
 `apps/web/vite.config.ts` aliases those packages to `packages/*/src` so Vite resolves TypeScript sources without a pre-build step.
 
 ## Scripts
 
-- `npm run typecheck` — `tsc --noEmit` in each workspace package (in dependency order via separate `-w` calls).
-- `npm run build` — typecheck, then `apps/web` production build.
+- `npm run typecheck` - `tsc --noEmit` in each workspace package (in dependency order via separate `-w` calls).
+- `npm run build` - typecheck, then `apps/web` production build.
+
+## Scene document version
+
+The canonical scene document format is now version 2:
+
+- `format`: `diorama-scene`
+- `version`: `2`
+- `data`: canonical `Scene`
+
+Version 2 formalizes the current `SceneNode` shape:
+
+- `id`
+- `name`
+- `type`
+- `children`
+- `transform`
+- `visible`
+- optional `assetRef`
+- optional `materialRef`
+- optional `light`
+- `metadata`
+
+The schema parser still accepts wrapped version 1 documents and legacy bare scene
+graphs. Those imports are migrated/defaulted to the version 2 shape before being
+returned to callers. New exports should always use the wrapped version 2 format.
+
+Migration/defaulting behavior:
+
+- `selection` defaults to `null` when omitted.
+- `visible` defaults to `true`.
+- `metadata` defaults to `{}`.
+- missing node `type` defaults through the schema, with the `rootId` node
+  rewritten to `type: "root"` during legacy migration.
+- current v2 documents must have `rootId` pointing to a `type: "root"` node.
 
 ## Root package name
 
@@ -39,6 +73,5 @@ The root `package.json` `name` field is now `diorama` (was `scenegraph-ai`) to m
 
 ## TODOs left in tree
 
-- `packages/mcp` — MCP tool surface not implemented.
-- `packages/examples` — sample scenes / harnesses not implemented.
-- Zod-first schemas (per product rules) are not yet introduced; validation remains the migrated runtime checks in `packages/schema`.
+- `packages/mcp` - real MCP tool/server surface is not implemented; the package currently remains a narrow adapter surface.
+- `packages/examples` - checked-in scene examples exist, but broader scripted eval harnesses are still future work.

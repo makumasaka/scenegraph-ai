@@ -87,7 +87,7 @@ export const SceneNodeSchema = z.object({
 
 export type SceneNode = z.infer<typeof SceneNodeSchema>;
 
-const graphRefinements = (
+const graphStructuralRefinements = (
   val: { rootId: string; nodes: Record<string, SceneNode>; selection: string | null },
   ctx: z.RefinementCtx,
 ) => {
@@ -192,18 +192,40 @@ const graphRefinements = (
   }
 };
 
-export const SceneGraphSchema = z
-  .object({
-    rootId: z.string().min(1),
-    nodes: z.record(z.string(), SceneNodeSchema),
-    selection: z.string().nullable().default(null),
-  })
-  .superRefine(graphRefinements);
+const graphRootTypeRefinement = (
+  val: { rootId: string; nodes: Record<string, SceneNode> },
+  ctx: z.RefinementCtx,
+) => {
+  const root = val.nodes[val.rootId];
+  if (root && root.type !== 'root') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'rootId node must have type root',
+    });
+  }
+};
+
+const currentGraphRefinements = (
+  val: { rootId: string; nodes: Record<string, SceneNode>; selection: string | null },
+  ctx: z.RefinementCtx,
+) => {
+  graphStructuralRefinements(val, ctx);
+  graphRootTypeRefinement(val, ctx);
+};
+
+const SceneGraphBaseSchema = z.object({
+  rootId: z.string().min(1),
+  nodes: z.record(z.string(), SceneNodeSchema),
+  selection: z.string().nullable().default(null),
+});
+
+export const SceneGraphSchema = SceneGraphBaseSchema.superRefine(currentGraphRefinements);
 
 export type Scene = z.infer<typeof SceneGraphSchema>;
 
 export const SCENE_DOCUMENT_FORMAT = 'diorama-scene' as const;
-export const SCENE_DATA_VERSION = 1 as const;
+export const SCENE_LEGACY_DATA_VERSION = 1 as const;
+export const SCENE_DATA_VERSION = 2 as const;
 
 export const SceneDocumentSchema = z.object({
   format: z.literal(SCENE_DOCUMENT_FORMAT),
@@ -212,3 +234,13 @@ export const SceneDocumentSchema = z.object({
 });
 
 export type SceneDocument = z.infer<typeof SceneDocumentSchema>;
+
+export const LegacySceneGraphSchema = SceneGraphBaseSchema.superRefine(
+  graphStructuralRefinements,
+);
+
+export const LegacySceneDocumentSchema = z.object({
+  format: z.literal(SCENE_DOCUMENT_FORMAT),
+  version: z.literal(SCENE_LEGACY_DATA_VERSION),
+  data: LegacySceneGraphSchema,
+});

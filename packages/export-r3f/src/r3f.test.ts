@@ -28,7 +28,7 @@ describe('exportSceneToR3fJsx', () => {
   });
 
   it('matches snapshot for scene light nodes', () => {
-    const root = createNode({ id: 'r3f-light-root', name: 'Root' });
+    const root = createNode({ id: 'r3f-light-root', name: 'Root', type: 'root' });
     let s: Scene = { rootId: root.id, selection: null, nodes: { [root.id]: root } };
     s = applyCommand(s, {
       type: 'ADD_NODE',

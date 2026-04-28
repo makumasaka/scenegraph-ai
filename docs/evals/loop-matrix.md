@@ -25,13 +25,18 @@ Flow:
 Pass criteria:
 
 - Parsed scene validates.
+- Serialized documents use canonical scene document version 2.
+- Wrapped v1 documents migrate to the version 2 scene shape.
+- Legacy bare scene graphs migrate to the version 2 scene shape while that path is retained.
+- Migrated scenes default missing `visible` to `true`, missing `metadata` to `{}`, and omitted `selection` to `null`.
+- `rootId` points to a node with `type: "root"`.
 - Canonical scene data is equal.
 - Second serialization equals first serialization.
 
 Tests live in:
 
 - `packages/core/src/serialization.test.ts`
-- future schema package tests
+- `packages/core/src/sceneContract.test.ts`
 
 ## Loop B: Command Replay
 
@@ -55,6 +60,7 @@ Flow:
 Pass criteria:
 
 - Replay is deterministic.
+- Replayed commands operate on canonical version 2 scene state.
 - Final serialized JSON matches.
 - Expected no-op commands return no change.
 
@@ -121,6 +127,7 @@ Pass criteria:
 - Output is deterministic.
 - Hierarchy follows scene child order.
 - Local transforms are emitted correctly.
+- Export consumes canonical version 2 scene state and does not emit editor-only state.
 - Unsupported features are documented instead of silently misrepresented.
 
 Tests live in:
@@ -154,6 +161,7 @@ Pass criteria:
 - Invalid payloads are rejected.
 - Dry-run does not mutate session state.
 - Apply mutates only through commands.
+- Agent inputs are validated against canonical version 2 scene/command schemas.
 - Exported output matches expected fixtures.
 
 Tests live in:
@@ -186,9 +194,10 @@ Pass criteria:
 
 - Every write validates payloads.
 - No tool mutates hidden state directly.
+- Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
 - Command replay produces the same final scene.
 
 Tests live in:
 
-- future `packages/mcp` tests
+- current `packages/mcp` smoke tests plus future tool-contract tests
 - future eval fixtures in `docs/evals`

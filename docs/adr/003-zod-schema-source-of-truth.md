@@ -12,7 +12,42 @@ TypeScript interfaces alone do not protect persisted JSON or agent payloads. The
 
 - `@diorama/schema` owns Zod schemas (`SceneGraphSchema`, `SceneDocumentSchema`, node fields, refinements for graph invariants).
 - Exported TypeScript types for the graph are inferred from Zod where practical.
-- **Legacy parse path**: `parseSceneJson` accepts a wrapped `diorama-scene` document or a bare legacy graph when `parseSceneGraph` can normalize it; behavior is covered by tests and must not widen silently without a version bump.
+- Canonical exports now use `SCENE_DATA_VERSION` 2. Version 2 formalizes persisted node `type`, `visible`, and `metadata` fields.
+- **Legacy parse path**: `parseSceneJson` accepts a wrapped v2 `diorama-scene` document, migrates wrapped v1 documents, and accepts bare legacy scene graphs while that compatibility path is retained. Behavior is covered by tests and must not widen silently without a version/migration test.
+- The canonical root contract is explicit: `rootId` must point to a node with `type: "root"`.
+
+## Version 2 Scene Node Shape
+
+Each canonical `SceneNode` includes:
+
+- `id`: stable node id. The map key and node `id` must match.
+- `name`: human-readable label.
+- `type`: one of `root`, `group`, `mesh`, `light`, or `empty`.
+- `children`: ordered child id list. Array order is canonical and preserved.
+- `transform`: local `position`, `rotation`, and `scale` Vec3 tuples.
+- `visible`: persisted visibility flag.
+- `assetRef`: optional asset reference.
+- `materialRef`: optional material token/reference.
+- `light`: optional authored light payload.
+- `metadata`: JSON-safe metadata object.
+
+Transforms are local. World transforms are computed from hierarchy when needed.
+Euler rotations are stored in radians for the MVP.
+
+## Migration
+
+Wrapped v1 documents and legacy bare scene graphs are normalized into the v2
+shape when parsed:
+
+- `selection` defaults to `null` when omitted.
+- `visible` defaults to `true`.
+- `metadata` defaults to `{}`.
+- missing node `type` defaults through the schema, then the `rootId` node is
+  rewritten to `type: "root"` during migration.
+- unsupported document versions are rejected.
+
+The legacy bare-scene path is compatibility-only. New exports must use the
+wrapped v2 document format.
 
 ## Rationale
 
@@ -25,4 +60,5 @@ One parser for UI, tests, and agents reduces drift; Zod issues map cleanly to ag
 ## Consequences
 
 - Any new persisted field requires `SCENE_DATA_VERSION` review and migration tests when the version increments.
-- **Visibility and metadata** on nodes: **not** in v1; add only with a new ADR and `SCENE_DATA_VERSION` 2.
+- UI, exporters, agent-interface, and future MCP tools must treat the v2 schema as the canonical scene contract.
+- Import paths may accept v1/bare legacy scenes, but must return normalized v2 scene state to callers.

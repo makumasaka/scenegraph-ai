@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   parseSceneJson,
+  SCENE_DATA_VERSION,
   serializeScene,
   stableStringify,
   validateScene,
@@ -26,6 +27,7 @@ describe('versioned serialization', () => {
     const text = serializeScene(scene);
     expect(text).toContain('"format"');
     expect(text).toContain('diorama-scene');
+    expect(text).toContain(`"version": ${SCENE_DATA_VERSION}`);
     const parsed = parseSceneJson(text);
     expect(parsed).not.toBeNull();
     expect(validateScene(parsed)).toBe(true);
@@ -33,7 +35,7 @@ describe('versioned serialization', () => {
     expect(parsed!.nodes.x?.name).toBe('X');
   });
 
-  it('accepts legacy bare scene objects without document wrapper', () => {
+  it('migrates legacy bare scene objects without document wrapper', () => {
     const legacy = {
       rootId: 'r',
       selection: null,
@@ -53,26 +55,76 @@ describe('versioned serialization', () => {
     const parsed = parseSceneJson(JSON.stringify(legacy));
     expect(parsed).not.toBeNull();
     expect(parsed!.rootId).toBe('r');
+    expect(parsed!.nodes.r?.type).toBe('root');
+    expect(parsed!.nodes.r?.visible).toBe(true);
+    expect(parsed!.nodes.r?.metadata).toEqual({});
   });
 
-  it('defaults selection to null when legacy JSON omits selection', () => {
+  it('migrates v1 documents to canonical v2 scene shape', () => {
     const legacy = {
-      rootId: 'r',
-      nodes: {
-        r: {
-          id: 'r',
-          name: 'Root',
-          children: [],
-          transform: {
-            position: [0, 0, 0],
-            rotation: [0, 0, 0],
-            scale: [1, 1, 1],
+      format: 'diorama-scene',
+      version: 1,
+      data: {
+        rootId: 'r',
+        nodes: {
+          r: {
+            id: 'r',
+            name: 'Root',
+            children: ['child'],
+            transform: {
+              position: [0, 0, 0],
+              rotation: [0, 0, 0],
+              scale: [1, 1, 1],
+            },
+          },
+          child: {
+            id: 'child',
+            name: 'Child',
+            children: [],
+            transform: {
+              position: [1, 0, 0],
+              rotation: [0, 0, 0],
+              scale: [1, 1, 1],
+            },
           },
         },
       },
     };
     const parsed = parseSceneJson(JSON.stringify(legacy));
+    expect(parsed).not.toBeNull();
     expect(parsed?.selection).toBe(null);
+    expect(parsed?.nodes.r?.type).toBe('root');
+    expect(parsed?.nodes.child?.type).toBe('mesh');
+    expect(parsed?.nodes.child?.visible).toBe(true);
+    expect(parsed?.nodes.child?.metadata).toEqual({});
+    expect(validateScene(parsed)).toBe(true);
+  });
+
+  it('rejects current documents whose rootId node is not type root', () => {
+    const current = {
+      format: 'diorama-scene',
+      version: SCENE_DATA_VERSION,
+      data: {
+        rootId: 'r',
+        selection: null,
+        nodes: {
+          r: {
+            id: 'r',
+            name: 'Root',
+            type: 'mesh',
+            children: [],
+            transform: {
+              position: [0, 0, 0],
+              rotation: [0, 0, 0],
+              scale: [1, 1, 1],
+            },
+            visible: true,
+            metadata: {},
+          },
+        },
+      },
+    };
+    expect(parseSceneJson(JSON.stringify(current))).toBeNull();
   });
 
   it('stableStringify sorts keys deterministically', () => {
@@ -90,6 +142,8 @@ describe('versioned serialization', () => {
     ]) {
       const again = parseSceneJson(serializeScene(scene));
       expect(again).not.toBeNull();
+      expect(validateScene(scene)).toBe(true);
+      expect(scene.nodes[scene.rootId]?.type).toBe('root');
       expect(again).toEqual(scene);
     }
   });

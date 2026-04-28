@@ -61,7 +61,7 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
     "selection": null
   },
   "format": "diorama-scene",
-  "version": 1
+  "version": 2
 }"
 `;
 
@@ -205,6 +205,6 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
     "selection": null
   },
   "format": "diorama-scene",
-  "version": 1
+  "version": 2
 }"
 `;
