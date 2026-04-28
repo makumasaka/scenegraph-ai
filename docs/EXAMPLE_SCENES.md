@@ -16,15 +16,16 @@ Each canonical version 2 **node** includes:
 - `name`
 - `type` (`root`, `group`, `mesh`, `light`, or `empty`)
 - `children` (ordered list of child ids)
-- `transform`: `position`, `rotation`, `scale` as 3-tuples of finite numbers
+- `transform`: local `position`, `rotation`, `scale` as 3-tuples of finite numbers
 - `visible`
 - optional `assetRef`
 - optional `materialRef`
 - optional `light`
 - `metadata`
 
-The `rootId` node must have `type: "root"`. Scene transforms are local; world
-transforms are computed from hierarchy when needed.
+The `rootId` node must have `type: "root"`, and non-root nodes must not use the
+`root` type. Scene transforms are local only; world transforms are computed from
+hierarchy when needed. Rotations are Euler radians using XYZ order.
 
 Serialization uses **stable key ordering** at every object depth so diffs stay readable; array order (for example `children`) is preserved.
 
@@ -39,8 +40,9 @@ Migration/defaulting behavior:
 - `selection` defaults to `null` when omitted.
 - `visible` defaults to `true`.
 - `metadata` defaults to `{}`.
-- missing node `type` defaults through the schema, and the `rootId` node is
-  rewritten to `type: "root"` for legacy imports.
+- missing node `type` is inferred during migration: the `rootId` node becomes
+  `root`, nodes with `light` become `light`, branch nodes become `group`, and
+  remaining leaf nodes become `mesh`.
 - unsupported document versions are rejected.
 
 ## Starter kits (built-in)
@@ -66,7 +68,8 @@ Canonical JSON examples live in `packages/examples/scenes/`:
 - `living.json`
 
 These examples are intended for docs, regression fixtures, export snapshots, and
-future eval harnesses.
+future eval harnesses. They should remain byte-for-byte aligned with
+`serializeScene(getStarterScene(id))`.
 
 ## Import and export in the UI
 
@@ -78,6 +81,7 @@ future eval harnesses.
 
 - Ensure `rootId` exists in `nodes` and matches the root node's `id`.
 - Ensure the `rootId` node has `type: "root"`.
+- Do not use `type: "root"` on non-root nodes.
 - Every non-root node must appear exactly once in some parent's `children` array.
 - Do not attach the root as a child of any node.
 - Avoid duplicate ids and cycles.

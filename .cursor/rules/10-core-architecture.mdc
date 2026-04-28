@@ -6,8 +6,11 @@ alwaysApply: true
   parsing, serialization, and migrations.
 - `packages/core` owns scene helpers, command semantics, pure reducers,
   invariants, layout utilities, transform math, fixtures, and reducer tests.
+- The scene graph is canonical scene state.
+- Commands are the only mutation path for persistent scene changes.
 - Keep reducers deterministic and side-effect free. No DOM, network, storage,
   clocks, or random IDs inside command application.
+- Reducers must support replay, undo/redo, tests, and agent usage.
 - Return the same scene reference for no-op commands where practical.
 - Preserve graph invariants after every changing command: one root, no cycles,
   no orphans, valid child refs, one parent per non-root node, and valid

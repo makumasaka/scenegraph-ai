@@ -29,7 +29,12 @@ Pass criteria:
 - Wrapped v1 documents migrate to the version 2 scene shape.
 - Legacy bare scene graphs migrate to the version 2 scene shape while that path is retained.
 - Migrated scenes default missing `visible` to `true`, missing `metadata` to `{}`, and omitted `selection` to `null`.
+- Missing legacy node `type` is inferred as `root`, `light`, `group`, or `mesh`
+  based on node role.
 - `rootId` points to a node with `type: "root"`.
+- Non-root nodes cannot use `type: "root"`.
+- Transforms remain local, rotations use Euler radians in XYZ order, and world
+  transforms are computed.
 - Canonical scene data is equal.
 - Second serialization equals first serialization.
 
@@ -95,6 +100,7 @@ Pass criteria:
 - Persistent edit goes through command dispatch.
 - Scene state updates once.
 - Viewport reflects scene state.
+- Viewport either respects the root transform or explicitly verifies an identity-root requirement.
 - Command log shows the expected summary.
 - Undo and redo restore expected scenes.
 
@@ -127,6 +133,7 @@ Pass criteria:
 - Output is deterministic.
 - Hierarchy follows scene child order.
 - Local transforms are emitted correctly.
+- Root and child transform semantics match the canvas contract.
 - Export consumes canonical version 2 scene state and does not emit editor-only state.
 - Unsupported features are documented instead of silently misrepresented.
 

@@ -35,11 +35,13 @@ Invalid scenes:
 - Missing `rootId`.
 - `rootId` points to a missing node.
 - `rootId` points to a non-root node type.
+- Non-root node has type `root`.
 - Root appears as a child.
 - Missing child reference.
 - Duplicate child reference.
 - Orphan node.
 - Cycle.
+- Node has multiple parents.
 - Node `id` does not match map key.
 - Selection points to a missing node.
 
@@ -48,6 +50,9 @@ Migration/defaulting:
 - Legacy v1 documents default missing node `type`.
 - Legacy v1 documents default missing node `visible`.
 - Legacy v1 documents default missing node `metadata`.
+- Legacy nodes with `light` default to type `light`.
+- Legacy nodes with children default to type `group`.
+- Legacy leaf nodes default to type `mesh`.
 - Legacy bare scene objects remain accepted while retained.
 - Unsupported document versions are rejected.
 

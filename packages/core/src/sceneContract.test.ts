@@ -107,6 +107,14 @@ describe('Milestone 2 scene contract', () => {
         },
       ],
       [
+        'non-root node has type root',
+        () => {
+          const scene = clone(validScene());
+          scene.nodes.child = { ...scene.nodes.child, type: 'root' };
+          return scene;
+        },
+      ],
+      [
         'root appears as child',
         () => {
           const scene = clone(validScene());
@@ -147,6 +155,19 @@ describe('Milestone 2 scene contract', () => {
             root: node('root', 'root', ['a']),
             a: node('a', 'group', ['b']),
             b: node('b', 'mesh', ['a']),
+          },
+        }),
+      ],
+      [
+        'node has multiple parents',
+        () => ({
+          rootId: 'root',
+          selection: null,
+          nodes: {
+            root: node('root', 'root', ['a', 'b']),
+            a: node('a', 'group', ['shared']),
+            b: node('b', 'group', ['shared']),
+            shared: node('shared', 'mesh'),
           },
         }),
       ],

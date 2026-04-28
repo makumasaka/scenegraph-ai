@@ -2,15 +2,15 @@
 alwaysApply: true
 ---
 
-- `apps/web` is the product canvas layer. It consumes public APIs from
+- `apps/web` is a visualization and interaction layer only. It consumes public APIs from
   `@diorama/schema`, `@diorama/core`, and exporters.
 - The Zustand store may hold canonical scene state plus UI-only state, but
   command semantics must remain in core.
-- UI components must dispatch commands for persistent edits. Do not mutate
+- UI components must dispatch commands only for persistent edits. Do not mutate
   `scene.nodes`, node transforms, child arrays, or selection directly.
 - React Three Fiber objects are render artifacts. They must not become the
   source of truth.
-- Viewport hierarchy should mirror scene hierarchy so live canvas transforms
+- The viewport must reflect scene graph hierarchy so live canvas transforms
   match JSON/R3F export semantics.
 - Store camera, hover, panel, gizmo, clipboard, and other transient UI state
   outside the scenegraph.

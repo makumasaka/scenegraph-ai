@@ -1,31 +1,62 @@
 # Diorama
 
-Diorama is a **deterministic spatial canvas** built around a typed scene graph. You edit a 3D layout through **explicit commands**, inspect canonical state as JSON, and export to **React Three Fiber** for reuse in applications.
+Diorama is a deterministic spatial control system for building, editing, and exporting 3D scenes.
 
-The project targets **AI-assisted authoring** and **automation**: natural language (or agents) map to the same command surface as the UI, so edits stay replayable, testable, and diffable.
+Diorama treats a scene as a structured spatial system: a scene graph plus
+commands. The canvas visualizes state, the API exposes a programmable interface,
+and every meaningful change flows through deterministic command execution.
 
-## What Diorama is
+## How it works
 
-- A **schema-first** scene model (Zod): nodes, transforms, hierarchy, optional assets/materials/lights.
-- A **pure command reducer** (`applyCommand`): every meaningful edit is a small, typed `Command` applied to `Scene`.
-- A **web viewport** (React + R3F) for visualization and direct manipulation that still dispatches commands rather than mutating graph state ad hoc.
-- **Serialization** with stable key ordering and a versioned `diorama-scene` document wrapper.
-- **Export** to JSX for R3F pipelines.
-- Growing **agent-facing** packages (`@diorama/agent-interface`, `@diorama/mcp`) so external tools can load scenes and emit validated commands.
+- **Scene graph**: Zod-validated nodes, hierarchy, transforms, visibility,
+  optional assets/materials/lights, and metadata.
+- **Command system**: every persistent change is a typed command applied to the
+  scene graph.
+- **Deterministic updates**: the same starting scene plus the same command
+  sequence produces the same result.
+- **Serialization and export**: scenes export as stable `diorama-scene` JSON and
+  readable React Three Fiber JSX.
 
-## What Diorama is not
+## Dual Interface
 
-- Not a full **DCC** (Blender/Maya-class modeling, animation timelines, shader graphs).
-- Not **realtime collaborative** editing.
-- Not a broad **interchange hub** for arbitrary 3D formats; scope stays narrow until the command model and export path are solid.
-- Not a place for **hidden imperative mutations** of scene state from UI code—the graph should remain the single source of truth behind the reducer.
+Diorama exposes two equal interfaces over the same scene graph + commands:
 
-## Why command-based scene editing matters
+- **Canvas for humans**: the web canvas visualizes the scene and turns user
+  actions into commands.
+- **API for agents**: the agent interface and future MCP layer let tools read
+  scenes and submit validated commands.
 
-1. **Determinism** — Same initial scene + same command sequence yields the same result. That enables tests, bisection, and reproducible agent runs.
-2. **Inspectability** — Commands are a log you can print, validate with Zod, and store. JSON export reflects canonical state, not whatever the renderer happened to cache.
-3. **Automation** — Agents, scripts, and MCP tools speak the same language as the editor: structured patches, not brittle DOM or internal APIs.
-4. **Diffs and review** — Scene JSON and command logs are reviewable artifacts for humans and CI.
+Neither interface owns scene state. Both use the same schemas, reducers, and
+export paths.
+
+## AI Workflow
+
+1. AI reads the current scene.
+2. AI generates structured commands.
+3. Diorama validates and applies those commands deterministically.
+4. The canvas updates from the new scene graph.
+5. The user inspects, replays, exports, or continues editing.
+
+AI does not directly mutate the scene. It compiles intent into commands.
+
+## Philosophy
+
+- **Explicit over implicit**: scene state and changes are structured data.
+- **Inspectable**: commands, JSON, and exports can be reviewed by humans and CI.
+- **Replayable**: command sequences can be tested and reproduced.
+- **Agent-compatible**: humans and AI agents operate through the same system
+  boundary.
+
+## Non-goals
+
+Diorama is not:
+
+- Blender
+- a DCC
+- a renderer
+- generative AI
+- a broad 3D format interchange pipeline
+- a shader graph or animation timeline
 
 ## Repository layout
 
@@ -33,11 +64,11 @@ The project targets **AI-assisted authoring** and **automation**: natural langua
 |------|------|
 | `packages/schema` | Scene types and validation |
 | `packages/core` | Commands, reducer, fixtures, layout helpers |
-| `packages/export-r3f` | Scene → R3F JSX |
+| `packages/export-r3f` | Scene to R3F JSX |
 | `packages/agent-interface` | Command/session contracts for agents |
-| `packages/mcp` | MCP server surface (evolving) |
-| `packages/examples` | Placeholder for shared examples/fixtures |
-| `apps/web` | Vite + React + R3F editor |
+| `packages/mcp` | Future MCP adapter surface |
+| `packages/examples` | Shared JSON examples and fixtures |
+| `apps/web` | Vite + React + R3F canvas |
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deeper overview.
 
@@ -69,7 +100,10 @@ Other useful scripts:
 
 ## Example scenes and kits
 
-Starter graphs ship as TypeScript fixtures in `@diorama/core` and can be loaded from the web UI (**Default**, **Showroom**, **Gallery**). You can also import/export versioned JSON. Details: [docs/EXAMPLE_SCENES.md](docs/EXAMPLE_SCENES.md).
+Starter graphs ship as TypeScript fixtures in `@diorama/core` and can be loaded
+from the web canvas (**Default**, **Showroom**, **Gallery**, **Living**). You can
+also import/export versioned JSON. Details:
+[docs/EXAMPLE_SCENES.md](docs/EXAMPLE_SCENES.md).
 
 ## Contributing
 
@@ -79,17 +113,21 @@ Ideas that fit early contributions: [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_
 
 ## Roadmap (current direction)
 
-Priorities follow a deliberate stack: **schema → commands → viewport → transport/export → agent surface → polish** (see `AGENTS.md`).
+Priorities follow a deliberate stack: **schema -> commands -> canvas ->
+transport/export -> agent surface -> polish** (see `AGENTS.md`).
 
 Near term:
 
 - Harden **command schema** and **agent-interface** so external tools can rely on stable contracts.
-- Flesh out **`packages/examples`** with checked-in JSON scenes and regression fixtures (see package TODO).
+- Expand **`packages/examples`** with checked-in JSON scenes and regression fixtures.
 - Improve **export-r3f** coverage and roundtrip tests as the scene model grows.
-- Evolve **MCP** and documentation so “load scene → plan → apply commands” is straightforward for integrators.
+- Evolve **MCP** and documentation so "load scene -> plan -> apply commands" is
+  straightforward for integrators.
 
-Longer term stays bounded by product guardrails: deterministic editing, inspectability, and code-to-canvas-to-code loops—not feature parity with general-purpose 3D suites.
+Longer term stays bounded by product guardrails: deterministic spatial updates,
+inspectability, and code-to-canvas-to-code loops, not feature parity with
+general-purpose 3D suites.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

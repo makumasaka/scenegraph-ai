@@ -63,9 +63,17 @@ Migration/defaulting behavior:
 - `selection` defaults to `null` when omitted.
 - `visible` defaults to `true`.
 - `metadata` defaults to `{}`.
-- missing node `type` defaults through the schema, with the `rootId` node
-  rewritten to `type: "root"` during legacy migration.
-- current v2 documents must have `rootId` pointing to a `type: "root"` node.
+- missing node `type` is inferred during migration: the `rootId` node becomes
+  `root`, nodes with `light` become `light`, branch nodes become `group`, and
+  remaining leaf nodes become `mesh`.
+- current v2 documents must have `rootId` pointing to a `type: "root"` node,
+  and non-root nodes must not use `type: "root"`.
+
+Transform policy:
+
+- stored transforms are local only.
+- rotation values are Euler radians in XYZ order.
+- world transforms are computed from hierarchy by core utilities when needed.
 
 ## Root package name
 

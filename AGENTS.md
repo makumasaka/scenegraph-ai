@@ -1,133 +1,191 @@
 # Diorama Agent Guide
 
-Diorama is a deterministic scenegraph and command system with a browser canvas
-on top. The scenegraph is the source of truth. The canvas, outliner, inspector,
-exporters, and future agent tools must read scene state and emit commands rather
-than mutating scene data directly.
+## What Diorama Is
 
-## Product Boundary
+Diorama is a structured spatial system, not a traditional 3D editor.
 
-Diorama is a programmable spatial interface layer, not a DCC tool, rendering
-engine, Blender replacement, or generic generative AI product.
+A Diorama scene is a scene graph plus a deterministic command history. The
+scene graph defines spatial state. Commands define how that state changes. The
+system is designed for both humans and AI agents, so every behavior must be
+inspectable, replayable, and schema-valid.
 
-Phase 1 locks the human editing loop:
+The canvas is one interface to the system. It is not the system.
 
-- Load a starter scene.
-- Render it in the web canvas.
-- Select nodes.
-- Inspect hierarchy.
-- Edit transforms.
-- Apply layout commands.
-- Log meaningful commands.
-- Undo and redo.
-- Export JSON and basic React Three Fiber JSX.
+## System Boundary
 
-Phase 2 exposes the same command system to agents through an MCP-compatible
-surface. Agents compile intent into commands; they do not directly mutate scene
-state, React state, files, or generated code.
+Diorama treats a 3D scene as a structured system of state and transformations,
+not as meshes or rendering output.
 
-## Package Ownership
+- React Three Fiber is visualization only.
+- The scene graph is the source of truth.
+- Commands are the only mutation path.
+- Exports are read models derived from validated scene state.
+- UI state may support interaction, but it must not become canonical scene
+  state.
 
-Spec Agent owns:
+## Dual Interface
+
+Diorama exposes two equal interfaces:
+
+- a visual canvas for humans
+- a programmatic API (future MCP layer) for agents
+
+Both interfaces must use the same schema, the same command contracts, and the
+same reducer semantics. The human canvas must not have private powers that the
+agent API cannot express. The agent API must not bypass the rules used by the
+canvas.
+
+## AI as Compiler
+
+AI does not directly mutate the scene.
+AI compiles intent into structured commands that Diorama executes
+deterministically.
+
+Agents may read scene state, propose command batches, dry-run changes, and
+inspect results. Agents must not edit scene JSON, React state, Zustand state,
+R3F objects, generated code, or files as a substitute for commands.
+
+## Architecture Rules
+
+- No direct mutation of persistent scene state.
+- All persistent changes go through commands or validated scene replacement.
+- Reducers must be pure, deterministic, and replayable.
+- No hidden side effects: no DOM, storage, network, clocks, random values, or
+  rendering state inside core command execution.
+- Schema-first: persisted state, imported JSON, and untrusted command payloads
+  must validate at package boundaries.
+- The scene graph and command contracts live outside the UI.
+- The UI consumes core contracts; it does not redefine them.
+- Exporters read validated scenes; they never mutate scenes.
+- Future MCP tools wrap the same command surface; they do not introduce a second
+  scene shape or mutation path.
+- Command summaries, snapshots, docs, and generated code must be deterministic
+  and ASCII-only.
+
+## Non-Goals
+
+Diorama is not:
+
+- Blender
+- a DCC
+- a renderer
+- an AI generation tool
+- a modeling package
+- a shader graph
+- a generic 3D import/export pipeline
+
+Do not add features that pull Diorama toward those products unless a scoped ADR
+changes the system boundary.
+
+## Agent Rules
+
+Core owns schema and commands.
+
+- Owns `packages/schema/**` and `packages/core/**`.
+- Owns scene schema, command union, reducers, invariants, serialization, layout
+  utilities, fixtures, and core tests.
+- Must keep scene and command behavior deterministic and validated.
+
+UI consumes only.
+
+- Owns `apps/web/**`.
+- Renders scene state, collects human intent, and dispatches commands.
+- Must not mutate `scene.nodes` directly.
+- Must not redefine scene types, command payloads, or validation rules.
+
+Export reads only.
+
+- Owns `packages/export-r3f/**`.
+- Converts validated scene state into deterministic output.
+- Must preserve hierarchy and transform semantics.
+- Must not mutate scenes or command contracts.
+
+Agent Interface validates agent input.
+
+- Owns `packages/agent-interface/**`.
+- Validates untrusted command payloads and scene load inputs before they reach
+  core.
+- Must keep agent behavior command-first and replayable.
+
+MCP remains deferred.
+
+- `packages/mcp/**` stays a thin adapter until a dedicated MCP milestone is
+  active.
+- MCP must expose the same scene and command contracts as the agent interface.
+
+Spec owns system alignment.
+
+- Owns `docs/**`, `.cursor/rules/**`, `AGENTS.md`, ADRs, prompts, eval specs,
+  roadmap, and scope control.
+- Must keep all docs aligned with the spatial-system model.
+
+QA owns validation loops.
+
+- Owns tests across packages and `docs/evals/**`.
+- Covers command replay, schema invariants, JSON roundtrip, UI command flow,
+  export snapshots, and agent simulation.
+- Must treat direct mutation paths as failures.
+
+All agents:
+
+- Never invent a new mutation path.
+- Never make the canvas, exporter, MCP layer, or agent interface own scene
+  semantics.
+- Coordinate before changing root package files, schema contracts, command
+  contracts, or shared test fixtures.
+
+## Package Boundaries
+
+Spec Agent may edit:
 
 - `docs/**`
 - `.cursor/rules/**`
 - `AGENTS.md`
-- roadmap, ADRs, prompts, eval specs, and scope control
 
-Spec Agent must not edit:
+Spec Agent must not edit production packages without explicit coordination.
 
-- `apps/web/**` product implementation
-- `packages/schema/**` schema contracts
-- `packages/core/**` command or reducer implementation
-- `packages/export-r3f/**` exporter implementation
-- `package.json` or `package-lock.json` without coordination
-
-Core Agent owns:
+Core Agent may edit:
 
 - `packages/schema/**`
 - `packages/core/**`
-- scene schema, commands, reducer, invariants, serialization, layout utilities,
-  fixtures, and core tests
 
-Core Agent must not edit:
+Core Agent must not edit UI, exporter, agent-interface, MCP, or root package
+files without coordination.
 
-- `apps/web/**` UI implementation
-- `packages/export-r3f/**` exporter behavior, except coordinated type/import fixes
-- `packages/mcp/**` adapter implementation
-- docs/rules owned by Spec Agent, except matching command/schema references
-- root package files without coordination
-
-UI Agent owns:
+UI Agent may edit:
 
 - `apps/web/**`
-- app shell, viewport, outliner, inspector, command log, interaction loop, and
-  app tests
 
-UI Agent must not edit:
+UI Agent must not edit schema contracts, command semantics, agent validation, or
+export behavior.
 
-- `packages/schema/**` scene contracts
-- `packages/core/**` command semantics
-- `packages/agent-interface/**` command validation
-- `packages/export-r3f/**` exporter behavior
-- root package files without coordination
-
-Export Agent owns:
+Export Agent may edit:
 
 - `packages/export-r3f/**`
-- export tests and export examples in coordination with Core and QA
 
-Export Agent must not edit:
+Export Agent must not edit schema or command behavior without Core Agent
+approval.
 
-- `packages/schema/**` scene contracts
-- `packages/core/**` command or fixture behavior without Core Agent approval
-- `apps/web/**` product UI, except coordinated export button wiring
-- `packages/agent-interface/**` or `packages/mcp/**`
-- root package files without coordination
-
-QA Agent owns:
+QA Agent may edit:
 
 - tests across packages
 - `docs/evals/**`
-- command replay fixtures, roundtrip checks, UI flow checks, export snapshots,
-  and agent simulation loops
 
-QA Agent must not edit:
-
-- production schema, command, UI, or exporter behavior unless paired with the
-  owning agent
-- root package files without coordination
-
-MCP work is deferred until the agent-interface surface is stable. `packages/mcp`
-should stay a thin adapter unless a dedicated MCP milestone is active.
-
-## Hard Rules
-
-- Persistent scene changes must go through `applyCommand` or validated scene
-  replacement.
-- UI code must not rewrite `scene.nodes` directly.
-- Export code must be pure and must not mutate scenes.
-- Future MCP tools must validate payloads and call the same command surface.
-- Do not redefine scene or command types in the web app or exporter.
-- Keep command semantics in `packages/core/src/commands.ts`.
-- Keep untrusted command validation in
-  `packages/agent-interface/src/commandSchema.ts`.
-- Any command contract change must update core tests, command schema tests, docs,
-  and affected UI/export tests in the same branch.
-- Use ASCII only in generated code, docs, snapshots, and comments.
+QA Agent must not change production behavior unless paired with the owning
+agent.
 
 ## Merge Protocol
 
-- Avoid parallel edits to root `package.json`, `package-lock.json`, command
-  contracts, schema contracts, and the Zustand scene store.
-- Merge schema and command contract branches before dependent UI or export work.
-- Branch per agent when multiple agents are active.
-- Include an integration note in each PR or handoff: contracts touched, tests run,
-  and downstream files likely affected.
+- Merge schema and command contract branches before dependent UI, export,
+  agent-interface, or MCP work.
+- Avoid parallel edits to `package.json`, `package-lock.json`, schema contracts,
+  command contracts, and the Zustand scene store.
+- Use branch-per-agent when multiple agents are active.
+- Include an integration note in each PR or handoff: contracts touched, tests
+  run, and downstream files likely affected.
 - If a branch changes command payloads or scene shape, it must land before
   branches that consume those contracts.
-- If pre-commit or tests update snapshots, call that out explicitly in the
-  integration note.
+- If tests update snapshots, call that out explicitly.
 
 ## Required Validation
 

@@ -28,7 +28,8 @@ Canonical `SceneNode` fields are:
 - `metadata`
 
 `rootId` must point to a node whose `type` is `root`. Persistent transforms are
-local; world transforms are computed from scene hierarchy.
+local only; world transforms are computed from scene hierarchy. Rotations are
+Euler radians in XYZ order.
 
 ## Reducer Contract
 
@@ -38,6 +39,7 @@ local; world transforms are computed from scene hierarchy.
 - Changing commands preserve graph invariants.
 - Commands operate on local transforms. World transforms are derived from the
   scene hierarchy.
+- Command code should assume it receives canonical version 2 scene state.
 - Command summaries must be deterministic and ASCII-only.
 
 ## ADD_NODE

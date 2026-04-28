@@ -2,6 +2,24 @@
 
 Diorama separates **canonical scene state**, **how it changes**, and **how it is shown or exported**. The goal is a small, testable core with clear boundaries.
 
+Diorama is a control layer between spatial data, code, and AI systems.
+
+## System Boundary
+
+Diorama treats scene state as structured data plus deterministic
+transformations. The scene graph is the model. React Three Fiber is not the
+model; it is a render layer that visualizes the model.
+
+- **Scene graph vs render layer**: `Scene` and `SceneNode` data define hierarchy,
+  transforms, visibility, refs, and metadata. R3F objects are derived render
+  artifacts and must not become canonical state.
+- **Commands vs UI interaction**: UI gestures, inspector edits, outliner actions,
+  agent requests, and future MCP calls must compile to commands. Commands are
+  the only path for persistent scene mutation.
+- **Control layer**: Diorama sits between spatial data, generated/exported code,
+  and AI systems so each interface uses the same validated scene and command
+  contracts.
+
 ## Layered model
 
 ```mermaid
@@ -36,9 +54,14 @@ flowchart TB
 
 ## `@diorama/schema`
 
-- Defines `Scene`, `SceneNode`, transforms, optional asset/material/light fields.
-- Validates graph invariants: single root, no cycles, no orphans, consistent `children` references.
-- Provides `serializeScene` / `parseSceneJson` (including legacy graph parsing where supported) and `stableStringify` for deterministic JSON.
+- Defines canonical version 2 `Scene` documents, `SceneNode`, local transforms,
+  optional asset/material/light fields, and JSON-safe metadata.
+- Validates graph invariants: single root, root node type, no non-root root
+  nodes, no cycles, no orphans, consistent `children` references, and valid
+  selection.
+- Provides `serializeScene` / `parseSceneJson` (including v1 and bare legacy
+  migration where supported) and `stableStringify` for deterministic JSON.
+- Exports only wrapped version 2 documents: `format`, `version`, and `data`.
 
 ## `@diorama/core`
 
@@ -56,28 +79,57 @@ composition/decomposition that serves command semantics, as documented in ADR
 - Renders the scene graph in the viewport.
 - User actions should **dispatch commands** through the scene store, not rewrite `scene.nodes` imperatively.
 - Import/export and Load kit use the same schema and command paths as automation would.
+- The canvas should match scene hierarchy semantics. It must either apply the
+  root transform or document and test an identity-root requirement.
 
 ## `@diorama/export-r3f`
 
 - Consumes a validated `Scene` and emits JSX strings suitable for R3F apps.
 - Kept separate so export behavior is tested independently of the editor UI.
+- Must match scene hierarchy/local transform semantics and must not emit editor-only state.
 
 ## `@diorama/agent-interface`
 
 - Schemas and types for sessions, commands, and load-scene inputs so agents produce **validated** payloads before they hit `applyCommand`.
+- Imported scenes must be parsed/migrated to canonical version 2 before commands run.
 
 ## `@diorama/mcp`
 
 - Thin integration layer for MCP hosts; expected to grow alongside agent-interface stability.
+- Full MCP remains deferred and must wrap the same version 2 scene and command contracts.
 
 ## `@diorama/examples`
 
-- Intended for static JSON examples, scripts, and docs-driven demos. Currently a placeholder; see [GOOD_FIRST_ISSUES.md](GOOD_FIRST_ISSUES.md).
+- Contains static JSON examples, scripts, and docs-driven demos. Checked-in
+  scene JSON should stay byte-for-byte aligned with canonical starter scene
+  serialization.
 
-## Data flow (editing)
+## Data flow
 
-1. UI or agent builds a `Command` (or sequence).
-2. Store calls `applyCommand` (and related invariants if any).
-3. Updated `Scene` flows to the viewport and to export/serialize paths.
+```mermaid
+flowchart LR
+  User[User] --> UI[UI]
+  UI --> UserCommand[Command]
+  UserCommand --> UserReducer[Reducer]
+  UserReducer --> UserScene[Scene]
+  UserScene --> UserViewport[Viewport]
+
+  Agent[Agent] --> API[API]
+  API --> AgentCommand[Command]
+  AgentCommand --> AgentReducer[Reducer]
+  AgentReducer --> AgentScene[Scene]
+  AgentScene --> AgentViewport[Viewport]
+```
+
+Text equivalent:
+
+- User -> UI -> Command -> Reducer -> Scene -> Viewport
+- Agent -> API -> Command -> Reducer -> Scene -> Viewport
+
+1. A human UI action or agent API request builds a `Command` or command sequence.
+2. The command is validated at the boundary that receives it.
+3. The reducer applies the command deterministically to the canonical `Scene`.
+4. The viewport reflects the updated scene graph.
+5. Export and serialization read the same updated scene.
 
 This keeps **replay**, **testing**, and **tooling** aligned on one semantic model.

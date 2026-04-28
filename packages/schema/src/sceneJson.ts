@@ -6,7 +6,9 @@ import {
   SCENE_DOCUMENT_FORMAT,
   SceneDocumentSchema,
   SceneGraphSchema,
+  type NodeType,
   type Scene,
+  type SceneNode,
 } from './schemas';
 
 /** Deterministic JSON: sorted object keys at every depth (arrays keep order). */
@@ -37,19 +39,34 @@ export const serializeScene = (scene: Scene): string => {
   return stableStringify(doc);
 };
 
-const migrateLegacyScene = (scene: Scene): Scene | null => {
-  const root = scene.nodes[scene.rootId];
-  if (!root) return null;
+type LegacyScene = Omit<Scene, 'nodes'> & {
+  nodes: Record<string, Omit<SceneNode, 'type'> & { type?: NodeType }>;
+};
 
+const inferLegacyNodeType = (
+  id: string,
+  rootId: string,
+  node: Omit<SceneNode, 'type'> & { type?: NodeType },
+): NodeType => {
+  if (id === rootId) return 'root';
+  if (node.type !== undefined) return node.type;
+  if (node.light !== undefined) return 'light';
+  if (node.children.length > 0) return 'group';
+  return 'mesh';
+};
+
+const migrateLegacyScene = (scene: LegacyScene): Scene | null => {
   const migrated = {
     ...scene,
-    nodes: {
-      ...scene.nodes,
-      [scene.rootId]: {
-        ...root,
-        type: 'root' as const,
-      },
-    },
+    nodes: Object.fromEntries(
+      Object.entries(scene.nodes).map(([id, node]) => [
+        id,
+        {
+          ...node,
+          type: inferLegacyNodeType(id, scene.rootId, node),
+        },
+      ]),
+    ),
   };
 
   const current = SceneGraphSchema.safeParse(migrated);

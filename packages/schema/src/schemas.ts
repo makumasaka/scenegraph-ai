@@ -8,6 +8,7 @@ export const Vec3Schema = z.tuple([
 
 export type Vec3 = z.infer<typeof Vec3Schema>;
 
+/** Local TRS transform. Rotation is Euler XYZ order in radians. */
 export const TransformSchema = z.object({
   position: Vec3Schema,
   rotation: Vec3Schema,
@@ -72,23 +73,38 @@ export const SceneLightSchema = z.discriminatedUnion('kind', [
 
 export type SceneLight = z.infer<typeof SceneLightSchema>;
 
-export const SceneNodeSchema = z.object({
+const SceneNodeBaseSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
-  type: NodeTypeSchema.default('mesh'),
   children: z.array(z.string()),
   transform: TransformSchema,
-  visible: z.boolean().default(true),
   assetRef: AssetRefSchema.optional(),
   materialRef: MaterialRefSchema.optional(),
   light: SceneLightSchema.optional(),
+});
+
+export const SceneNodeSchema = SceneNodeBaseSchema.extend({
+  type: NodeTypeSchema,
+  visible: z.boolean(),
+  metadata: MetadataSchema,
+});
+
+const LegacySceneNodeSchema = SceneNodeBaseSchema.extend({
+  type: NodeTypeSchema.optional(),
+  visible: z.boolean().default(true),
   metadata: MetadataSchema.default({}),
 });
 
 export type SceneNode = z.infer<typeof SceneNodeSchema>;
 
+type GraphShape = {
+  rootId: string;
+  nodes: Record<string, { id: string; children: string[] }>;
+  selection: string | null;
+};
+
 const graphStructuralRefinements = (
-  val: { rootId: string; nodes: Record<string, SceneNode>; selection: string | null },
+  val: GraphShape,
   ctx: z.RefinementCtx,
 ) => {
   const { rootId, nodes, selection } = val;
@@ -203,6 +219,14 @@ const graphRootTypeRefinement = (
       message: 'rootId node must have type root',
     });
   }
+  for (const [id, node] of Object.entries(val.nodes)) {
+    if (id !== val.rootId && node.type === 'root') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `non-root node ${id} cannot have type root`,
+      });
+    }
+  }
 };
 
 const currentGraphRefinements = (
@@ -216,6 +240,12 @@ const currentGraphRefinements = (
 const SceneGraphBaseSchema = z.object({
   rootId: z.string().min(1),
   nodes: z.record(z.string(), SceneNodeSchema),
+  selection: z.string().nullable().default(null),
+});
+
+const LegacySceneGraphBaseSchema = z.object({
+  rootId: z.string().min(1),
+  nodes: z.record(z.string(), LegacySceneNodeSchema),
   selection: z.string().nullable().default(null),
 });
 
@@ -235,7 +265,7 @@ export const SceneDocumentSchema = z.object({
 
 export type SceneDocument = z.infer<typeof SceneDocumentSchema>;
 
-export const LegacySceneGraphSchema = SceneGraphBaseSchema.superRefine(
+export const LegacySceneGraphSchema = LegacySceneGraphBaseSchema.superRefine(
   graphStructuralRefinements,
 );
 
