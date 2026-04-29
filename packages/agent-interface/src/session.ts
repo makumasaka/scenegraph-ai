@@ -80,6 +80,12 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
       const command: Command = parsed.data;
       const dryRun = options?.dryRun === true;
       const result = applyCommandWithResult(scene, command);
+      if (result.error !== undefined) {
+        return err({
+          code: 'COMMAND_REJECTED',
+          message: result.error,
+        });
+      }
       const next = result.scene;
       const changed = result.changed;
       const snapshot = cloneSceneFromJson(next);

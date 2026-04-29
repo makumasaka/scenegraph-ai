@@ -31,6 +31,41 @@ describe('createAgentSession', () => {
     expect(r.error.issues?.length).toBeGreaterThan(0);
   });
 
+  it('applyCommand rejects malformed transform patches before core reducer execution', () => {
+    const session = createAgentSession(createEmptyScene());
+    const empty = session.applyCommand({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: 'anything',
+      patch: {},
+    });
+    const malformed = session.applyCommand({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: 'anything',
+      patch: { position: [0, 0] },
+    });
+    const nonFinite = session.applyCommand({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: 'anything',
+      patch: { scale: [1, Number.NaN, 1] },
+    });
+
+    for (const result of [empty, malformed, nonFinite]) {
+      expect(result.ok).toBe(false);
+      if (result.ok) continue;
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.issues?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('applyCommand reports core command rejections as structured errors', () => {
+    const session = createAgentSession(createEmptyScene());
+    const r = session.applyCommand({ type: 'DELETE_NODE', nodeId: 'missing' });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error.code).toBe('COMMAND_REJECTED');
+    expect(r.error.message).toBe('DELETE_NODE nodeId does not exist');
+  });
+
   it('applyCommand dryRun does not persist while reporting changed', () => {
     const session = createAgentSession(createEmptyScene());
     const root = session.getScene();

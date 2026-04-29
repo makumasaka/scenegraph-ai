@@ -4,6 +4,7 @@ import {
   type Scene,
   type SceneNode,
 } from '@diorama/schema';
+import { summarizeCommand, type CommandSummary } from './commandLog';
 import { duplicateNodeInScene } from './duplicate';
 import { computeArrangement, type ArrangeLayout, type ArrangeOptions } from './layout';
 import { collectSubtreeIds, getParent, isDescendant } from './scene';
@@ -175,10 +176,12 @@ const applyUpdateTransform = (
   if (transformEqual(node.transform, nextTransform)) return scene;
 
   const nextNode: SceneNode = { ...node, transform: nextTransform };
-  return {
+  const nextScene: Scene = {
     ...scene,
     nodes: { ...scene.nodes, [nodeId]: nextNode },
   };
+  if (!validateScene(nextScene)) return scene;
+  return nextScene;
 };
 
 const applyReplaceScene = (_scene: Scene, incoming: Scene): Scene => {
@@ -270,17 +273,148 @@ export const applyCommand = (scene: Scene, command: Command): Scene => {
 export interface CommandResult {
   scene: Scene;
   changed: boolean;
+  summary: CommandSummary;
+  error?: string;
+  warnings?: string[];
   command: Command;
 }
+
+const validDuplicateTargets = (
+  scene: Scene,
+  nodeId: string,
+  includeSubtree: boolean,
+): string[] => (includeSubtree ? collectSubtreeIds(scene, nodeId) : [nodeId]);
+
+const commandError = (scene: Scene, command: Command): string | undefined => {
+  switch (command.type) {
+    case 'ADD_NODE': {
+      if (!scene.nodes[command.parentId]) return 'ADD_NODE parentId does not exist';
+      if (scene.nodes[command.node.id]) return 'ADD_NODE node id already exists';
+      const nextScene: Scene = {
+        ...scene,
+        nodes: {
+          ...scene.nodes,
+          [command.parentId]: addChild(scene.nodes[command.parentId], command.node.id),
+          [command.node.id]: command.node,
+        },
+      };
+      if (!validateScene(nextScene)) return 'ADD_NODE would violate scene invariants';
+      return undefined;
+    }
+    case 'DELETE_NODE':
+      if (command.nodeId === scene.rootId) return 'DELETE_NODE cannot delete root';
+      if (!scene.nodes[command.nodeId]) return 'DELETE_NODE nodeId does not exist';
+      return undefined;
+    case 'UPDATE_TRANSFORM': {
+      const node = scene.nodes[command.nodeId];
+      if (!node) return 'UPDATE_TRANSFORM nodeId does not exist';
+      if (isEmptyPatch(command.patch)) return undefined;
+      const nextScene: Scene = {
+        ...scene,
+        nodes: {
+          ...scene.nodes,
+          [command.nodeId]: {
+            ...node,
+            transform: mergeTransform(node.transform, command.patch),
+          },
+        },
+      };
+      if (!validateScene(nextScene)) {
+        return 'UPDATE_TRANSFORM would violate scene invariants';
+      }
+      return undefined;
+    }
+    case 'DUPLICATE_NODE': {
+      if (command.nodeId === scene.rootId) return 'DUPLICATE_NODE cannot duplicate root';
+      if (!scene.nodes[command.nodeId]) return 'DUPLICATE_NODE nodeId does not exist';
+      const targetParentId =
+        command.newParentId ?? getParent(scene, command.nodeId)?.id ?? scene.rootId;
+      if (!scene.nodes[targetParentId]) {
+        return 'DUPLICATE_NODE newParentId does not exist';
+      }
+      const duplicatedIds = validDuplicateTargets(
+        scene,
+        command.nodeId,
+        command.includeSubtree,
+      );
+      if (duplicatedIds.includes(targetParentId)) {
+        return 'DUPLICATE_NODE cannot parent duplicate under its own subtree';
+      }
+      if (command.idMap !== undefined) {
+        const expected = new Set(duplicatedIds);
+        const actual = Object.keys(command.idMap);
+        const used = new Set<string>();
+        if (actual.length !== duplicatedIds.length) {
+          return 'DUPLICATE_NODE idMap must map each duplicated node';
+        }
+        for (const oldId of actual) {
+          const newId = command.idMap[oldId];
+          if (!expected.has(oldId)) {
+            return 'DUPLICATE_NODE idMap contains unknown source id';
+          }
+          if (!newId) return 'DUPLICATE_NODE idMap contains empty target id';
+          if (scene.nodes[newId]) return 'DUPLICATE_NODE idMap target id already exists';
+          if (used.has(newId)) return 'DUPLICATE_NODE idMap target ids must be unique';
+          used.add(newId);
+        }
+      }
+      return undefined;
+    }
+    case 'SET_PARENT': {
+      if (command.nodeId === scene.rootId) return 'SET_PARENT cannot reparent root';
+      if (command.nodeId === command.parentId) {
+        return 'SET_PARENT nodeId cannot equal parentId';
+      }
+      if (!scene.nodes[command.nodeId]) return 'SET_PARENT nodeId does not exist';
+      if (!scene.nodes[command.parentId]) return 'SET_PARENT parentId does not exist';
+      if (isDescendant(scene, command.nodeId, command.parentId)) {
+        return 'SET_PARENT cannot create a cycle';
+      }
+      return undefined;
+    }
+    case 'ARRANGE_NODES': {
+      const hasTarget = command.nodeIds.some(
+        (id) => id !== scene.rootId && scene.nodes[id] !== undefined,
+      );
+      return hasTarget ? undefined : 'ARRANGE_NODES has no valid non-root targets';
+    }
+    case 'REPLACE_SCENE':
+      return validateScene(command.scene)
+        ? undefined
+        : 'REPLACE_SCENE scene failed validation';
+    case 'SET_SELECTION':
+      if (command.nodeId !== null && !scene.nodes[command.nodeId]) {
+        return 'SET_SELECTION nodeId does not exist';
+      }
+      return undefined;
+    default: {
+      const _exhaustive: never = command;
+      return _exhaustive;
+    }
+  }
+};
+
+const commandWarnings = (command: Command): string[] | undefined => {
+  if (command.type === 'DUPLICATE_NODE' && command.idMap === undefined) {
+    return ['DUPLICATE_NODE without idMap uses generated ids'];
+  }
+  return undefined;
+};
 
 export const applyCommandWithResult = (
   scene: Scene,
   command: Command,
 ): CommandResult => {
+  const error = commandError(scene, command);
   const next = applyCommand(scene, command);
-  return {
+  const result: CommandResult = {
     scene: next,
     changed: next !== scene,
+    summary: summarizeCommand(command),
     command,
   };
+  if (error !== undefined && next === scene) result.error = error;
+  const warnings = commandWarnings(command);
+  if (warnings !== undefined) result.warnings = warnings;
+  return result;
 };

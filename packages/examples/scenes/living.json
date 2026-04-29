@@ -4,6 +4,10 @@
       "living-floor": {
         "children": [],
         "id": "living-floor",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.floor"
+        },
         "metadata": {},
         "name": "Floor",
         "transform": {
@@ -24,11 +28,7 @@
           ]
         },
         "type": "mesh",
-        "visible": true,
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.floor"
-        }
+        "visible": true
       },
       "living-furniture-group": {
         "children": [
@@ -62,6 +62,10 @@
       "living-lamp": {
         "children": [],
         "id": "living-lamp",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.metal"
+        },
         "metadata": {},
         "name": "Floor lamp",
         "transform": {
@@ -82,11 +86,7 @@
           ]
         },
         "type": "mesh",
-        "visible": true,
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.metal"
-        }
+        "visible": true
       },
       "living-room": {
         "children": [
@@ -146,6 +146,10 @@
       "living-sofa": {
         "children": [],
         "id": "living-sofa",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.fabric"
+        },
         "metadata": {},
         "name": "Sofa",
         "transform": {
@@ -166,15 +170,15 @@
           ]
         },
         "type": "mesh",
-        "visible": true,
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.fabric"
-        }
+        "visible": true
       },
       "living-table": {
         "children": [],
         "id": "living-table",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.wood"
+        },
         "metadata": {},
         "name": "Coffee table",
         "transform": {
@@ -195,16 +199,12 @@
           ]
         },
         "type": "mesh",
-        "visible": true,
-        "materialRef": {
-          "kind": "token",
-          "token": "mat.wood"
-        }
+        "visible": true
       }
     },
     "rootId": "living-root",
     "selection": null
   },
   "format": "diorama-scene",
-  "version": 1
+  "version": 2
 }

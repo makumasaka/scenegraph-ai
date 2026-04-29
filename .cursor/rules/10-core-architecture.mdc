@@ -11,6 +11,9 @@ alwaysApply: true
 - Keep reducers deterministic and side-effect free. No DOM, network, storage,
   clocks, or random IDs inside command application.
 - Reducers must support replay, undo/redo, tests, and agent usage.
+- Expected invalid user or agent commands must not throw; return unchanged scenes
+  and structured errors through `applyCommandWithResult`.
+- Replay-safe `DUPLICATE_NODE` commands must provide a deterministic `idMap`.
 - Return the same scene reference for no-op commands where practical.
 - Preserve graph invariants after every changing command: one root, no cycles,
   no orphans, valid child refs, one parent per non-root node, and valid

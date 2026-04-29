@@ -65,6 +65,6 @@ Serialization:
 ## Ownership Notes
 
 Schema contract changes belong in `packages/schema`. Core fixture updates belong
-in `packages/core/src/fixtures`. If canonical document version changes, Core
-Agent should also update checked-in examples or explicitly document why example
-files remain legacy fixtures.
+in `packages/core/src/fixtures`. Checked-in starter examples in
+`packages/examples/scenes` are canonical v2 documents; legacy v1 and bare-scene
+coverage belongs in migration tests, not starter example JSON.

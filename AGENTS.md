@@ -52,6 +52,8 @@ R3F objects, generated code, or files as a substitute for commands.
 - Reducers must be pure, deterministic, and replayable.
 - No hidden side effects: no DOM, storage, network, clocks, random values, or
   rendering state inside core command execution.
+- Expected invalid user or agent commands must return no-op scenes or structured
+  command errors; they must not throw.
 - Schema-first: persisted state, imported JSON, and untrusted command payloads
   must validate at package boundaries.
 - The scene graph and command contracts live outside the UI.
@@ -59,6 +61,7 @@ R3F objects, generated code, or files as a substitute for commands.
 - Exporters read validated scenes; they never mutate scenes.
 - Future MCP tools wrap the same command surface; they do not introduce a second
   scene shape or mutation path.
+- Replay-safe duplicate commands must use deterministic `idMap` values.
 - Command summaries, snapshots, docs, and generated code must be deterministic
   and ASCII-only.
 
@@ -85,6 +88,8 @@ Core owns schema and commands.
 - Owns scene schema, command union, reducers, invariants, serialization, layout
   utilities, fixtures, and core tests.
 - Must keep scene and command behavior deterministic and validated.
+- Must keep `applyCommand`, `applyCommandWithResult`, command summaries, and
+  command tests aligned.
 
 UI consumes only.
 
@@ -106,6 +111,8 @@ Agent Interface validates agent input.
 - Validates untrusted command payloads and scene load inputs before they reach
   core.
 - Must keep agent behavior command-first and replayable.
+- Must keep `CommandSchema`, `COMMAND_TYPES`, and `COMMAND_SCHEMA_PARITY` in
+  parity with the core command union.
 
 MCP remains deferred.
 

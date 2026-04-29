@@ -33,6 +33,28 @@ describe('sceneStore — history + command log regression', () => {
     expect(useSceneStore.getState().future).toHaveLength(0);
   });
 
+  it('resets to the default scene as a session boundary', () => {
+    useSceneStore.getState().dispatch({
+      type: 'REPLACE_SCENE',
+      scene: getStarterScene('gallery'),
+    });
+    const child = useSceneStore.getState().scene.nodes[
+      useSceneStore.getState().scene.rootId
+    ]!.children[0]!;
+    useSceneStore.getState().dispatch({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: child,
+      patch: { position: [4, 0, 0] },
+    });
+
+    useSceneStore.getState().reset();
+
+    expect(useSceneStore.getState().scene.rootId).toBe('default-root');
+    expect(useSceneStore.getState().commandLog).toHaveLength(0);
+    expect(useSceneStore.getState().past).toHaveLength(0);
+    expect(useSceneStore.getState().future).toHaveLength(0);
+  });
+
   it('coalesces consecutive UPDATE_TRANSFORM for the same node into one past entry', () => {
     const cube = useSceneStore.getState().scene.nodes[
       useSceneStore.getState().scene.rootId

@@ -2,6 +2,7 @@ import type { ZodError } from 'zod';
 
 export type AgentErrorCode =
   | 'VALIDATION_ERROR'
+  | 'COMMAND_REJECTED'
   | 'PARSE_ERROR'
   | 'SCENE_INVALID';
 

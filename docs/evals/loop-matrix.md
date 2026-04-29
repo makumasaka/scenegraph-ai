@@ -50,27 +50,42 @@ Owner: QA Agent.
 Required APIs:
 
 - `applyCommand`
+- `applyCommandWithResult`
+- `CommandSchema`
 - starter fixtures
 - command fixture sequences
 
 Flow:
 
 1. Load an original scene.
-2. Apply a sequence of commands.
-3. Serialize the final scene.
-4. Reload the original scene.
-5. Replay the same commands.
-6. Compare final scenes and JSON output.
+2. Validate the command batch shape before reducer execution.
+3. Dry-run the batch with `applyCommandWithResult`.
+4. Apply the batch with `applyCommand`.
+5. Serialize the final scene.
+6. Reload the original scene.
+7. Replay the same commands.
+8. Compare final scenes and JSON output.
 
 Pass criteria:
 
 - Replay is deterministic.
 - Replayed commands operate on canonical version 2 scene state.
+- Command batches dry-run before apply in agent and future MCP flows.
+- Dry-run reports `changed`, `error`, `warnings`, and `summary` without
+  mutating session state.
+- `DUPLICATE_NODE` commands in replay/eval fixtures provide deterministic
+  `idMap` entries for every duplicated source id.
+- Commands without deterministic duplicate ids are allowed for UI use only and
+  surface a warning through `applyCommandWithResult`.
+- Expected invalid commands return unchanged scenes and structured errors; they
+  do not throw.
+- Every changing command preserves scene invariants.
 - Final serialized JSON matches.
 - Expected no-op commands return no change.
 
 Tests live in:
 
+- `packages/core/src/commandContract.test.ts`
 - `packages/core/src/editingReducer.flows.test.ts`
 - future eval fixtures in `docs/evals`
 
@@ -169,6 +184,8 @@ Pass criteria:
 - Dry-run does not mutate session state.
 - Apply mutates only through commands.
 - Agent inputs are validated against canonical version 2 scene/command schemas.
+- Agent command validation stays in parity with the core `Command` union.
+- Core command rejections are reported as structured `COMMAND_REJECTED` errors.
 - Exported output matches expected fixtures.
 
 Tests live in:
@@ -202,6 +219,8 @@ Pass criteria:
 - Every write validates payloads.
 - No tool mutates hidden state directly.
 - Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
+- Future tools dry-run command batches before apply.
+- Future tools require deterministic ids for duplicate replay.
 - Command replay produces the same final scene.
 
 Tests live in:

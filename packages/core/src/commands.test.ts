@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validateScene } from '@diorama/schema';
-import { applyCommand, applyReparent } from './commands';
+import { applyCommand, applyCommandWithResult, applyReparent, type Command } from './commands';
 import { createEmptyScene, createNode } from './scene';
 import { getWorldMatrix } from './worldTransform';
 
@@ -229,5 +229,167 @@ describe('applyReparent', () => {
   it('returns same reference when moving root', () => {
     const scene = createEmptyScene();
     expect(applyReparent(scene, scene.rootId, scene.rootId)).toBe(scene);
+  });
+});
+
+describe('applyCommandWithResult', () => {
+  it('keeps applyCommand scene behavior while adding deterministic result metadata', () => {
+    const root = createNode({
+      id: 'result-root-abcdef',
+      name: 'Root',
+      type: 'root',
+      children: [],
+    });
+    const scene = {
+      rootId: root.id,
+      selection: null,
+      nodes: { [root.id]: root },
+    };
+    const node = createNode({ id: 'result-node', name: 'Result node' });
+    const command: Command = {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node,
+    };
+
+    const result = applyCommandWithResult(scene, command);
+
+    expect(result.scene).toEqual(applyCommand(scene, command));
+    expect(result.scene).not.toBe(scene);
+    expect(result.changed).toBe(true);
+    expect(result.command).toBe(command);
+    expect(result.summary).toEqual({
+      title: 'Add node',
+      detail: 'Result node -> parent result-r... - id result-n...',
+    });
+    expect(result.error).toBeUndefined();
+    expect(validateScene(result.scene)).toBe(true);
+  });
+
+  it('returns expected errors for invalid commands without throwing or changing references', () => {
+    const scene = createEmptyScene();
+    const invalidCommands: Array<[Command, string]> = [
+      [
+        { type: 'ADD_NODE', parentId: 'missing', node: createNode({ id: 'a' }) },
+        'ADD_NODE parentId does not exist',
+      ],
+      [
+        { type: 'DELETE_NODE', nodeId: scene.rootId },
+        'DELETE_NODE cannot delete root',
+      ],
+      [
+        { type: 'UPDATE_TRANSFORM', nodeId: 'missing', patch: { position: [1, 2, 3] } },
+        'UPDATE_TRANSFORM nodeId does not exist',
+      ],
+      [
+        { type: 'DUPLICATE_NODE', nodeId: scene.rootId, includeSubtree: false },
+        'DUPLICATE_NODE cannot duplicate root',
+      ],
+      [
+        { type: 'SET_PARENT', nodeId: scene.rootId, parentId: scene.rootId },
+        'SET_PARENT cannot reparent root',
+      ],
+      [
+        { type: 'ARRANGE_NODES', nodeIds: [scene.rootId, 'missing'], layout: 'line' },
+        'ARRANGE_NODES has no valid non-root targets',
+      ],
+      [
+        { type: 'SET_SELECTION', nodeId: 'missing' },
+        'SET_SELECTION nodeId does not exist',
+      ],
+    ];
+
+    for (const [command, error] of invalidCommands) {
+      expect(() => applyCommandWithResult(scene, command)).not.toThrow();
+      const result = applyCommandWithResult(scene, command);
+      expect(result.scene).toBe(scene);
+      expect(result.changed).toBe(false);
+      expect(result.error).toBe(error);
+      expect(result.summary.title.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('treats unchanged valid operations as no-ops without errors', () => {
+    const scene = createEmptyScene();
+    const noOps: Command[] = [
+      { type: 'UPDATE_TRANSFORM', nodeId: scene.rootId, patch: {} },
+      { type: 'SET_SELECTION', nodeId: null },
+    ];
+
+    const [emptyTransform, clearSelection] = noOps.map((command) =>
+      applyCommandWithResult(scene, command),
+    );
+
+    expect(emptyTransform.scene).toBe(scene);
+    expect(emptyTransform.changed).toBe(false);
+    expect(emptyTransform.error).toBeUndefined();
+
+    expect(clearSelection.scene).toBe(scene);
+    expect(clearSelection.changed).toBe(false);
+    expect(clearSelection.error).toBeUndefined();
+  });
+
+  it('warns when DUPLICATE_NODE uses generated ids but allows UI-style duplication', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({ id: 'source', name: 'Source' }),
+    });
+
+    const result = applyCommandWithResult(scene, {
+      type: 'DUPLICATE_NODE',
+      nodeId: 'source',
+      includeSubtree: false,
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.error).toBeUndefined();
+    expect(result.warnings).toEqual(['DUPLICATE_NODE without idMap uses generated ids']);
+    expect(validateScene(result.scene)).toBe(true);
+  });
+
+  it('requires deterministic idMap entries for replay-safe duplication', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({ id: 'source', name: 'Source' }),
+    });
+
+    const invalid = applyCommandWithResult(scene, {
+      type: 'DUPLICATE_NODE',
+      nodeId: 'source',
+      includeSubtree: false,
+      idMap: { source: scene.rootId },
+    });
+    const valid = applyCommandWithResult(scene, {
+      type: 'DUPLICATE_NODE',
+      nodeId: 'source',
+      includeSubtree: false,
+      idMap: { source: 'source-copy' },
+    });
+
+    expect(invalid.scene).toBe(scene);
+    expect(invalid.changed).toBe(false);
+    expect(invalid.error).toBe('DUPLICATE_NODE idMap target id already exists');
+    expect(valid.changed).toBe(true);
+    expect(valid.scene.nodes['source-copy']?.name).toBe('Source (copy)');
+    expect(validateScene(valid.scene)).toBe(true);
+  });
+
+  it('rejects transform patches that would break scene invariants', () => {
+    const scene = createEmptyScene();
+    const command = {
+      type: 'UPDATE_TRANSFORM',
+      nodeId: scene.rootId,
+      patch: { position: [Number.NaN, 0, 0] },
+    } as unknown as Command;
+    const result = applyCommandWithResult(scene, command);
+
+    expect(result.scene).toBe(scene);
+    expect(result.changed).toBe(false);
+    expect(result.error).toBe('UPDATE_TRANSFORM would violate scene invariants');
+    expect(validateScene(result.scene)).toBe(true);
   });
 });

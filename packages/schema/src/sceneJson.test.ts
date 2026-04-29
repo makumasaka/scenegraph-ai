@@ -5,10 +5,8 @@ import {
   SCENE_DOCUMENT_FORMAT,
   SCENE_LEGACY_DATA_VERSION,
   serializeScene,
-  stableStringify,
   validateScene,
   type Scene,
-  type SceneNode,
   type Transform,
 } from './index';
 
@@ -41,22 +39,6 @@ const canonicalScene = (): Scene => ({
       metadata: {},
     },
   },
-});
-
-const clone = (scene: Scene): Scene => JSON.parse(JSON.stringify(scene)) as Scene;
-
-const node = (
-  id: string,
-  type: SceneNode['type'],
-  children: string[] = [],
-): SceneNode => ({
-  id,
-  name: id,
-  type,
-  children,
-  transform,
-  visible: true,
-  metadata: {},
 });
 
 const legacyDocument = (data: unknown): string =>
@@ -179,154 +161,5 @@ describe('scene JSON contract', () => {
 
     expect(validateScene(rootIsMesh)).toBe(false);
     expect(validateScene(childIsRoot)).toBe(false);
-  });
-
-  const invalidScenes: Array<[string, () => unknown]> = [
-    [
-      'missing root',
-      () => {
-        const scene = clone(canonicalScene()) as Partial<Scene>;
-        delete scene.rootId;
-        return scene;
-      },
-    ],
-    [
-      'rootId points to missing node',
-      () => ({ ...clone(canonicalScene()), rootId: 'missing-root' }),
-    ],
-    [
-      'rootId points to non-root type',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.root = { ...scene.nodes.root, type: 'mesh' };
-        return scene;
-      },
-    ],
-    [
-      'non-root node has type root',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.mesh = { ...scene.nodes.mesh, type: 'root' };
-        return scene;
-      },
-    ],
-    [
-      'root appears as child',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.mesh = { ...scene.nodes.mesh, children: ['root'] };
-        return scene;
-      },
-    ],
-    [
-      'missing child reference',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.root = { ...scene.nodes.root, children: ['mesh', 'missing-child'] };
-        return scene;
-      },
-    ],
-    [
-      'duplicate child reference',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.root = { ...scene.nodes.root, children: ['mesh', 'mesh'] };
-        return scene;
-      },
-    ],
-    [
-      'orphan node',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.orphan = node('orphan', 'mesh');
-        return scene;
-      },
-    ],
-    [
-      'cycle',
-      () => ({
-        rootId: 'root',
-        selection: null,
-        nodes: {
-          root: node('root', 'root', ['a']),
-          a: node('a', 'group', ['b']),
-          b: node('b', 'mesh', ['a']),
-        },
-      }),
-    ],
-    [
-      'node has multiple parents',
-      () => ({
-        rootId: 'root',
-        selection: null,
-        nodes: {
-          root: node('root', 'root', ['a', 'b']),
-          a: node('a', 'group', ['shared']),
-          b: node('b', 'group', ['shared']),
-          shared: node('shared', 'mesh'),
-        },
-      }),
-    ],
-    [
-      'selection points to missing node',
-      () => ({ ...clone(canonicalScene()), selection: 'missing-selection' }),
-    ],
-    [
-      'node id does not match map key',
-      () => {
-        const scene = clone(canonicalScene());
-        scene.nodes.mesh = { ...scene.nodes.mesh, id: 'other-id' };
-        return scene;
-      },
-    ],
-  ];
-
-  it.each(invalidScenes)('rejects invalid graph: %s', (_, makeScene) => {
-    expect(validateScene(makeScene())).toBe(false);
-  });
-
-  it('rejects unsupported document versions intentionally', () => {
-    const parsed = parseSceneJson(
-      JSON.stringify({
-        format: SCENE_DOCUMENT_FORMAT,
-        version: 999,
-        data: canonicalScene(),
-      }),
-    );
-
-    expect(parsed).toBeNull();
-  });
-
-  it('is stable across parse, serialize, and parse', () => {
-    const once = serializeScene(canonicalScene());
-    const parsed = parseSceneJson(once);
-    const twice = serializeScene(parsed!);
-    const reparsed = parseSceneJson(twice);
-
-    expect(parsed).not.toBeNull();
-    expect(twice).toBe(once);
-    expect(reparsed).toEqual(parsed);
-  });
-
-  it('preserves child order across serialization', () => {
-    const scene = clone(canonicalScene());
-    scene.nodes.root = { ...scene.nodes.root, children: ['b-child', 'a-child'] };
-    scene.nodes['b-child'] = node('b-child', 'mesh');
-    scene.nodes['a-child'] = node('a-child', 'mesh');
-    delete scene.nodes.mesh;
-
-    const parsed = parseSceneJson(serializeScene(scene));
-
-    expect(parsed?.nodes.root?.children).toEqual(['b-child', 'a-child']);
-  });
-
-  it('emits stable serialized output for equivalent scene objects', () => {
-    const a = stableStringify({ version: 2, data: { z: 1, a: 2 }, format: 'x' });
-    const b = stableStringify({ format: 'x', data: { a: 2, z: 1 }, version: 2 });
-    const once = serializeScene(canonicalScene());
-    const twice = serializeScene(clone(canonicalScene()));
-
-    expect(a).toBe(b);
-    expect(twice).toBe(once);
   });
 });

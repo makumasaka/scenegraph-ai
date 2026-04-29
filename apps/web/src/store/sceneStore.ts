@@ -155,15 +155,7 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   canUndo: () => get().past.length > 0,
   canRedo: () => get().future.length > 0,
 
-  reset: () =>
-    set({
-      scene: buildInitialScene(),
-      gizmoMode: 'translate',
-      past: [],
-      future: [],
-      lastTag: null,
-      commandLog: [],
-    }),
+  reset: () => get().dispatch({ type: 'REPLACE_SCENE', scene: buildInitialScene() }),
 
   exportSceneJson: () => serializeScene(get().scene),
 
