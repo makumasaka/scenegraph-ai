@@ -54,11 +54,7 @@ export function Viewport() {
           infiniteGrid
         />
 
-        {root
-          ? root.children.map((childId) => (
-              <SceneNodeTree key={childId} scene={scene} nodeId={childId} />
-            ))
-          : null}
+        {root ? <SceneNodeTree scene={scene} nodeId={scene.rootId} /> : null}
 
         <OrbitControls makeDefault enableDamping />
       </Canvas>

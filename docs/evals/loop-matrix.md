@@ -97,6 +97,8 @@ Required APIs:
 
 - web scene store `dispatch`
 - web scene store `select`
+- web scene store `undo` / `redo`
+- web scene store `exportSceneJson` / import and export UI actions
 - inspector transform fields
 - viewport picking/gizmo path
 - command log selectors
@@ -109,21 +111,47 @@ Flow:
 4. Verify a command changed scene state.
 5. Verify viewport and command log update.
 6. Undo and redo.
+7. Export JSON and R3F from the updated scene.
 
 Pass criteria:
 
 - Persistent edit goes through command dispatch.
 - Scene state updates once.
 - Viewport reflects scene state.
-- Viewport either respects the root transform or explicitly verifies an identity-root requirement.
+- Viewport renders from `scene.rootId` and treats the root as a transformed
+  scene group.
+- Viewport hierarchy follows scene `children` order and matches export traversal.
+- Hidden nodes skip their descendants in the viewport, matching R3F export
+  traversal semantics.
 - Command log shows the expected summary.
+- `SET_SELECTION` updates selection but does not add a visible product log row.
+- `REPLACE_SCENE` acts as a session boundary and clears undo, redo, and visible
+  command log state.
 - Undo and redo restore expected scenes.
+- JSON and R3F exports reflect the edited canonical scene state.
 
 Tests live in:
 
 - `apps/web/src/App.editing.test.tsx`
 - `apps/web/src/store/sceneStore.test.ts`
-- viewport-focused component tests
+- `apps/web/src/viewport/Viewport.test.tsx`
+- `apps/web/src/viewport/NodeMesh.test.tsx`
+- `apps/web/src/viewport/object3dTransform.test.ts`
+
+Manual QA checklist:
+
+- Load: load each starter kit and confirm the tree, canvas, and inspector reset
+  to the loaded scene.
+- Select: select from the tree and viewport; confirm selection appears in the
+  tree/inspector and no visible command log row is added for selection alone.
+- Inspect: confirm selected node name, id, parent, type, visibility, metadata
+  count, and transform fields match scene state.
+- Transform: edit position, rotation, and scale in the inspector and with the
+  viewport gizmo; confirm all persistent edits dispatch `UPDATE_TRANSFORM`.
+- Undo/redo: confirm transform and structural edits undo/redo scene snapshots;
+  consecutive transform edits on one node coalesce into one undo step.
+- Export: after an edit, export JSON and R3F; confirm both outputs reflect the
+  same canonical scene state and hierarchy as the viewport.
 
 ## Loop D: Code Export
 

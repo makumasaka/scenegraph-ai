@@ -63,8 +63,8 @@ One parser for UI, tests, and agents reduces drift; Zod issues map cleanly to ag
 
 - Any new persisted field requires `SCENE_DATA_VERSION` review and migration tests when the version increments.
 - UI, exporters, agent-interface, and future MCP tools must treat the v2 schema as the canonical scene contract.
-- UI rendering must either respect root transforms or explicitly document and
-  test an identity-root requirement.
+- UI rendering must respect root transforms; the root is rendered as a scene
+  group, not treated as an identity-only document wrapper.
 - Exporters must preserve hierarchy and local transform semantics.
 - Agent Interface must validate or migrate imported scenes before commands run.
 - MCP remains deferred and must not introduce a second scene shape.

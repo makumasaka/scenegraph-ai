@@ -76,11 +76,22 @@ composition/decomposition that serves command semantics, as documented in ADR
 
 ## `apps/web`
 
-- Renders the scene graph in the viewport.
-- User actions should **dispatch commands** through the scene store, not rewrite `scene.nodes` imperatively.
-- Import/export and Load kit use the same schema and command paths as automation would.
-- The canvas should match scene hierarchy semantics. It must either apply the
-  root transform or document and test an identity-root requirement.
+- Visual adapter over canonical scene state. The canvas is not a source of
+  truth.
+- Renders the scene graph recursively from `scene.rootId`.
+- Renders each node, including the root, as an R3F `group` with that node's local
+  transform. Non-identity root transforms are supported and must be reflected in
+  the viewport.
+- User actions dispatch commands through the scene store; UI code must not
+  rewrite `scene.nodes`, transforms, child arrays, or selection directly.
+- Import/export and Load kit use the same schema and command paths as automation
+  would.
+- Viewport traversal must match export traversal: hierarchy follows `children`
+  order and hidden nodes skip their descendants.
+- `SET_SELECTION` updates canonical selection but is omitted from the primary
+  visible command log.
+- `REPLACE_SCENE` is a session boundary in the web store: scene replacement
+  resets gizmo mode, undo, redo, coalescing state, and command log.
 
 ## `@diorama/export-r3f`
 

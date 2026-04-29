@@ -77,6 +77,22 @@ contract.
   cleared by the store layer.
 - Undo/redo is store-owned snapshot history. Reducers do not own stacks.
 - Changing commands produce undo snapshots. No-op and rejected commands do not.
+- Consecutive `UPDATE_TRANSFORM` commands for the same node may be coalesced by
+  the web store into one undo entry. Core reducers still apply each command
+  independently.
+
+## Canvas Loop Policy
+
+- The web canvas is a visual adapter over canonical scene state, not a source of
+  truth.
+- Inspector edits, outliner actions, toolbar actions, viewport selection, and
+  viewport gizmo commits must route through store dispatch and core commands.
+- Viewport object transforms are transient until committed through
+  `UPDATE_TRANSFORM`.
+- The viewport renders the scene recursively from `scene.rootId`; the root is
+  rendered as a transformed group, not assumed to be identity.
+- Viewport traversal must preserve scene hierarchy semantics and match R3F export
+  traversal for visible nodes.
 
 ## Future MCP Exposure
 

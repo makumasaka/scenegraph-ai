@@ -16,7 +16,7 @@ The product promise is a deterministic, inspectable editing loop. Ad hoc mutatio
 ### Selection and command log (MVP lock)
 
 - **`SET_SELECTION`** updates `scene.selection` and participates in undo/redo snapshots like any other scene field.
-- **Editor command log** (`apps/web` sidebar): entries are recorded for commands that affect structure, transforms, layout, scene replace, etc. **`SET_SELECTION` is intentionally omitted** from this log to avoid noise from rapid picking; selection is still visible via the outliner, inspector context, and `scene.selection` in JSON export.
+- **Visible product command log** (`apps/web` sidebar): entries are recorded for commands that affect structure, transforms, layout, scene replace, etc. **`SET_SELECTION` is intentionally omitted** from this log to avoid noise from rapid picking; selection is still visible via the outliner, inspector context, and `scene.selection` in JSON export.
 - **Agents** read selection via `getSelection()` / `scene.selection` on the same `Scene` snapshot; they must not infer selection only from the human command log.
 
 ### Deferred commands and scene fields
