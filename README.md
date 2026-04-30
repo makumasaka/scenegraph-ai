@@ -105,6 +105,13 @@ from the web canvas (**Default**, **Showroom**, **Gallery**, **Living**). You ca
 also import/export versioned JSON. Details:
 [docs/EXAMPLE_SCENES.md](docs/EXAMPLE_SCENES.md).
 
+## Export Loop
+
+Diorama exports reloadable `diorama-scene` JSON and deterministic React Three
+Fiber JSX. JSON is the canonical exchange format; R3F JSX is a readable code
+view with nested groups, local transforms, primitive mesh placeholders, simple
+lights, and documented limitations. Details: [docs/EXPORT.md](docs/EXPORT.md).
+
 ## Contributing
 
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for workflow, testing expectations, and scope. The [Code of Conduct](CODE_OF_CONDUCT.md) applies in all project spaces.

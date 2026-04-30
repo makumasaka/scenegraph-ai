@@ -161,28 +161,48 @@ Required APIs:
 
 - `getStarterScene`
 - `applyCommand`
+- `serializeScene`
+- `parseSceneJson`
 - `exportSceneToR3fJsx`
+- checked-in examples from `packages/examples/scenes`
 
 Flow:
 
 1. Load a starter scene.
 2. Apply commands.
-3. Export R3F JSX.
-4. Compare snapshot.
-5. Optionally parse or compile the generated TSX.
+3. Export JSON.
+4. Export R3F JSX.
+5. Re-import exported JSON.
+6. Re-export JSON and R3F from the re-imported scene.
+7. Compare snapshots and deterministic output.
+8. Optionally parse or compile the generated TSX.
 
 Pass criteria:
 
+- JSON output uses the `format` / `version` / `data` wrapper.
+- JSON output uses canonical version 2 node fields and stable object key
+  ordering.
+- Exported JSON reloads through `parseSceneJson`.
+- Checked-in examples remain byte-for-byte aligned with serialized core
+  fixtures.
 - Output is deterministic.
 - Hierarchy follows scene child order.
 - Local transforms are emitted correctly.
 - Root and child transform semantics match the canvas contract.
-- Export consumes canonical version 2 scene state and does not emit editor-only state.
+- Export consumes canonical version 2 scene state and does not emit UI-only state.
+- R3F output is readable JSX with comments for node ids and names.
+- R3F output emits primitive mesh placeholders and simple ambient/directional
+  lights only.
+- Hidden nodes and their descendants are omitted.
+- R3F output does not resolve real assets, material graphs, animation, shader
+  graphs, glTF, or full renderer semantics.
 - Unsupported features are documented instead of silently misrepresented.
 
 Tests live in:
 
 - `packages/export-r3f/src/r3f.test.ts`
+- `packages/export-r3f/src/exportLoop.test.ts`
+- `apps/web/src/App.editing.test.tsx`
 
 ## Loop E: Agent Simulation
 

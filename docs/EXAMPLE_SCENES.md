@@ -1,6 +1,6 @@
 # Example scenes
 
-This document describes how scenes are represented in the repo, which **starter kits** ship with the editor, and how to move JSON in and out of the app.
+This document describes how scenes are represented in the repo, which **starter kits** ship with Diorama, and how to move JSON in and out of the app.
 
 ## Document format
 
@@ -49,12 +49,12 @@ Migration/defaulting behavior:
 
 These are TypeScript fixtures in `@diorama/core` (`packages/core/src/fixtures/`). In the web app, use the **Kit** dropdown and **Load kit** in the scene loader panel.
 
-| Kit ID | Description |
-|--------|-------------|
-| `default` | Minimal graph: root plus one cube (useful for smoke tests and empty-slate edits). |
-| `showroom` | Root -> wide floor slab with pedestals and a slightly scaled/rotated accent cube. |
-| `gallery` | Root -> hall with a 3 by 3 grid of thin frame boxes on the floor. |
-| `living` | Root -> room -> furniture group with sofa, coffee table, floor, and lamp proxies. |
+| Kit ID | Description | Demonstrates |
+|--------|-------------|--------------|
+| `default` | Minimal graph: root plus one cube. | Smoke tests, empty-slate edits, JSON/R3F baseline. |
+| `showroom` | Root -> wide floor slab with pedestal children and a rotated/scaled accent cube. | Nested hierarchy, child order, transform export, reparent flows. |
+| `gallery` | Root -> hall with a 3 by 3 grid of thin frame boxes. | Repeated deterministic nodes, layout-like spacing, snapshot stability. |
+| `living` | Root -> room -> furniture group with sofa, coffee table, floor, and lamp proxies. | Multi-level grouping, `materialRef` tokens, realistic fixture shape without real asset loading. |
 
 Fixture IDs are prefixed per kit (`default-*`, `showroom-*`, `gallery-*`, `living-*`) so graphs do not collide when switching kits in one session.
 
@@ -71,11 +71,23 @@ These examples are intended for docs, regression fixtures, export snapshots, and
 future eval harnesses. They should remain byte-for-byte aligned with
 `serializeScene(getStarterScene(id))`.
 
+Examples are not hand-authored alternates to the fixtures. They are canonical
+JSON fixture exports used to verify reloadability, stable ordering, required v2
+fields, and code -> canvas -> code loops.
+
 ## Import and export in the UI
 
 1. **Export JSON** - Writes a `diorama-scene` document (wrapper + sorted keys) suitable for Git or CI fixtures.
-2. **Import JSON** - Parses the wrapper or, when applicable, a **legacy** graph shape the schema layer still accepts.
-3. **Copy R3F JSX** - Uses `@diorama/export-r3f` to place the current scene into a clipboard-friendly JSX snippet (lights optional per exporter options).
+2. **Import JSON** - Parses the wrapper or, when applicable, a **legacy** graph shape the schema layer still accepts. Successful imports dispatch `REPLACE_SCENE` and become a new session boundary.
+3. **Copy R3F JSX** - Uses `@diorama/export-r3f` to place the current scene into a clipboard-friendly JSX snippet. The web UI passes `includeStudioLights: true` for a previewable studio fill (see [EXPORT.md](EXPORT.md) for the full limitations list).
+
+The code -> canvas -> code loop is:
+
+1. Load a kit or import JSON.
+2. Edit through commands in the canvas.
+3. Export JSON and R3F.
+4. Re-import the exported JSON.
+5. Verify the re-imported scene and regenerated outputs are deterministic.
 
 ## Authoring JSON by hand
 
@@ -97,4 +109,5 @@ docs and tests.
 ## Related reading
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - how commands update `Scene`.
+- [EXPORT.md](EXPORT.md) - JSON and R3F export contracts and limitations.
 - `packages/agent-interface/examples/prompt-to-command.md` - mapping natural language to validated commands.

@@ -92,6 +92,14 @@ describe('sceneStore — history + command log regression', () => {
   });
 
   it('importSceneJson dispatches REPLACE_SCENE', () => {
+    const cube = useSceneStore.getState().scene.nodes[
+      useSceneStore.getState().scene.rootId
+    ]!.children[0]!;
+    useSceneStore.getState().dispatch({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: cube,
+      patch: { position: [0, 2, 0] },
+    });
     const text = JSON.stringify({
       format: 'diorama-scene',
       version: 1,
@@ -100,6 +108,9 @@ describe('sceneStore — history + command log regression', () => {
     const ok = useSceneStore.getState().importSceneJson(text);
     expect(ok).toBe(true);
     expect(useSceneStore.getState().scene.rootId).toBe('gallery-root');
+    expect(useSceneStore.getState().commandLog).toHaveLength(0);
+    expect(useSceneStore.getState().past).toHaveLength(0);
+    expect(useSceneStore.getState().future).toHaveLength(0);
   });
 
   it('exportSceneJson roundtrips through parseSceneJson', () => {

@@ -203,5 +203,6 @@ describe('App — core editing flows (component)', () => {
     await user.click(screen.getByRole('button', { name: 'R3F' }));
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0]?.[0]).toContain('position={[1.75, 0.5, 0]}');
+    expect(writeText.mock.calls[0]?.[0]).toContain('Studio fill - not from scene graph');
   });
 });

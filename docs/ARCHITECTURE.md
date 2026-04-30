@@ -95,9 +95,16 @@ composition/decomposition that serves command semantics, as documented in ADR
 
 ## `@diorama/export-r3f`
 
-- Consumes a validated `Scene` and emits JSX strings suitable for R3F apps.
-- Kept separate so export behavior is tested independently of the editor UI.
-- Must match scene hierarchy/local transform semantics and must not emit editor-only state.
+- Consumes a validated `Scene` and emits deterministic, readable JSX strings
+  suitable for R3F apps.
+- Kept separate so export behavior is tested independently of the web UI.
+- Must match scene hierarchy/local transform semantics and must not emit
+  UI-only state.
+- Emits visible nodes as nested `<group>` elements, primitive mesh placeholders
+  for `mesh` nodes, and simple ambient/directional lights for scene light nodes.
+- Omits hidden nodes and their descendants.
+- Does not resolve assets, material graphs, animation, shader graphs, glTF, or
+  full renderer semantics.
 
 ## `@diorama/agent-interface`
 
@@ -114,6 +121,8 @@ composition/decomposition that serves command semantics, as documented in ADR
 - Contains static JSON examples, scripts, and docs-driven demos. Checked-in
   scene JSON should stay byte-for-byte aligned with canonical starter scene
   serialization.
+- Example scenes are export fixtures for JSON reloadability, stable ordering,
+  required v2 fields, and R3F snapshot coverage.
 
 ## Data flow
 
@@ -142,5 +151,7 @@ Text equivalent:
 3. The reducer applies the command deterministically to the canonical `Scene`.
 4. The viewport reflects the updated scene graph.
 5. Export and serialization read the same updated scene.
+6. Exported JSON can be parsed back into canonical scene state; exported R3F is
+   a deterministic code view of that state.
 
 This keeps **replay**, **testing**, and **tooling** aligned on one semantic model.

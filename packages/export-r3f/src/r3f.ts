@@ -1,13 +1,34 @@
 import type { Scene, SceneLight, SceneNode, Vec3 } from '@diorama/schema';
 
+/**
+ * Options for {@link exportSceneToR3fJsx}.
+ *
+ * The exporter never reads editor-only state (selection, command log, undo
+ * stack, camera UI state, filesystem paths). The only opt-in addition is a
+ * non-scene "studio fill" pair of lights for previews.
+ */
 export interface R3fExportOptions {
-  /** When true, prepends a small studio-style fill (not from scene nodes). */
+  /**
+   * When true, prepends a small studio-style ambient + directional light pair
+   * before the scene tree. These lights are not scene nodes; they are an
+   * authoring convenience so pasted JSX is visible in an empty Canvas.
+   */
   includeStudioLights?: boolean;
-  /** @deprecated Prefer `includeStudioLights`; kept for callers that predate scene `light` nodes. */
+  /**
+   * @deprecated Prefer `includeStudioLights`. Retained as a backward compatible
+   * alias so callers and validated agent payloads that predate scene `light`
+   * nodes keep working. New callers must use `includeStudioLights`.
+   */
   includeLights?: boolean;
 }
 
-const fmtNum = (n: number): string => (Number.isInteger(n) ? String(n) : String(n));
+/**
+ * Stable numeric formatting. Integers render without a decimal point; finite
+ * non-integers use the default `String` representation. JSON.stringify already
+ * normalises `-0` to `0`, and `String(-0) === '0'`, so deterministic byte
+ * output is preserved.
+ */
+const fmtNum = (n: number): string => String(n);
 
 const fmtVec = (v: Vec3): string => `[${fmtNum(v[0])}, ${fmtNum(v[1])}, ${fmtNum(v[2])}]`;
 
@@ -29,11 +50,17 @@ const emitLight = (light: SceneLight, indent: string): string => {
   return `${indent}<directionalLight${tail} />\n`;
 };
 
+/** Neutral primitive proxy used for `mesh` nodes. Keeps export readable. */
 const placeholderMesh = (indent: string): string =>
-  `${indent}<mesh castShadow receiveShadow>\n${indent}  <boxGeometry args={[1, 1, 1]} />\n${indent}  <meshStandardMaterial color="#9ca3af" />\n${indent}</mesh>\n`;
+  `${indent}<mesh castShadow receiveShadow>\n` +
+  `${indent}  <boxGeometry args={[1, 1, 1]} />\n` +
+  `${indent}  <meshStandardMaterial color="#9ca3af" />\n` +
+  `${indent}</mesh>\n`;
 
 /**
- * Depth-first traversal using each node's `children` array order (canonical graph order).
+ * Depth-first traversal using each node's `children` array order (canonical
+ * scene-graph order). Hidden nodes and their entire subtree are skipped to
+ * mirror viewport traversal.
  */
 const emitNode = (scene: Scene, id: string, depth: number): string => {
   const node: SceneNode | undefined = scene.nodes[id];
@@ -67,12 +94,26 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
  * Readable React Three Fiber-style JSX string for a {@link Scene}.
  *
  * Mapping (minimal):
- * - Every node -> `<group>` with local `position` / `rotation` / `scale` (Euler radians, same as Three).
- * - Group/root/empty nodes -> group only.
- * - Mesh nodes -> placeholder `<mesh>` (unit cube + neutral material) unless `light` is set.
- * - `light` -> `<ambientLight>` or `<directionalLight>` inside the node's group.
+ * - Every visible node -> `<group>` with local `position` / `rotation` /
+ *   `scale` (Euler radians, same as Three).
+ * - Group, root, and empty nodes -> group only.
+ * - Mesh nodes -> placeholder `<mesh>` (unit cube + neutral material) unless
+ *   the node has a `light` payload.
+ * - `light` -> `<ambientLight>` or `<directionalLight>` inside the node's
+ *   group.
  *
- * Not exported: `selection`, internal ids beyond comments, `assetRef` / `materialRef` (comment-only future).
+ * Comments include each visible node's id and name so the output can be cross
+ * referenced with the source scene graph.
+ *
+ * Limitations (intentional):
+ * - No real asset loading. `assetRef` is not resolved or imported.
+ * - No material graph. `materialRef` tokens are not mapped to materials.
+ * - No animation, no shader graph, no glTF export.
+ * - No full renderer semantics. Cameras, post-processing, environment maps,
+ *   and shadow tuning are out of scope.
+ * - Editor-only state is never emitted: `selection`, command log, undo and
+ *   redo stacks, camera UI state, gizmo mode, and filesystem paths are
+ *   ignored even when present on the input.
  */
 export const exportSceneToR3fJsx = (
   scene: Scene,

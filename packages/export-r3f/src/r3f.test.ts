@@ -58,6 +58,22 @@ describe('exportSceneToR3fJsx', () => {
     const out = exportSceneToR3fJsx(defaultFixtureScene, { includeStudioLights: true });
     expect(out).toContain('Studio fill');
     expect(out).toContain('<ambientLight');
+    expect(out).toMatchSnapshot();
+  });
+
+  it('treats the deprecated includeLights alias as includeStudioLights', () => {
+    const preferred = exportSceneToR3fJsx(defaultFixtureScene, {
+      includeStudioLights: true,
+    });
+    const legacy = exportSceneToR3fJsx(defaultFixtureScene, {
+      includeLights: true,
+    });
+    expect(legacy).toBe(preferred);
+  });
+
+  it('omits the studio fill block by default', () => {
+    const out = exportSceneToR3fJsx(defaultFixtureScene);
+    expect(out).not.toContain('Studio fill');
   });
 
   it('omits hidden nodes and their descendants', () => {
@@ -86,5 +102,52 @@ describe('exportSceneToR3fJsx', () => {
     const out = exportSceneToR3fJsx(scene);
     expect(out).not.toContain('Hidden branch');
     expect(out).not.toContain('Hidden child');
+    expect(out).toMatchSnapshot();
+  });
+
+  it('matches snapshot for nested root transform hierarchy', () => {
+    const root = createNode({
+      id: 'nested-root',
+      name: 'Nested Root',
+      type: 'root',
+      children: ['nested-parent'],
+      transform: {
+        position: [10, 0, 0],
+        rotation: [0, 0.25, 0],
+        scale: [1.5, 1.5, 1.5],
+      },
+    });
+    const parent = createNode({
+      id: 'nested-parent',
+      name: 'Nested Parent',
+      type: 'group',
+      children: ['nested-child'],
+      transform: { position: [0, 2, 0] },
+    });
+    const child = createNode({
+      id: 'nested-child',
+      name: 'Nested Child',
+      children: [],
+      transform: { position: [0, 0, 3], rotation: [0.1, 0.2, 0.3] },
+    });
+    const scene: Scene = {
+      rootId: root.id,
+      selection: null,
+      nodes: {
+        [root.id]: root,
+        [parent.id]: parent,
+        [child.id]: child,
+      },
+    };
+
+    const out = exportSceneToR3fJsx(scene);
+
+    expect(out).toContain('/* nested-root - Nested Root */');
+    expect(out).toContain(
+      '<group name="Nested Root" position={[10, 0, 0]} rotation={[0, 0.25, 0]} scale={[1.5, 1.5, 1.5]}>',
+    );
+    expect(out.indexOf('nested-root')).toBeLessThan(out.indexOf('nested-parent'));
+    expect(out.indexOf('nested-parent')).toBeLessThan(out.indexOf('nested-child'));
+    expect(out).toMatchSnapshot();
   });
 });

@@ -140,6 +140,27 @@ exports[`exportSceneToR3fJsx > matches snapshot for living kit 1`] = `
 "
 `;
 
+exports[`exportSceneToR3fJsx > matches snapshot for nested root transform hierarchy 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* nested-root - Nested Root */}
+    <group name="Nested Root" position={[10, 0, 0]} rotation={[0, 0.25, 0]} scale={[1.5, 1.5, 1.5]}>
+      {/* nested-parent - Nested Parent */}
+      <group name="Nested Parent" position={[0, 2, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* nested-child - Nested Child */}
+        <group name="Nested Child" position={[0, 0, 3]} rotation={[0.1, 0.2, 0.3]} scale={[1, 1, 1]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+      </group>
+    </group>
+</>
+"
+`;
+
 exports[`exportSceneToR3fJsx > matches snapshot for scene light nodes 1`] = `
 "/* eslint-disable */
 /* Auto-generated for React Three Fiber - paste inside <Canvas> */
@@ -188,6 +209,38 @@ exports[`exportSceneToR3fJsx > matches snapshot for showroom (nested branches) 1
       </group>
       {/* showroom-accent - Accent */}
       <group name="Accent" position={[0, 1.1, 0]} rotation={[0, 0.35, 0]} scale={[1.2, 1.2, 1.2]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`exportSceneToR3fJsx > omits hidden nodes and their descendants 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* hidden-root - Hidden root */}
+    <group name="Hidden root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+    </group>
+</>
+"
+`;
+
+exports[`exportSceneToR3fJsx > prepends optional studio lights when requested 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+  {/* Studio fill - not from scene graph */}
+  <ambientLight intensity={0.4} />
+  <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+    {/* default-root - Root */}
+    <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* default-cube-1 - Cube 1 */}
+      <group name="Cube 1" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#9ca3af" />
