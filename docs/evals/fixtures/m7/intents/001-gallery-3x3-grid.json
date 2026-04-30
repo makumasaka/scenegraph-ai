@@ -1,0 +1,79 @@
+{
+  "commands": [
+    {
+      "layout": "grid",
+      "nodeIds": [
+        "gallery-frame-0-0",
+        "gallery-frame-0-1",
+        "gallery-frame-0-2",
+        "gallery-frame-1-0",
+        "gallery-frame-1-1",
+        "gallery-frame-1-2",
+        "gallery-frame-2-0",
+        "gallery-frame-2-1",
+        "gallery-frame-2-2"
+      ],
+      "options": {
+        "cols": 3,
+        "spacing": 1.25
+      },
+      "type": "ARRANGE_NODES"
+    }
+  ],
+  "expectedChangedNodeIds": [
+    "gallery-frame-0-0",
+    "gallery-frame-0-1",
+    "gallery-frame-0-2",
+    "gallery-frame-1-0",
+    "gallery-frame-1-1",
+    "gallery-frame-1-2",
+    "gallery-frame-2-0",
+    "gallery-frame-2-1",
+    "gallery-frame-2-2"
+  ],
+  "expectedErrors": [],
+  "expectedNodeTransforms": {
+    "gallery-frame-0-0": {
+      "position": [
+        -1.25,
+        0.5,
+        -1.25
+      ]
+    },
+    "gallery-frame-1-1": {
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "gallery-frame-2-2": {
+      "position": [
+        1.25,
+        0.5,
+        1.25
+      ]
+    }
+  },
+  "expectedSelection": null,
+  "expectedWarnings": [],
+  "exportChecks": {
+    "jsonNodeIds": [
+      "gallery-frame-0-0",
+      "gallery-frame-0-1",
+      "gallery-frame-0-2",
+      "gallery-frame-2-2"
+    ],
+    "r3fContains": [
+      "Frame 1-1",
+      "Frame 2-2",
+      "Frame 3-3",
+      "position={[1.25, 0.5, 1.25]}"
+    ]
+  },
+  "id": "001-gallery-3x3-grid",
+  "intent": "Arrange the gallery frames in a 3 by 3 grid.",
+  "replaySafe": true,
+  "startingSceneId": "gallery",
+  "title": "Gallery 3 by 3 grid arrange"
+}

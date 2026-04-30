@@ -42,6 +42,7 @@ Tests live in:
 
 - `packages/core/src/serialization.test.ts`
 - `packages/core/src/sceneContract.test.ts`
+- `packages/export-r3f/src/milestone7ExportEval.test.ts`
 
 ## Loop B: Command Replay
 
@@ -87,7 +88,8 @@ Tests live in:
 
 - `packages/core/src/commandContract.test.ts`
 - `packages/core/src/editingReducer.flows.test.ts`
-- future eval fixtures in `docs/evals`
+- `packages/agent-interface/src/mcpSimulation.eval.test.ts`
+- eval fixtures in `docs/evals/fixtures/m7`
 
 ## Loop C: Canvas Editing
 
@@ -137,6 +139,7 @@ Tests live in:
 - `apps/web/src/viewport/Viewport.test.tsx`
 - `apps/web/src/viewport/NodeMesh.test.tsx`
 - `apps/web/src/viewport/object3dTransform.test.ts`
+- `apps/web/src/milestone7CanvasEval.test.tsx`
 
 Manual QA checklist:
 
@@ -164,12 +167,15 @@ Required APIs:
 - `serializeScene`
 - `parseSceneJson`
 - `exportSceneToR3fJsx`
+- `createAgentSession` (for Loop D <-> Loop E parity on agent-applied batches)
 - checked-in examples from `packages/examples/scenes`
+- intent fixtures in `docs/evals/fixtures/m7/intents`
 
 Flow:
 
 1. Load a starter scene.
-2. Apply commands.
+2. Apply commands directly with `applyCommand` or compile an intent fixture
+   into a deterministic batch and apply it through `createAgentSession`.
 3. Export JSON.
 4. Export R3F JSX.
 5. Re-import exported JSON.
@@ -186,14 +192,20 @@ Pass criteria:
 - Checked-in examples remain byte-for-byte aligned with serialized core
   fixtures.
 - Output is deterministic.
-- Hierarchy follows scene child order.
+- Hierarchy follows scene child order, including for duplicated subtrees and
+  children added through agent-driven `ADD_NODE` batches.
 - Local transforms are emitted correctly.
-- Root and child transform semantics match the canvas contract.
+- Root and child transform semantics match the canvas contract, including
+  agent-driven `UPDATE_TRANSFORM` on the root node.
 - Export consumes canonical version 2 scene state and does not emit UI-only state.
+- Exported JSON and R3F from an agent session contain no action log entries,
+  command summaries, source labels, dry-run flags, applied/failed batch
+  counters, or filesystem paths.
 - R3F output is readable JSX with comments for node ids and names.
 - R3F output emits primitive mesh placeholders and simple ambient/directional
-  lights only.
-- Hidden nodes and their descendants are omitted.
+  lights only, including agent-added light nodes.
+- Hidden nodes and their descendants are omitted, including agent-added
+  hidden subtrees.
 - R3F output does not resolve real assets, material graphs, animation, shader
   graphs, glTF, or full renderer semantics.
 - Unsupported features are documented instead of silently misrepresented.
@@ -202,6 +214,7 @@ Tests live in:
 
 - `packages/export-r3f/src/r3f.test.ts`
 - `packages/export-r3f/src/exportLoop.test.ts`
+- `packages/export-r3f/src/milestone7ExportEval.test.ts`
 - `apps/web/src/App.editing.test.tsx`
 
 ## Loop E: Agent Simulation
@@ -250,12 +263,18 @@ Pass criteria:
 - Undo/redo are explicitly deferred for the agent runtime.
 - Exported output matches expected fixtures.
 - Replay verification produces the same final scene and exports.
+- Exports captured after agent batch apply contain no editor state, action log
+  entries, source labels, or filesystem paths.
 
 Tests live in:
 
 - `packages/agent-interface/src/runtimeContract.test.ts`
 - `packages/agent-interface/src/agentInterface.test.ts`
-- future eval fixtures in `docs/evals`
+- `packages/agent-interface/src/mcpSimulation.eval.test.ts`
+- `packages/export-r3f/src/milestone7ExportEval.test.ts` (export side of agent
+  simulation: hierarchy, local transforms, hidden nodes, lights, root
+  transforms, and editor-state exclusions on agent-applied scenes)
+- eval fixtures in `docs/evals/fixtures/m7`
 
 ## Loop F: Future MCP
 
@@ -264,14 +283,20 @@ Owner: future MCP owner with QA Agent.
 Required APIs:
 
 - `get_scene_graph`
-- `get_selection`
+- `get_selected_nodes`
+- `select_nodes`
 - `dry_run_command`
 - `apply_command`
 - `dry_run_command_batch`
 - `apply_command_batch`
+- `update_transform`
+- `duplicate_node`
+- `set_parent`
+- `arrange_nodes`
 - `load_scene`
 - `export_json`
 - `export_r3f`
+- `get_command_log`
 
 Flow:
 
@@ -283,19 +308,46 @@ Flow:
 6. Scene updates through the same reducer.
 7. Tool exports JSON or R3F.
 8. Eval replays the same command batch from the original scene.
+9. Eval verifies tool action logs include source, payload, dry-run status, and
+   result data for mutating tools.
 
 Pass criteria:
 
 - Every write validates payloads.
+- Common tools use narrow schemas; generic `apply_command` remains available for
+  advanced command payloads.
+- `select_nodes` validates ids, maps to `SET_SELECTION`, supports dry-run, and
+  mutates selection only.
+- `update_transform` validates a non-empty transform patch, maps to
+  `UPDATE_TRANSFORM`, supports dry-run, and mutates scene transforms only.
+- `duplicate_node` validates node id and deterministic `idMap`, maps to
+  `DUPLICATE_NODE`, supports dry-run, and mutates scene.
+- `set_parent` validates hierarchy requests, maps to `SET_PARENT`, supports
+  dry-run, and mutates scene hierarchy.
+- `arrange_nodes` validates layout/options, maps to `ARRANGE_NODES`, supports
+  dry-run, and mutates scene transforms.
+- `load_scene` validates a full scene or JSON and acts as a session boundary.
+- `export_json` and `export_r3f` validate options and never mutate scene state.
 - No tool mutates hidden state directly.
 - Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
 - Future tools dry-run command batches before apply.
 - Future tools require deterministic ids for duplicate replay.
 - Future tools wrap `DioramaSceneRuntime` and do not connect directly to Zustand.
-- Future tools expose no arbitrary filesystem, shell, or JavaScript execution.
+- Future tools expose no filesystem browsing, shell execution, arbitrary
+  JavaScript execution, direct Zustand access, or direct R3F object access.
+- Every mutating tool logs source, payload, dry-run status, result, errors, and
+  warnings through the runtime action log or an explicitly scoped successor.
+- Future tools expose committed action history through `get_command_log` if MCP
+  agents need observability.
 - Command replay produces the same final scene.
+- Real MCP transport remains no-go until command validation, dry-run, action
+  logging, replay tests, export snapshots, runtime adapter choice, live canvas
+  bridge architecture, and security review are complete.
 
 Tests live in:
 
-- current `packages/mcp` smoke tests plus future tool-contract tests
-- future eval fixtures in `docs/evals`
+- `packages/mcp/src/index.test.ts`
+- `packages/mcp/src/toolContract.test.ts`
+- `packages/agent-interface/src/mcpSimulation.eval.test.ts`
+- eval fixtures in `docs/evals/fixtures/m7`
+- `docs/adr/011-mcp-tool-contract.md`

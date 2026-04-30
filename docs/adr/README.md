@@ -14,6 +14,7 @@ Short, durable decisions for Diorama's MVP "system lock." Each file states **con
 | [008](008-mcp-deferred.md) | MCP deferred until agent API stable |
 | [009](009-gltf-import-deferred.md) | glTF / broad import deferred |
 | [010](010-threejs-in-core-for-trs-math.md) | Three.js in core for TRS math |
+| [011](011-mcp-tool-contract.md) | Future MCP tool contract |
 
 ## How to add a new ADR
 

@@ -98,17 +98,26 @@ Current boundary:
 
 ## Future MCP Mapping
 
+ADR 011 defines the future MCP tool contract. Narrow MCP tools should compile to
+the runtime APIs below instead of bypassing commands.
+
 | Future MCP tool | Runtime API |
 | --- | --- |
 | `get_scene_graph` | `getScene()` |
 | `get_selected_nodes` / `get_selection` | `getSelection()` |
+| `select_nodes` | `applyCommand({ type: "SET_SELECTION", ... })` |
 | `apply_command` | `applyCommand()` |
 | `dry_run_command` | `dryRunCommand()` |
 | `apply_command_batch` | `applyCommandBatch()` |
 | `dry_run_command_batch` | `dryRunCommandBatch()` |
+| `update_transform` | `applyCommand({ type: "UPDATE_TRANSFORM", ... })` |
+| `duplicate_node` | `applyCommand({ type: "DUPLICATE_NODE", ... })` |
+| `set_parent` | `applyCommand({ type: "SET_PARENT", ... })` |
+| `arrange_nodes` | `applyCommand({ type: "ARRANGE_NODES", ... })` |
 | `load_scene` | `loadScene()` |
 | `export_r3f` | `exportScene({ format: "r3f" })` |
 | `export_json` | `exportScene({ format: "json" })` |
+| `get_command_log` | `getCommandLog()` |
 
 ## Eval Contract
 

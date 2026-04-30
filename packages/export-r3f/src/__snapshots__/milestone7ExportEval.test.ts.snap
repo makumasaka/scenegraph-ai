@@ -1,0 +1,990 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Milestone 7 export eval > 001-gallery-3x3-grid exports deterministic R3F after agent batch apply > 001-gallery-3x3-grid 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+  {/* Studio fill - not from scene graph */}
+  <ambientLight intensity={0.4} />
+  <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+    {/* gallery-root - Gallery */}
+    <group name="Gallery" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* gallery-hall - Hall */}
+      <group name="Hall" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* gallery-frame-0-0 - Frame 1-1 */}
+        <group name="Frame 1-1" position={[-1.25, 0.5, -1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-0-1 - Frame 1-2 */}
+        <group name="Frame 1-2" position={[0, 0.5, -1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-0-2 - Frame 1-3 */}
+        <group name="Frame 1-3" position={[1.25, 0.5, -1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-1-0 - Frame 2-1 */}
+        <group name="Frame 2-1" position={[-1.25, 0.5, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-1-1 - Frame 2-2 */}
+        <group name="Frame 2-2" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-1-2 - Frame 2-3 */}
+        <group name="Frame 2-3" position={[1.25, 0.5, 0]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-2-0 - Frame 3-1 */}
+        <group name="Frame 3-1" position={[-1.25, 0.5, 1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-2-1 - Frame 3-2 */}
+        <group name="Frame 3-2" position={[0, 0.5, 1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* gallery-frame-2-2 - Frame 3-3 */}
+        <group name="Frame 3-3" position={[1.25, 0.5, 1.25]} rotation={[0, 0, 0]} scale={[0.35, 0.9, 0.08]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`Milestone 7 export eval > 001-gallery-3x3-grid exports stable JSON snapshot after agent batch apply > 001-gallery-3x3-grid 1`] = `
+"{
+  "data": {
+    "nodes": {
+      "gallery-frame-0-0": {
+        "children": [],
+        "id": "gallery-frame-0-0",
+        "metadata": {},
+        "name": "Frame 1-1",
+        "transform": {
+          "position": [
+            -1.25,
+            0.5,
+            -1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-0-1": {
+        "children": [],
+        "id": "gallery-frame-0-1",
+        "metadata": {},
+        "name": "Frame 1-2",
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            -1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-0-2": {
+        "children": [],
+        "id": "gallery-frame-0-2",
+        "metadata": {},
+        "name": "Frame 1-3",
+        "transform": {
+          "position": [
+            1.25,
+            0.5,
+            -1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-0": {
+        "children": [],
+        "id": "gallery-frame-1-0",
+        "metadata": {},
+        "name": "Frame 2-1",
+        "transform": {
+          "position": [
+            -1.25,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-1": {
+        "children": [],
+        "id": "gallery-frame-1-1",
+        "metadata": {},
+        "name": "Frame 2-2",
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-1-2": {
+        "children": [],
+        "id": "gallery-frame-1-2",
+        "metadata": {},
+        "name": "Frame 2-3",
+        "transform": {
+          "position": [
+            1.25,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-0": {
+        "children": [],
+        "id": "gallery-frame-2-0",
+        "metadata": {},
+        "name": "Frame 3-1",
+        "transform": {
+          "position": [
+            -1.25,
+            0.5,
+            1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-1": {
+        "children": [],
+        "id": "gallery-frame-2-1",
+        "metadata": {},
+        "name": "Frame 3-2",
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-frame-2-2": {
+        "children": [],
+        "id": "gallery-frame-2-2",
+        "metadata": {},
+        "name": "Frame 3-3",
+        "transform": {
+          "position": [
+            1.25,
+            0.5,
+            1.25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.35,
+            0.9,
+            0.08
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "gallery-hall": {
+        "children": [
+          "gallery-frame-0-0",
+          "gallery-frame-0-1",
+          "gallery-frame-0-2",
+          "gallery-frame-1-0",
+          "gallery-frame-1-1",
+          "gallery-frame-1-2",
+          "gallery-frame-2-0",
+          "gallery-frame-2-1",
+          "gallery-frame-2-2"
+        ],
+        "id": "gallery-hall",
+        "metadata": {},
+        "name": "Hall",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "group",
+        "visible": true
+      },
+      "gallery-root": {
+        "children": [
+          "gallery-hall"
+        ],
+        "id": "gallery-root",
+        "metadata": {},
+        "name": "Gallery",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "root",
+        "visible": true
+      }
+    },
+    "rootId": "gallery-root",
+    "selection": null
+  },
+  "format": "diorama-scene",
+  "version": 2
+}"
+`;
+
+exports[`Milestone 7 export eval > 002-showroom-duplicate-focus exports deterministic R3F after agent batch apply > 002-showroom-duplicate-focus 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+  {/* Studio fill - not from scene graph */}
+  <ambientLight intensity={0.4} />
+  <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+    {/* showroom-root - Showroom */}
+    <group name="Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* showroom-floor - Floor */}
+      <group name="Floor" position={[0, 0.05, 0]} rotation={[0, 0, 0]} scale={[7, 0.1, 5]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+        {/* showroom-pedestal-west - Pedestal West */}
+        <group name="Pedestal West" position={[-2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* showroom-pedestal-east - Pedestal East */}
+        <group name="Pedestal East" position={[2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+      </group>
+      {/* showroom-accent - Accent */}
+      <group name="Accent" position={[0, 1.1, 0]} rotation={[0, 0.35, 0]} scale={[1.2, 1.2, 1.2]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* showroom-floor-copy - Floor (copy) */}
+      <group name="Floor (copy)" position={[3, 0.05, 0]} rotation={[0, 0, 0]} scale={[7, 0.1, 5]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+        {/* showroom-pedestal-west-copy - Pedestal West */}
+        <group name="Pedestal West" position={[-2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* showroom-pedestal-east-copy - Pedestal East */}
+        <group name="Pedestal East" position={[2, 0.35, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`Milestone 7 export eval > 002-showroom-duplicate-focus exports stable JSON snapshot after agent batch apply > 002-showroom-duplicate-focus 1`] = `
+"{
+  "data": {
+    "nodes": {
+      "showroom-accent": {
+        "children": [],
+        "id": "showroom-accent",
+        "metadata": {},
+        "name": "Accent",
+        "transform": {
+          "position": [
+            0,
+            1.1,
+            0
+          ],
+          "rotation": [
+            0,
+            0.35,
+            0
+          ],
+          "scale": [
+            1.2,
+            1.2,
+            1.2
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-floor": {
+        "children": [
+          "showroom-pedestal-west",
+          "showroom-pedestal-east"
+        ],
+        "id": "showroom-floor",
+        "metadata": {},
+        "name": "Floor",
+        "transform": {
+          "position": [
+            0,
+            0.05,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            7,
+            0.1,
+            5
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-floor-copy": {
+        "children": [
+          "showroom-pedestal-west-copy",
+          "showroom-pedestal-east-copy"
+        ],
+        "id": "showroom-floor-copy",
+        "metadata": {},
+        "name": "Floor (copy)",
+        "transform": {
+          "position": [
+            3,
+            0.05,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            7,
+            0.1,
+            5
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-pedestal-east": {
+        "children": [],
+        "id": "showroom-pedestal-east",
+        "metadata": {},
+        "name": "Pedestal East",
+        "transform": {
+          "position": [
+            2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-pedestal-east-copy": {
+        "children": [],
+        "id": "showroom-pedestal-east-copy",
+        "metadata": {},
+        "name": "Pedestal East",
+        "transform": {
+          "position": [
+            2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-pedestal-west": {
+        "children": [],
+        "id": "showroom-pedestal-west",
+        "metadata": {},
+        "name": "Pedestal West",
+        "transform": {
+          "position": [
+            -2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-pedestal-west-copy": {
+        "children": [],
+        "id": "showroom-pedestal-west-copy",
+        "metadata": {},
+        "name": "Pedestal West",
+        "transform": {
+          "position": [
+            -2,
+            0.35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "showroom-root": {
+        "children": [
+          "showroom-floor",
+          "showroom-accent",
+          "showroom-floor-copy"
+        ],
+        "id": "showroom-root",
+        "metadata": {},
+        "name": "Showroom",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "root",
+        "visible": true
+      }
+    },
+    "rootId": "showroom-root",
+    "selection": "showroom-floor-copy"
+  },
+  "format": "diorama-scene",
+  "version": 2
+}"
+`;
+
+exports[`Milestone 7 export eval > 003-living-transform-export exports deterministic R3F after agent batch apply > 003-living-transform-export 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+  {/* Studio fill - not from scene graph */}
+  <ambientLight intensity={0.4} />
+  <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+    {/* living-root - Living space */}
+    <group name="Living space" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* living-room - Room */}
+      <group name="Room" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* living-floor - Floor */}
+        <group name="Floor" position={[0, 0.04, 0]} rotation={[0, 0, 0]} scale={[6, 0.08, 4.5]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+        </group>
+        {/* living-furniture-group - Furniture */}
+        <group name="Furniture" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+          {/* living-sofa - Sofa */}
+          <group name="Sofa" position={[-1.2, 0.45, 0.5]} rotation={[0, 0.25, 0]} scale={[1.8, 0.55, 0.85]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+          {/* living-table - Coffee table */}
+          <group name="Coffee table" position={[0.95, 0.32, 0.1]} rotation={[0, 0.2, 0]} scale={[1.1, 0.12, 0.65]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+          {/* living-lamp - Floor lamp */}
+          <group name="Floor lamp" position={[1.9, 0.95, -0.6]} rotation={[0, 0, 0]} scale={[0.2, 1.9, 0.2]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#9ca3af" />
+            </mesh>
+          </group>
+        </group>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`Milestone 7 export eval > 003-living-transform-export exports stable JSON snapshot after agent batch apply > 003-living-transform-export 1`] = `
+"{
+  "data": {
+    "nodes": {
+      "living-floor": {
+        "children": [],
+        "id": "living-floor",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.floor"
+        },
+        "metadata": {},
+        "name": "Floor",
+        "transform": {
+          "position": [
+            0,
+            0.04,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            6,
+            0.08,
+            4.5
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "living-furniture-group": {
+        "children": [
+          "living-sofa",
+          "living-table",
+          "living-lamp"
+        ],
+        "id": "living-furniture-group",
+        "metadata": {},
+        "name": "Furniture",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "group",
+        "visible": true
+      },
+      "living-lamp": {
+        "children": [],
+        "id": "living-lamp",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.metal"
+        },
+        "metadata": {},
+        "name": "Floor lamp",
+        "transform": {
+          "position": [
+            1.9,
+            0.95,
+            -0.6
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.2,
+            1.9,
+            0.2
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "living-room": {
+        "children": [
+          "living-floor",
+          "living-furniture-group"
+        ],
+        "id": "living-room",
+        "metadata": {},
+        "name": "Room",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "group",
+        "visible": true
+      },
+      "living-root": {
+        "children": [
+          "living-room"
+        ],
+        "id": "living-root",
+        "metadata": {},
+        "name": "Living space",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "root",
+        "visible": true
+      },
+      "living-sofa": {
+        "children": [],
+        "id": "living-sofa",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.fabric"
+        },
+        "metadata": {},
+        "name": "Sofa",
+        "transform": {
+          "position": [
+            -1.2,
+            0.45,
+            0.5
+          ],
+          "rotation": [
+            0,
+            0.25,
+            0
+          ],
+          "scale": [
+            1.8,
+            0.55,
+            0.85
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "living-table": {
+        "children": [],
+        "id": "living-table",
+        "materialRef": {
+          "kind": "token",
+          "token": "mat.wood"
+        },
+        "metadata": {},
+        "name": "Coffee table",
+        "transform": {
+          "position": [
+            0.95,
+            0.32,
+            0.1
+          ],
+          "rotation": [
+            0,
+            0.2,
+            0
+          ],
+          "scale": [
+            1.1,
+            0.12,
+            0.65
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      }
+    },
+    "rootId": "living-root",
+    "selection": "living-table"
+  },
+  "format": "diorama-scene",
+  "version": 2
+}"
+`;
+
+exports[`Milestone 7 export eval > hidden, light, and root transform behavior > emits ambient and directional primitives for agent-added light nodes > agent light nodes 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* default-root - Root */}
+    <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* default-cube-1 - Cube 1 */}
+      <group name="Cube 1" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* agent-ambient - Agent Ambient */}
+      <group name="Agent Ambient" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        <ambientLight intensity={0.42} />
+      </group>
+      {/* agent-directional - Agent Sun */}
+      <group name="Agent Sun" position={[4, 8, 5]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`Milestone 7 export eval > hidden, light, and root transform behavior > omits agent-added hidden subtrees and their descendants from the R3F output > agent hidden subtree 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* default-root - Root */}
+    <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* default-cube-1 - Cube 1 */}
+      <group name="Cube 1" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`Milestone 7 export eval > hidden, light, and root transform behavior > reflects an agent-driven UPDATE_TRANSFORM on the root in the root R3F group > agent root transform 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* default-root - Root */}
+    <group name="Root" position={[10, 0, 0]} rotation={[0, 0.5, 0]} scale={[1.5, 1.5, 1.5]}>
+      {/* default-cube-1 - Cube 1 */}
+      <group name="Cube 1" position={[0, 0.5, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;

@@ -1,0 +1,31 @@
+{
+  "commands": [
+    {
+      "nodeId": "missing-node",
+      "type": "DELETE_NODE"
+    }
+  ],
+  "expectedChangedNodeIds": [],
+  "expectedErrors": [
+    {
+      "code": "COMMAND_REJECTED",
+      "index": 0,
+      "message": "DELETE_NODE nodeId does not exist"
+    }
+  ],
+  "expectedSelection": null,
+  "expectedWarnings": [],
+  "exportChecks": {
+    "jsonNodeIds": [
+      "showroom-root"
+    ],
+    "r3fContains": [
+      "Showroom"
+    ]
+  },
+  "id": "004-invalid-command-rejection",
+  "intent": "Delete a node that is not present in the scene.",
+  "replaySafe": false,
+  "startingSceneId": "showroom",
+  "title": "Invalid command rejection"
+}

@@ -1,0 +1,91 @@
+{
+  "forbiddenCapabilities": [
+    "read_file",
+    "write_file",
+    "shell",
+    "exec",
+    "eval_js",
+    "zustand_get_state",
+    "zustand_set_state",
+    "get_object3d",
+    "patch_scene"
+  ],
+  "tools": [
+    {
+      "name": "get_scene_graph",
+      "runtimeMethod": "getScene",
+      "type": "read"
+    },
+    {
+      "name": "get_selected_nodes",
+      "runtimeMethod": "getSelection",
+      "type": "read"
+    },
+    {
+      "name": "select_nodes",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "dry_run_command",
+      "runtimeMethod": "dryRunCommand",
+      "type": "preview"
+    },
+    {
+      "name": "apply_command",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "dry_run_command_batch",
+      "runtimeMethod": "dryRunCommandBatch",
+      "type": "preview"
+    },
+    {
+      "name": "apply_command_batch",
+      "runtimeMethod": "applyCommandBatch",
+      "type": "write"
+    },
+    {
+      "name": "update_transform",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "duplicate_node",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "set_parent",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "arrange_nodes",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "load_scene",
+      "runtimeMethod": "loadScene",
+      "type": "write"
+    },
+    {
+      "name": "export_json",
+      "runtimeMethod": "exportScene",
+      "type": "read"
+    },
+    {
+      "name": "export_r3f",
+      "runtimeMethod": "exportScene",
+      "type": "read"
+    },
+    {
+      "name": "get_command_log",
+      "runtimeMethod": "getCommandLog",
+      "type": "read"
+    }
+  ],
+  "version": 1
+}

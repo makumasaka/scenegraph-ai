@@ -1,0 +1,44 @@
+{
+  "commands": [
+    {
+      "nodeId": "living-table",
+      "patch": {
+        "position": [
+          0.95,
+          0.32,
+          0.1
+        ],
+        "rotation": [
+          0,
+          0.2,
+          0
+        ]
+      },
+      "type": "UPDATE_TRANSFORM"
+    },
+    {
+      "nodeId": "living-table",
+      "type": "SET_SELECTION"
+    }
+  ],
+  "expectedChangedNodeIds": [
+    "living-table"
+  ],
+  "expectedErrors": [],
+  "expectedSelection": "living-table",
+  "expectedWarnings": [],
+  "exportChecks": {
+    "jsonNodeIds": [
+      "living-table"
+    ],
+    "r3fContains": [
+      "Coffee table",
+      "position={[0.95, 0.32, 0.1]}"
+    ]
+  },
+  "id": "003-living-transform-export",
+  "intent": "Move the coffee table slightly forward, rotate it toward the sofa, and select it for inspection.",
+  "replaySafe": true,
+  "startingSceneId": "living",
+  "title": "Living table transform export"
+}
