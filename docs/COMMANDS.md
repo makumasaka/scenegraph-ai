@@ -101,6 +101,18 @@ validated command surface. MCP tools must validate payloads with the agent
 schemas, may dry-run before apply, and must not introduce command-specific
 mutation paths.
 
+The locked internal agent runtime lives in `@diorama/agent-interface`; see
+[AGENT_API.md](AGENT_API.md). Command-oriented entry points are:
+
+- `dryRunCommand(input)` for single-command previews.
+- `applyCommand(input, options?)` for single-command mutation.
+- `dryRunCommandBatch(input)` for batch previews.
+- `applyCommandBatch(input, options?)` for all-or-nothing batch mutation.
+- `getCommandLog()` for deterministic committed action entries.
+
+Undo/redo are not part of the Milestone 6 agent runtime implementation. They
+remain store-owned in the web product until a later runtime contract adds them.
+
 ## ADD_NODE
 
 Purpose: create a new scene node under an existing parent.

@@ -110,15 +110,25 @@ Agent Interface validates agent input.
 - Owns `packages/agent-interface/**`.
 - Validates untrusted command payloads and scene load inputs before they reach
   core.
-- Must keep agent behavior command-first and replayable.
+- Exposes the agent-ready internal runtime: `getScene`, `getSelection`,
+  `dryRunCommand`, `applyCommand`, `dryRunCommandBatch`, `applyCommandBatch`,
+  `loadScene`, `exportScene`, and `getCommandLog`.
+- Must keep agent behavior command-first, dry-run-first, structured-error, and
+  replayable.
 - Must keep `CommandSchema`, `COMMAND_TYPES`, and `COMMAND_SCHEMA_PARITY` in
   parity with the core command union.
+- Must not expose filesystem access, shell execution, arbitrary JavaScript
+  execution, Zustand state, or R3F objects.
+- Undo/redo are deferred for the agent runtime unless a later milestone locks
+  them.
 
 MCP remains deferred.
 
 - `packages/mcp/**` stays a thin adapter until a dedicated MCP milestone is
   active.
 - MCP must expose the same scene and command contracts as the agent interface.
+- MCP must wrap `DioramaSceneRuntime`; it must not connect directly to Zustand
+  or create a second mutation path.
 
 Spec owns system alignment.
 

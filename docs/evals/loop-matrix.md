@@ -213,31 +213,47 @@ Required APIs:
 - `createAgentSession`
 - `getScene`
 - `getSelection`
+- `dryRunCommand`
 - `applyCommand`
+- `dryRunCommandBatch`
+- `applyCommandBatch`
+- `getCommandLog`
 - `exportScene`
 
 Flow:
 
 1. Start with a natural-language intent fixture.
-2. Map intent to a command batch.
-3. Dry-run the batch.
-4. Apply the batch.
-5. Validate final scene.
-6. Export JSON and R3F.
-7. Compare expected fixtures.
+2. Read scene state with `getScene`.
+3. Read selection with `getSelection` when the intent depends on selected nodes.
+4. Map intent to a command or command batch.
+5. Dry-run the command with `dryRunCommand` or the batch with
+   `dryRunCommandBatch`.
+6. Apply with `applyCommand` or `applyCommandBatch` only after dry-run succeeds.
+7. Validate final scene.
+8. Export JSON and R3F after apply.
+9. Replay the same command batch from the original scene.
+10. Compare final scene and exported fixtures.
 
 Pass criteria:
 
 - Invalid payloads are rejected.
-- Dry-run does not mutate session state.
-- Apply mutates only through commands.
+- Dry-run command does not mutate session state or action log.
+- Dry-run batch does not mutate session state or action log.
+- Apply mutates only through validated commands.
+- Apply batch is all-or-nothing on semantic command failure.
+- Applied commands and batches record deterministic action log entries.
 - Agent inputs are validated against canonical version 2 scene/command schemas.
 - Agent command validation stays in parity with the core `Command` union.
 - Core command rejections are reported as structured `COMMAND_REJECTED` errors.
+- Agent runtime exposes no filesystem, shell, arbitrary JS, Zustand, or R3F
+  object access.
+- Undo/redo are explicitly deferred for the agent runtime.
 - Exported output matches expected fixtures.
+- Replay verification produces the same final scene and exports.
 
 Tests live in:
 
+- `packages/agent-interface/src/runtimeContract.test.ts`
 - `packages/agent-interface/src/agentInterface.test.ts`
 - future eval fixtures in `docs/evals`
 
@@ -249,18 +265,24 @@ Required APIs:
 
 - `get_scene_graph`
 - `get_selection`
+- `dry_run_command`
 - `apply_command`
+- `dry_run_command_batch`
+- `apply_command_batch`
 - `load_scene`
-- `export_scene`
+- `export_json`
+- `export_r3f`
 
 Flow:
 
 1. External agent reads scene state.
-2. Agent proposes a command batch.
-3. Tool dry-runs the command batch.
-4. Tool applies the command batch.
-5. Scene updates through the same reducer.
-6. Tool exports JSON or R3F.
+2. Agent reads selection when needed.
+3. Agent proposes a command or command batch.
+4. Tool dry-runs the command or command batch.
+5. Tool applies the command or command batch only after dry-run succeeds.
+6. Scene updates through the same reducer.
+7. Tool exports JSON or R3F.
+8. Eval replays the same command batch from the original scene.
 
 Pass criteria:
 
@@ -269,6 +291,8 @@ Pass criteria:
 - Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
 - Future tools dry-run command batches before apply.
 - Future tools require deterministic ids for duplicate replay.
+- Future tools wrap `DioramaSceneRuntime` and do not connect directly to Zustand.
+- Future tools expose no arbitrary filesystem, shell, or JavaScript execution.
 - Command replay produces the same final scene.
 
 Tests live in:

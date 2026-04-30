@@ -108,13 +108,27 @@ composition/decomposition that serves command semantics, as documented in ADR
 
 ## `@diorama/agent-interface`
 
-- Schemas and types for sessions, commands, and load-scene inputs so agents produce **validated** payloads before they hit `applyCommand`.
-- Imported scenes must be parsed/migrated to canonical version 2 before commands run.
+- Agent-ready internal runtime for scene reads, selection reads, command dry-run,
+  command apply, batch dry-run/apply, scene load, scene export, and deterministic
+  action log reads.
+- Schemas and types for sessions, commands, command batches, load-scene inputs,
+  and export inputs so agents produce **validated** payloads before they hit
+  `applyCommand`.
+- Imported scenes must be parsed/migrated to canonical version 2 before commands
+  run.
+- Does not expose filesystem access, shell execution, arbitrary JavaScript
+  execution, Zustand state, or R3F objects.
+- Undo/redo are deferred for the agent runtime; command batches and scene loads
+  are the locked Milestone 6 mutation surface.
 
 ## `@diorama/mcp`
 
-- Thin integration layer for MCP hosts; expected to grow alongside agent-interface stability.
-- Full MCP remains deferred and must wrap the same version 2 scene and command contracts.
+- Thin integration layer for MCP hosts; currently re-exports
+  `@diorama/agent-interface`.
+- Full MCP remains deferred and must wrap the same version 2 scene and command
+  contracts.
+- Future MCP tools must wrap the agent runtime and must not connect directly to
+  Zustand or invent a second mutation path.
 
 ## `@diorama/examples`
 
@@ -145,6 +159,8 @@ Text equivalent:
 
 - User -> UI -> Command -> Reducer -> Scene -> Viewport
 - Agent -> API -> Command -> Reducer -> Scene -> Viewport
+- Cursor/Claude -> local Diorama MCP server -> Diorama commands -> live canvas
+  -> export code
 
 1. A human UI action or agent API request builds a `Command` or command sequence.
 2. The command is validated at the boundary that receives it.
@@ -155,3 +171,6 @@ Text equivalent:
    a deterministic code view of that state.
 
 This keeps **replay**, **testing**, and **tooling** aligned on one semantic model.
+
+See [AGENT_API.md](AGENT_API.md) for the Milestone 6 internal runtime contract
+and future MCP mapping.
