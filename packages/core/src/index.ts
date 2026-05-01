@@ -45,6 +45,7 @@ export {
 } from './duplicate';
 export { summarizeCommand } from './commandLog';
 export type { CommandSummary } from './commandLog';
+export { replayCommands } from './replay';
 export {
   getStarterScene,
   defaultFixtureScene,

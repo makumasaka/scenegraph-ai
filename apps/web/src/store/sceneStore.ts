@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import {
   applyCommand,
+  cloneSceneImmutable,
   getStarterScene,
   parseSceneJson,
+  replayCommands,
   serializeScene,
   type Command,
   type Scene,
@@ -25,6 +27,8 @@ interface CoalesceTag {
 }
 
 const buildInitialScene = (): Scene => getStarterScene('default');
+const cloneScene = (scene: Scene): Scene => cloneSceneImmutable(scene);
+const initialScene = buildInitialScene();
 
 const pushPast = (past: Scene[], entry: Scene): Scene[] => {
   const next = past.length >= HISTORY_LIMIT ? past.slice(1) : past.slice();
@@ -54,17 +58,30 @@ const pushLog = (log: CommandLogEntry[], command: Command): CommandLogEntry[] =>
   return next;
 };
 
+const timelineToLog = (commands: Command[]): CommandLogEntry[] =>
+  commands.map((command, i) => ({
+    id: `log_${++logSeq}`,
+    ts: Date.now() + i,
+    command,
+  }));
+
 export type GizmoMode = 'translate' | 'rotate' | 'scale';
 
 export interface SceneState {
   scene: Scene;
+  baseScene: Scene;
   /** Viewport gizmo (TransformControls) mode; not part of the scene graph. */
   gizmoMode: GizmoMode;
   past: Scene[];
   future: Scene[];
   lastTag: CoalesceTag | null;
   commandLog: CommandLogEntry[];
+  timelineCommands: Command[];
+  timelineError: string | null;
   dispatch: (command: Command) => void;
+  setTimelineCommandAt: (index: number, command: Command) => void;
+  recomputeFromTimeline: () => boolean;
+  clearTimelineError: () => void;
   select: (id: string | null) => void;
   setGizmoMode: (mode: GizmoMode) => void;
   undo: () => void;
@@ -77,12 +94,15 @@ export interface SceneState {
 }
 
 export const useSceneStore = create<SceneState>()((set, get) => ({
-  scene: buildInitialScene(),
+  scene: initialScene,
+  baseScene: cloneScene(initialScene),
   gizmoMode: 'translate',
   past: [],
   future: [],
   lastTag: null,
   commandLog: [],
+  timelineCommands: [],
+  timelineError: null,
 
   dispatch: (command) => {
     const state = get();
@@ -92,11 +112,14 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
     if (command.type === 'REPLACE_SCENE') {
       set({
         scene: nextScene,
+        baseScene: cloneScene(nextScene),
         gizmoMode: 'translate',
         past: [],
         future: [],
         lastTag: null,
         commandLog: [],
+        timelineCommands: [],
+        timelineError: null,
       });
       return;
     }
@@ -113,12 +136,49 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
       past: nextPast,
       future: [],
       lastTag: tag,
+      timelineError: null,
       commandLog:
         command.type === 'SET_SELECTION'
           ? state.commandLog
           : pushLog(state.commandLog, command),
+      timelineCommands:
+        command.type === 'SET_SELECTION'
+          ? state.timelineCommands
+          : [...state.timelineCommands, command],
     });
   },
+
+  setTimelineCommandAt: (index, command) =>
+    set((state) => {
+      if (index < 0 || index >= state.timelineCommands.length) return state;
+      const timelineCommands = state.timelineCommands.slice();
+      timelineCommands[index] = command;
+      return {
+        timelineCommands,
+        timelineError: null,
+      };
+    }),
+
+  recomputeFromTimeline: () => {
+    const state = get();
+    try {
+      const nextScene = replayCommands(state.baseScene, state.timelineCommands);
+      set({
+        scene: nextScene,
+        past: [],
+        future: [],
+        lastTag: null,
+        commandLog: timelineToLog(state.timelineCommands),
+        timelineError: null,
+      });
+      return true;
+    } catch {
+      set({ timelineError: 'Failed to recompute from timeline.' });
+      return false;
+    }
+  },
+
+  clearTimelineError: () => set({ timelineError: null }),
 
   select: (id) => get().dispatch({ type: 'SET_SELECTION', nodeId: id }),
 

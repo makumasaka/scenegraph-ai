@@ -81,7 +81,7 @@ describe('App — core editing flows (component)', () => {
     await user.type(spinbuttons[1]!, '3.5');
     await user.tab();
 
-    const commandLog = screen.getByRole('region', { name: /command log/i });
+    const commandLog = screen.getByRole('region', { name: /command timeline/i });
     await waitFor(() => {
       expect(within(commandLog).getAllByText('UPDATE_TRANSFORM').length).toBeGreaterThan(0);
     });
@@ -121,12 +121,12 @@ describe('App — core editing flows (component)', () => {
     expect(names.filter((n) => n.includes('copy')).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows command log rows for structural edits but not selection', async () => {
+  it('shows timeline rows for structural edits but not selection', async () => {
     render(<App />);
 
     const root = useSceneStore.getState().scene.rootId;
     await user.click(treeCubeButton());
-    const commandLog = screen.getByRole('region', { name: /command log/i });
+    const commandLog = screen.getByRole('region', { name: /command timeline/i });
     expect(within(commandLog).getByText('No commands yet.')).toBeInTheDocument();
 
     await act(() => {
@@ -140,6 +140,30 @@ describe('App — core editing flows (component)', () => {
       expect(within(commandLog).queryByText('No commands yet.')).not.toBeInTheDocument();
       expect(within(commandLog).getByText('UPDATE_TRANSFORM')).toBeInTheDocument();
     });
+  });
+
+  it('edits UPDATE_TRANSFORM parameters in timeline and recomputes scene', async () => {
+    render(<App />);
+    await user.click(treeCubeButton());
+
+    const inspector = screen.getByRole('complementary');
+    const spinbuttons = within(inspector).getAllByRole('spinbutton');
+    await user.clear(spinbuttons[0]!);
+    await user.type(spinbuttons[0]!, '3');
+    await user.tab();
+
+    const timeline = screen.getByRole('region', { name: /command timeline/i });
+    const positionX = within(timeline).getByRole('spinbutton', { name: /position x/i });
+    await user.clear(positionX);
+    await user.type(positionX, '6');
+
+    const recompute = within(timeline).getByRole('button', {
+      name: /recompute from timeline/i,
+    });
+    expect(recompute).not.toBeDisabled();
+    await user.click(recompute);
+
+    expect(useSceneStore.getState().scene.nodes['default-cube-1']?.transform.position[0]).toBe(6);
   });
 
   it('clears command log when loading a starter scene as a session boundary', async () => {

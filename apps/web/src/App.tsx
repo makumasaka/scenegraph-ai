@@ -1,5 +1,5 @@
 import './App.css';
-import { CommandLog } from './ui/CommandLog';
+import { CommandTimeline } from './ui/CommandTimeline';
 import { Inspector } from './ui/Inspector';
 import { Toolbar } from './ui/Toolbar';
 import { TreeView } from './ui/TreeView';
@@ -18,7 +18,7 @@ function App() {
           <Viewport />
           <Inspector />
         </main>
-        <CommandLog />
+        <CommandTimeline />
       </div>
     </div>
   );

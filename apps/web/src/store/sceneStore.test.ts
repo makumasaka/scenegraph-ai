@@ -31,6 +31,8 @@ describe('sceneStore — history + command log regression', () => {
     expect(useSceneStore.getState().commandLog).toHaveLength(0);
     expect(useSceneStore.getState().past).toHaveLength(0);
     expect(useSceneStore.getState().future).toHaveLength(0);
+    expect(useSceneStore.getState().baseScene.rootId).toBe('showroom-root');
+    expect(useSceneStore.getState().timelineCommands).toHaveLength(0);
   });
 
   it('resets to the default scene as a session boundary', () => {
@@ -123,5 +125,25 @@ describe('sceneStore — history + command log regression', () => {
     const jsx = exportSceneToR3fJsx(useSceneStore.getState().scene);
     expect(jsx).toContain('<group name="Root"');
     expect(jsx).toContain('/* Auto-generated for React Three Fiber');
+  });
+
+  it('recomputes scene from edited timeline commands', () => {
+    useSceneStore.getState().dispatch({
+      type: 'UPDATE_TRANSFORM',
+      nodeId: 'default-cube-1',
+      patch: { position: [2, 0.5, 0] },
+    });
+
+    useSceneStore.getState().setTimelineCommandAt(0, {
+      type: 'UPDATE_TRANSFORM',
+      nodeId: 'default-cube-1',
+      patch: { position: [7, 0.5, 0] },
+    });
+    const ok = useSceneStore.getState().recomputeFromTimeline();
+
+    expect(ok).toBe(true);
+    expect(useSceneStore.getState().scene.nodes['default-cube-1']?.transform.position[0]).toBe(7);
+    expect(useSceneStore.getState().past).toHaveLength(0);
+    expect(useSceneStore.getState().future).toHaveLength(0);
   });
 });

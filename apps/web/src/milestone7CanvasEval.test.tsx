@@ -114,7 +114,7 @@ describe('Milestone 7 Loop C canvas editing eval', () => {
     await user.type(spinbuttons[0]!, '2.5');
     await user.tab();
 
-    const commandLog = screen.getByRole('region', { name: /command log/i });
+    const commandLog = screen.getByRole('region', { name: /command timeline/i });
     await waitFor(() => {
       expect(within(commandLog).getAllByText('UPDATE_TRANSFORM').length).toBeGreaterThan(0);
     });
