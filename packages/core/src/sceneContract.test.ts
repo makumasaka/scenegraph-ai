@@ -282,12 +282,18 @@ describe('Milestone 2 scene contract', () => {
       const parsed = parseSceneJson(serializeScene(showroomScene));
 
       expect(parsed?.nodes['showroom-root']?.children).toEqual([
-        'showroom-floor',
-        'showroom-accent',
-      ]);
-      expect(parsed?.nodes['showroom-floor']?.children).toEqual([
-        'showroom-pedestal-west',
-        'showroom-pedestal-east',
+        'floor',
+        'wall',
+        'product_01',
+        'bench',
+        'display_table',
+        'product_03',
+        'light_fill',
+        'chair',
+        'display_plinth',
+        'product_02',
+        'light_key',
+        'backdrop_panel',
       ]);
     });
   });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { validateScene } from '@diorama/schema';
 import { applyCommand, applyCommandWithResult, applyReparent, type Command } from './commands';
+import { showroomScene } from './fixtures';
 import { createEmptyScene, createNode } from './scene';
 import { getWorldMatrix } from './worldTransform';
 
@@ -180,6 +181,107 @@ describe('applyCommand', () => {
     expect(next).toBe(scene);
   });
 
+  it('CREATE_SEMANTIC_GROUP creates a group node and assigns listed nodes', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({ id: 'product-a', name: 'Product A' }),
+    });
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({ id: 'product-b', name: 'Product B' }),
+    });
+
+    const next = applyCommand(scene, {
+      type: 'CREATE_SEMANTIC_GROUP',
+      groupId: 'display_area',
+      name: 'Display Area',
+      role: 'display',
+      nodeIds: ['product-a', 'product-b'],
+    });
+
+    expect(next.nodes.display_area?.semanticRole).toBe('group');
+    expect(next.nodes.display_area?.children).toEqual(['product-a', 'product-b']);
+    expect(next.nodes['product-a']?.semanticGroupId).toBe('display_area');
+    expect(next.nodes[next.rootId]?.children).toContain('display_area');
+    assertValid(next);
+  });
+
+  it('SET_NODE_SEMANTICS assigns roles without changing behavior or transforms', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({
+        id: 'product-a',
+        name: 'Product A',
+        behaviors: { hoverHighlight: true },
+        transform: { position: [1, 2, 3] },
+      }),
+    });
+
+    const next = applyCommand(scene, {
+      type: 'SET_NODE_SEMANTICS',
+      nodeIds: ['product-a', 'missing'],
+      semanticRole: 'product',
+      semanticGroupId: 'display_area',
+    });
+
+    expect(next.nodes['product-a']?.semanticRole).toBe('product');
+    expect(next.nodes['product-a']?.semanticGroupId).toBe('display_area');
+    expect(next.nodes['product-a']?.behaviors).toEqual({ hoverHighlight: true });
+    expect(next.nodes['product-a']?.transform.position).toEqual([1, 2, 3]);
+    assertValid(next);
+  });
+
+  it('ADD_BEHAVIOR merges behavior metadata deterministically', () => {
+    let scene = createEmptyScene();
+    scene = applyCommand(scene, {
+      type: 'ADD_NODE',
+      parentId: scene.rootId,
+      node: createNode({
+        id: 'product-a',
+        name: 'Product A',
+        semanticRole: 'product',
+        behaviors: { hoverHighlight: true, info: { title: 'Old' } },
+      }),
+    });
+
+    const next = applyCommand(scene, {
+      type: 'ADD_BEHAVIOR',
+      nodeIds: ['product-a'],
+      behavior: {
+        clickSelect: true,
+        info: { title: 'Product A', description: 'Details' },
+      },
+    });
+
+    expect(next.nodes['product-a']?.semanticRole).toBe('product');
+    expect(next.nodes['product-a']?.behaviors).toEqual({
+      hoverHighlight: true,
+      clickSelect: true,
+      info: { title: 'Product A', description: 'Details' },
+    });
+    assertValid(next);
+  });
+
+  it('STRUCTURE_SHOWROOM_SCENE creates semantic showroom groups and roles', () => {
+    const next = applyCommand(showroomScene, { type: 'STRUCTURE_SHOWROOM_SCENE' });
+
+    expect(next.nodes.display_area?.semanticRole).toBe('group');
+    expect(next.nodes.seating_area?.semanticRole).toBe('group');
+    expect(next.nodes.lighting_zone?.semanticRole).toBe('group');
+    expect(next.nodes.environment?.semanticRole).toBe('group');
+    expect(next.nodes.product_01?.semanticRole).toBe('product');
+    expect(next.nodes.display_table?.semanticRole).toBe('display');
+    expect(next.nodes.bench?.semanticRole).toBe('seating');
+    expect(next.nodes.light_key?.semanticRole).toBe('light');
+    expect(next.nodes.floor?.semanticRole).toBe('environment');
+    assertValid(next);
+  });
+
   it('maintains hierarchy integrity and reachability after edits', () => {
     let s = createEmptyScene();
     const root = s.rootId;
@@ -292,6 +394,22 @@ describe('applyCommandWithResult', () => {
       [
         { type: 'ARRANGE_NODES', nodeIds: [scene.rootId, 'missing'], layout: 'line' },
         'ARRANGE_NODES has no valid non-root targets',
+      ],
+      [
+        {
+          type: 'SET_NODE_SEMANTICS',
+          nodeIds: ['missing'],
+          semanticRole: 'product',
+        },
+        'SET_NODE_SEMANTICS has no valid non-root targets',
+      ],
+      [
+        {
+          type: 'ADD_BEHAVIOR',
+          nodeIds: ['missing'],
+          behavior: { hoverHighlight: true },
+        },
+        'ADD_BEHAVIOR has no valid non-root targets',
       ],
       [
         { type: 'SET_SELECTION', nodeId: 'missing' },

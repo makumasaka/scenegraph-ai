@@ -37,6 +37,32 @@ const escapeAttr = (s: string): string =>
 
 const escapeComment = (s: string): string => s.replace(/\*\//g, '* /');
 
+const emitSemanticComment = (node: SceneNode, indent: string): string => {
+  const parts: string[] = [];
+  if (node.semanticRole) parts.push(`role=${node.semanticRole}`);
+  if (node.semanticGroupId) parts.push(`group=${node.semanticGroupId}`);
+  if (node.behaviors) {
+    const enabled = Object.entries(node.behaviors)
+      .filter(([key, value]) => key !== 'info' && value === true)
+      .map(([key]) => key);
+    if (enabled.length > 0) parts.push(`behavior=${enabled.join('+')}`);
+    if (node.behaviors.info?.title) {
+      parts.push(`info=${escapeComment(node.behaviors.info.title)}`);
+    }
+  }
+  return parts.length > 0 ? `${indent}{/* semantics: ${parts.join(' | ')} */}\n` : '';
+};
+
+const emitUserDataAttr = (node: SceneNode): string => {
+  const userData: Record<string, unknown> = {};
+  if (node.semanticRole) userData.semanticRole = node.semanticRole;
+  if (node.semanticGroupId) userData.semanticGroupId = node.semanticGroupId;
+  if (node.behaviors) userData.behaviors = node.behaviors;
+  return Object.keys(userData).length > 0
+    ? ` userData={${JSON.stringify(userData)}}`
+    : '';
+};
+
 const emitLight = (light: SceneLight, indent: string): string => {
   if (light.kind === 'ambient') {
     const attrs =
@@ -72,6 +98,7 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
   const pos = fmtVec(node.transform.position);
   const rot = fmtVec(node.transform.rotation);
   const scale = fmtVec(node.transform.scale);
+  const userData = emitUserDataAttr(node);
 
   const isRoot = id === scene.rootId;
   const hasLight = node.light !== undefined || node.type === 'light';
@@ -79,7 +106,8 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
 
   const open =
     `${ind}{/* ${escapeComment(node.id)} - ${escapeComment(node.name)} */}\n` +
-    `${ind}<group name="${escapeAttr(node.name)}" position={${pos}} rotation={${rot}} scale={${scale}}>\n`;
+    emitSemanticComment(node, ind) +
+    `${ind}<group name="${escapeAttr(node.name)}" position={${pos}} rotation={${rot}} scale={${scale}}${userData}>\n`;
 
   let body = '';
   if (hasLight && node.light) body += emitLight(node.light, inner);

@@ -24,6 +24,8 @@ const examples = [
 const readExample = (id: string): string =>
   readFileSync(new URL(`../../examples/scenes/${id}.json`, import.meta.url), 'utf8');
 
+const normalizeNewlines = (text: string): string => text.replace(/\r\n/g, '\n');
+
 const parseExample = (id: string): Scene => {
   const parsed = parseSceneJson(readExample(id));
   if (!parsed) throw new Error(`example ${id} did not parse`);
@@ -48,12 +50,18 @@ describe('Milestone 5 export loop lock', () => {
       const roundtripped = parseSceneJson(serializeScene(showroom));
 
       expect(roundtripped?.nodes['showroom-root']?.children).toEqual([
-        'showroom-floor',
-        'showroom-accent',
-      ]);
-      expect(roundtripped?.nodes['showroom-floor']?.children).toEqual([
-        'showroom-pedestal-west',
-        'showroom-pedestal-east',
+        'floor',
+        'wall',
+        'product_01',
+        'bench',
+        'display_table',
+        'product_03',
+        'light_fill',
+        'chair',
+        'display_plinth',
+        'product_02',
+        'light_key',
+        'backdrop_panel',
       ]);
     });
 
@@ -75,7 +83,7 @@ describe('Milestone 5 export loop lock', () => {
 
   describe('examples parity', () => {
     it.each(examples)('%s checked-in JSON matches serialized core fixture', (id, fixture) => {
-      expect(readExample(id).trim()).toBe(serializeScene(fixture).trim());
+      expect(normalizeNewlines(readExample(id)).trim()).toBe(serializeScene(fixture).trim());
     });
 
     it.each(examples)('%s example JSON sorts every object key lexicographically', (id) => {

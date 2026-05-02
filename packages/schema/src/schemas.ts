@@ -35,6 +35,35 @@ export const NodeTypeSchema = z.enum(['root', 'group', 'mesh', 'light', 'empty']
 
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
+export const SemanticRoleSchema = z.enum([
+  'product',
+  'display',
+  'seating',
+  'light',
+  'environment',
+  'group',
+  'unknown',
+]);
+
+export type SemanticRole = z.infer<typeof SemanticRoleSchema>;
+
+export const InteractionBehaviorSchema = z
+  .object({
+    hoverHighlight: z.boolean().optional(),
+    clickSelect: z.boolean().optional(),
+    focusOnClick: z.boolean().optional(),
+    info: z
+      .object({
+        title: z.string(),
+        description: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export type InteractionBehavior = z.infer<typeof InteractionBehaviorSchema>;
+
 export type JsonValue =
   | null
   | string
@@ -87,6 +116,9 @@ export const SceneNodeSchema = SceneNodeBaseSchema.extend({
   type: NodeTypeSchema,
   visible: z.boolean(),
   metadata: MetadataSchema,
+  semanticRole: SemanticRoleSchema.optional(),
+  semanticGroupId: z.string().min(1).optional(),
+  behaviors: InteractionBehaviorSchema.optional(),
 });
 
 const LegacySceneNodeSchema = SceneNodeBaseSchema.extend({

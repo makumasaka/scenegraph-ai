@@ -93,7 +93,7 @@ describe('Milestone 7 export eval', () => {
       expect(r3f.indexOf('living-table')).toBeLessThan(r3f.indexOf('living-lamp'));
     });
 
-    it('keeps duplicated showroom subtree under the original parent in the R3F output', () => {
+    it('keeps duplicated showroom display after the original in the R3F output', () => {
       const fixture = fixtures.find((f) => f.id === '002-showroom-duplicate-focus');
       expect(fixture, '002-showroom-duplicate-focus fixture missing').toBeDefined();
       const session = createAgentSession(getStarterScene(fixture!.startingSceneId));
@@ -101,15 +101,9 @@ describe('Milestone 7 export eval', () => {
 
       const r3f = expectOk(session.exportScene({ format: 'r3f' })).content;
 
-      expect(r3f.indexOf('showroom-floor ')).toBeLessThan(r3f.indexOf('showroom-floor-copy'));
-      expect(r3f.indexOf('showroom-floor-copy')).toBeLessThan(
-        r3f.indexOf('showroom-pedestal-west-copy'),
-      );
-      expect(r3f.indexOf('showroom-pedestal-west-copy')).toBeLessThan(
-        r3f.indexOf('showroom-pedestal-east-copy'),
-      );
+      expect(r3f.indexOf('display_table ')).toBeLessThan(r3f.indexOf('display_table-copy'));
       expect(r3f).toContain(
-        '<group name="Floor (copy)" position={[3, 0.05, 0]} rotation={[0, 0, 0]} scale={[7, 0.1, 5]}>',
+        '<group name="Display Table (copy)" position={[3, 0.28, 0]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]}>',
       );
     });
   });

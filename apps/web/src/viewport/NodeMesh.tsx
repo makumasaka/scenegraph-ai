@@ -1,4 +1,5 @@
 import {
+  useState,
   useLayoutEffect,
   useCallback,
   useMemo,
@@ -23,6 +24,7 @@ interface NodeMeshProps {
 function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
   const groupRef = useRef<Group | null>(null);
   const tcRef = useRef<TransformControlsImpl | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const { node, isSelected, gizmoMode, dispatch, select } = useSceneStore(
     useShallow((s) => {
@@ -62,19 +64,30 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
 
   const color = useMemo(() => {
     if (isSelected) return '#fbbf24';
+    if (isHovered && node?.behaviors?.hoverHighlight) return '#38bdf8';
     let hash = 0;
     for (let i = 0; i < nodeId.length; i += 1) {
       hash = (hash * 31 + nodeId.charCodeAt(i)) >>> 0;
     }
     const hue = hash % 360;
     return `hsl(${hue}, 65%, 55%)`;
-  }, [isSelected, nodeId]);
+  }, [isHovered, isSelected, node?.behaviors?.hoverHighlight, nodeId]);
 
   if (!node || node.visible === false) return null;
 
   const handleClick = (e: ThreeEvent<MouseEvent>): void => {
     e.stopPropagation();
     select(nodeId);
+  };
+
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>): void => {
+    e.stopPropagation();
+    if (node.behaviors?.hoverHighlight) setIsHovered(true);
+  };
+
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>): void => {
+    e.stopPropagation();
+    if (isHovered) setIsHovered(false);
   };
 
   const showLight = node.light !== undefined || node.type === 'light';
@@ -88,6 +101,8 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
         rotation={node.transform.rotation}
         scale={node.transform.scale}
         onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
       >
         {showLight && node.light?.kind === 'ambient' ? (
           <ambientLight intensity={node.light.intensity ?? 0.4} />
@@ -103,8 +118,8 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial
               color={color}
-              emissive={isSelected ? '#f59e0b' : '#000000'}
-              emissiveIntensity={isSelected ? 0.35 : 0}
+              emissive={isSelected ? '#f59e0b' : isHovered ? '#0284c7' : '#000000'}
+              emissiveIntensity={isSelected ? 0.35 : isHovered ? 0.28 : 0}
             />
           </mesh>
         ) : null}

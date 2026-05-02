@@ -18,6 +18,13 @@ const commandTouchedNodes = (scene: Scene, command: Command): string[] => {
     case 'DELETE_NODE':
     case 'DUPLICATE_NODE':
       return [label(command.nodeId)];
+    case 'CREATE_SEMANTIC_GROUP':
+      return [command.name, ...command.nodeIds.slice(0, 3).map(label)];
+    case 'SET_NODE_SEMANTICS':
+    case 'ADD_BEHAVIOR':
+      return command.nodeIds.slice(0, 4).map(label);
+    case 'STRUCTURE_SHOWROOM_SCENE':
+      return ['display_area', 'seating_area', 'lighting_zone', 'environment'];
     case 'SET_PARENT':
       return [label(command.nodeId), label(command.parentId)];
     case 'ARRANGE_NODES':
@@ -159,11 +166,11 @@ function EditableFields({
           <span>Columns</span>
           <input
             type="number"
-            value={fmt(command.options?.columns ?? 0)}
+            value={fmt(command.options?.cols ?? 0)}
             onChange={(e) =>
               onChange({
                 ...command,
-                options: { ...command.options, columns: parseNumeric(e.target.value) },
+                options: { ...command.options, cols: parseNumeric(e.target.value) },
               })
             }
           />

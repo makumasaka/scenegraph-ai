@@ -30,6 +30,26 @@ export const summarizeCommand = (command: Command): CommandSummary => {
         title: 'Update transform',
         detail: `node ${shortId(command.nodeId)}`,
       };
+    case 'CREATE_SEMANTIC_GROUP':
+      return {
+        title: 'Create semantic group',
+        detail: `${command.name} (${command.role}) - ${command.nodeIds.length} node(s)`,
+      };
+    case 'SET_NODE_SEMANTICS':
+      return {
+        title: 'Set node semantics',
+        detail: `${command.semanticRole}${command.semanticGroupId ? ` in ${shortId(command.semanticGroupId)}` : ''} - ${command.nodeIds.length} node(s)`,
+      };
+    case 'ADD_BEHAVIOR':
+      return {
+        title: 'Add behavior',
+        detail: `${command.nodeIds.length} node(s) - ${Object.keys(command.behavior).join(', ')}`,
+      };
+    case 'STRUCTURE_SHOWROOM_SCENE':
+      return {
+        title: 'Structure showroom scene',
+        detail: 'Create display, seating, lighting, and environment groups',
+      };
     case 'DUPLICATE_NODE':
       return {
         title: 'Duplicate node',

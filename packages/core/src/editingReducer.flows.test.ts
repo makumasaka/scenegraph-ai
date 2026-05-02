@@ -47,16 +47,15 @@ describe('editing reducer — critical flows', () => {
 
   it('5 reparents a node under root', () => {
     let s = showroomScene;
+    s = applyCommand(s, { type: 'STRUCTURE_SHOWROOM_SCENE' });
     s = applyCommand(s, {
       type: 'SET_PARENT',
-      nodeId: 'showroom-pedestal-west',
+      nodeId: 'product_01',
       parentId: s.rootId,
     });
     const root = s.nodes[s.rootId];
-    expect(root?.children).toContain('showroom-pedestal-west');
-    expect(s.nodes['showroom-floor']?.children.includes('showroom-pedestal-west')).toBe(
-      false,
-    );
+    expect(root?.children).toContain('product_01');
+    expect(s.nodes.display_area?.children.includes('product_01')).toBe(false);
     expect(validateScene(s)).toBe(true);
   });
 

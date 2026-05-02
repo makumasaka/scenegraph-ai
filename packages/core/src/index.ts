@@ -4,6 +4,8 @@ export type {
   SceneNode,
   Scene,
   NodeType,
+  SemanticRole,
+  InteractionBehavior,
   Metadata,
   JsonValue,
 } from '@diorama/schema';

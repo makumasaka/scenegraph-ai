@@ -15,7 +15,8 @@ inputs are normalized before reducers receive them.
 
 Canonical `SceneNode` fields are `id`, `name`, `type`, `children`,
 `transform`, `visible`, optional `assetRef`, optional `materialRef`, optional
-`light`, and `metadata`.
+`light`, `metadata`, optional `semanticRole`, optional `semanticGroupId`, and
+optional `behaviors`.
 
 `rootId` must point to a node whose `type` is `root`. Persistent transforms are
 local only; world transforms are computed from scene hierarchy. Rotations are
@@ -307,6 +308,89 @@ Test coverage notes:
 - `packages/core/src/editingReducer.flows.test.ts` covers transform edit flow.
 - `packages/agent-interface/src/agentInterface.test.ts` covers malformed patch
   validation before reducer execution.
+
+## CREATE_SEMANTIC_GROUP
+
+Purpose: create an explicit semantic group node and assign existing nodes to it.
+
+Payload shape:
+
+```ts
+{
+  type: 'CREATE_SEMANTIC_GROUP';
+  groupId: string;
+  name: string;
+  role: SemanticRole;
+  nodeIds: string[];
+}
+```
+
+Behavior:
+
+- Creates a deterministic `group` node under the root.
+- Reparents valid non-root target nodes under the group.
+- Sets `semanticGroupId` on listed nodes.
+- Returns the original scene for duplicate group ids or no valid targets.
+
+## SET_NODE_SEMANTICS
+
+Purpose: assign semantic meaning to existing nodes.
+
+Payload shape:
+
+```ts
+{
+  type: 'SET_NODE_SEMANTICS';
+  nodeIds: string[];
+  semanticRole: SemanticRole;
+  semanticGroupId?: string;
+}
+```
+
+Behavior:
+
+- Filters invalid ids and root.
+- Sets `semanticRole` and optional `semanticGroupId`.
+- Preserves transforms, refs, visibility, metadata, and behaviors.
+
+## ADD_BEHAVIOR
+
+Purpose: attach inspectable interaction metadata to nodes.
+
+Payload shape:
+
+```ts
+{
+  type: 'ADD_BEHAVIOR';
+  nodeIds: string[];
+  behavior: InteractionBehavior;
+}
+```
+
+Behavior:
+
+- Filters invalid ids and root.
+- Shallow-merges behavior metadata, with `info` merged by field.
+- Does not execute runtime code or store transient hover state.
+
+## STRUCTURE_SHOWROOM_SCENE
+
+Purpose: deterministic MVP demo command that structures a raw showroom fixture.
+
+Payload shape:
+
+```ts
+{ type: 'STRUCTURE_SHOWROOM_SCENE' }
+```
+
+Behavior:
+
+- Uses node id/name/type cues only; no AI or external services.
+- Creates semantic groups `display_area`, `seating_area`, `lighting_zone`, and
+  `environment` when matching nodes exist.
+- Assigns simple roles such as `product`, `display`, `seating`, `light`, and
+  `environment`.
+- Preserves graph invariants and remains replayable.
 
 ## DUPLICATE_NODE
 

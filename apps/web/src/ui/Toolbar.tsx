@@ -21,6 +21,16 @@ const arrangeTargets = (scene: Scene, selectedId: string | null): string[] => {
   return [...scene.nodes[scene.rootId].children];
 };
 
+const showroomTargets = (scene: Scene): string[] =>
+  Object.values(scene.nodes)
+    .filter((node) => {
+      if (node.id === scene.rootId || node.type === 'root') return false;
+      if (node.semanticRole === 'product' || node.semanticRole === 'display') return true;
+      const label = `${node.id} ${node.name}`.toLowerCase();
+      return label.includes('product') || label.includes('display') || label.includes('plinth');
+    })
+    .map((node) => node.id);
+
 export function Toolbar() {
   const scene = useSceneStore((s) => s.scene);
   const selectedId = scene.selection;
@@ -73,15 +83,72 @@ export function Toolbar() {
     dispatch({ type: 'ARRANGE_NODES', nodeIds, layout });
   };
 
+  const handleStructureShowroom = () => {
+    dispatch({ type: 'STRUCTURE_SHOWROOM_SCENE' });
+  };
+
+  const handleMakeInteractive = () => {
+    for (const nodeId of showroomTargets(scene)) {
+      const node = scene.nodes[nodeId];
+      if (!node) continue;
+      dispatch({
+        type: 'ADD_BEHAVIOR',
+        nodeIds: [nodeId],
+        behavior: {
+          hoverHighlight: true,
+          clickSelect: true,
+          focusOnClick: true,
+          info: {
+            title: node.name,
+            description: `${node.name} is ready for showroom hover and click interactions.`,
+          },
+        },
+      });
+    }
+  };
+
+  const handleArrangeProducts = () => {
+    const nodeIds = showroomTargets(scene);
+    if (nodeIds.length === 0) return;
+    dispatch({
+      type: 'ARRANGE_NODES',
+      nodeIds,
+      layout: 'grid',
+      options: { spacing: 1.45, cols: 3 },
+    });
+  };
+
   return (
     <header className="toolbar">
       <div className="toolbar__primary">
         <div className="toolbar__brand">
-          <span className="toolbar__title">scenegraph-ai</span>
-          <span className="toolbar__subtitle">Scene editor</span>
+          <span className="toolbar__title">Diorama</span>
+          <span className="toolbar__subtitle">AI-native spatial canvas</span>
         </div>
 
         <div className="toolbar__actions">
+          <button
+            type="button"
+            className="toolbar__demo-action"
+            onClick={handleStructureShowroom}
+          >
+            Structure Scene
+          </button>
+          <button
+            type="button"
+            className="toolbar__demo-action"
+            onClick={handleMakeInteractive}
+          >
+            Make Interactive
+          </button>
+          <button
+            type="button"
+            className="toolbar__demo-action"
+            onClick={handleArrangeProducts}
+          >
+            Arrange Products
+          </button>
+          <div className="toolbar__divider" aria-hidden="true" />
           <div className="toolbar__group">
             <button
               type="button"

@@ -120,6 +120,18 @@ export const cloneSceneFromJson = (scene: Scene): Scene => ({
         type: node.type,
         visible: node.visible,
         metadata: { ...node.metadata },
+        ...(node.semanticRole !== undefined ? { semanticRole: node.semanticRole } : {}),
+        ...(node.semanticGroupId !== undefined ? { semanticGroupId: node.semanticGroupId } : {}),
+        ...(node.behaviors !== undefined
+          ? {
+              behaviors: {
+                ...node.behaviors,
+                ...(node.behaviors.info !== undefined
+                  ? { info: { ...node.behaviors.info } }
+                  : {}),
+              },
+            }
+          : {}),
         ...(node.assetRef !== undefined ? { assetRef: node.assetRef } : {}),
         ...(node.materialRef !== undefined ? { materialRef: node.materialRef } : {}),
         ...(node.light !== undefined ? { light: node.light } : {}),

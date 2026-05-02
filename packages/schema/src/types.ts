@@ -5,6 +5,8 @@ export type {
   Scene,
   NodeType,
   SceneLight,
+  SemanticRole,
+  InteractionBehavior,
   AssetRef,
   MaterialRef,
   Metadata,

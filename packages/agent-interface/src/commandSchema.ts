@@ -1,11 +1,21 @@
 import { z } from 'zod';
 import type { Command } from '@diorama/core';
-import { SceneGraphSchema, SceneNodeSchema, Vec3Schema } from '@diorama/schema';
+import {
+  InteractionBehaviorSchema,
+  SceneGraphSchema,
+  SceneNodeSchema,
+  SemanticRoleSchema,
+  Vec3Schema,
+} from '@diorama/schema';
 
 export const COMMAND_TYPES = [
   'ADD_NODE',
   'DELETE_NODE',
   'UPDATE_TRANSFORM',
+  'CREATE_SEMANTIC_GROUP',
+  'SET_NODE_SEMANTICS',
+  'ADD_BEHAVIOR',
+  'STRUCTURE_SHOWROOM_SCENE',
   'DUPLICATE_NODE',
   'SET_PARENT',
   'ARRANGE_NODES',
@@ -19,6 +29,10 @@ export const COMMAND_SCHEMA_PARITY: CommandTypeParity = {
   ADD_NODE: true,
   DELETE_NODE: true,
   UPDATE_TRANSFORM: true,
+  CREATE_SEMANTIC_GROUP: true,
+  SET_NODE_SEMANTICS: true,
+  ADD_BEHAVIOR: true,
+  STRUCTURE_SHOWROOM_SCENE: true,
   DUPLICATE_NODE: true,
   SET_PARENT: true,
   ARRANGE_NODES: true,
@@ -80,6 +94,35 @@ export const CommandSchema = z.discriminatedUnion('type', [
       type: z.literal('UPDATE_TRANSFORM'),
       nodeId: z.string().min(1),
       patch: TransformPatchSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('CREATE_SEMANTIC_GROUP'),
+      groupId: z.string().min(1),
+      name: z.string(),
+      role: SemanticRoleSchema,
+      nodeIds: z.array(z.string().min(1)),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('SET_NODE_SEMANTICS'),
+      nodeIds: z.array(z.string().min(1)),
+      semanticRole: SemanticRoleSchema,
+      semanticGroupId: z.string().min(1).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('ADD_BEHAVIOR'),
+      nodeIds: z.array(z.string().min(1)),
+      behavior: InteractionBehaviorSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('STRUCTURE_SHOWROOM_SCENE'),
     })
     .strict(),
   z

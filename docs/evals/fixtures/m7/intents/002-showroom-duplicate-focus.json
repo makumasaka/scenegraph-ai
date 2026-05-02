@@ -2,25 +2,23 @@
   "commands": [
     {
       "idMap": {
-        "showroom-floor": "showroom-floor-copy",
-        "showroom-pedestal-east": "showroom-pedestal-east-copy",
-        "showroom-pedestal-west": "showroom-pedestal-west-copy"
+        "display_table": "display_table-copy"
       },
-      "includeSubtree": true,
+      "includeSubtree": false,
       "newParentId": "showroom-root",
-      "nodeId": "showroom-floor",
+      "nodeId": "display_table",
       "type": "DUPLICATE_NODE"
     },
     {
-      "nodeId": "showroom-floor-copy",
+      "nodeId": "display_table-copy",
       "type": "SET_SELECTION"
     },
     {
-      "nodeId": "showroom-floor-copy",
+      "nodeId": "display_table-copy",
       "patch": {
         "position": [
           3,
-          0.05,
+          0.28,
           0
         ]
       },
@@ -28,38 +26,34 @@
     }
   ],
   "expectedChangedNodeIds": [
-    "showroom-floor-copy",
-    "showroom-pedestal-east-copy",
-    "showroom-pedestal-west-copy"
+    "display_table-copy"
   ],
   "expectedErrors": [],
-  "expectedSelection": "showroom-floor-copy",
+  "expectedSelection": "display_table-copy",
   "expectedWarnings": [],
   "exportChecks": {
     "jsonNodeIds": [
-      "showroom-floor",
-      "showroom-floor-copy",
-      "showroom-pedestal-west-copy",
-      "showroom-pedestal-east-copy"
+      "display_table",
+      "display_table-copy"
     ],
     "r3fContains": [
-      "Floor (copy)",
-      "showroom-floor-copy",
-      "position={[3, 0.05, 0]}"
+      "Display Table (copy)",
+      "display_table-copy",
+      "position={[3, 0.28, 0]}"
     ]
   },
   "expectedNodeTransforms": {
-    "showroom-floor-copy": {
+    "display_table-copy": {
       "position": [
         3,
-        0.05,
+        0.28,
         0
       ]
     }
   },
   "id": "002-showroom-duplicate-focus",
-  "intent": "Duplicate the showroom pedestal branch and move the duplicate to the right.",
+  "intent": "Duplicate the showroom display table and move the duplicate to the right.",
   "replaySafe": true,
   "startingSceneId": "showroom",
-  "title": "Showroom pedestal branch duplicate"
+  "title": "Showroom display table duplicate"
 }

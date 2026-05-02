@@ -129,6 +129,31 @@ describe('scene JSON contract', () => {
     expect(validateScene(parsed)).toBe(true);
   });
 
+  it('validates and roundtrips semantic and behavior metadata', () => {
+    const scene = canonicalScene();
+    scene.nodes.mesh = {
+      ...scene.nodes.mesh!,
+      semanticRole: 'product',
+      semanticGroupId: 'display_area',
+      behaviors: {
+        hoverHighlight: true,
+        clickSelect: true,
+        focusOnClick: true,
+        info: {
+          title: 'Mesh',
+          description: 'Interactive product placeholder.',
+        },
+      },
+    };
+
+    const parsed = parseSceneJson(serializeScene(scene));
+
+    expect(parsed?.nodes.mesh?.semanticRole).toBe('product');
+    expect(parsed?.nodes.mesh?.semanticGroupId).toBe('display_area');
+    expect(parsed?.nodes.mesh?.behaviors).toEqual(scene.nodes.mesh.behaviors);
+    expect(validateScene(parsed)).toBe(true);
+  });
+
   it('rejects v2 documents with missing required node contract fields', () => {
     const parsed = parseSceneJson(
       JSON.stringify({

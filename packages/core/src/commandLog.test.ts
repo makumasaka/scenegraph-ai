@@ -18,6 +18,25 @@ const sampleCommands = (): Command[] => {
     { type: 'DELETE_NODE', nodeId: 'cmd-node' } as const,
     { type: 'UPDATE_TRANSFORM', nodeId: root, patch: { position: [1, 2, 3] } } as const,
     {
+      type: 'CREATE_SEMANTIC_GROUP',
+      groupId: 'display_area',
+      name: 'Display Area',
+      role: 'display',
+      nodeIds: ['cmd-node'],
+    } as const,
+    {
+      type: 'SET_NODE_SEMANTICS',
+      nodeIds: ['cmd-node'],
+      semanticRole: 'product',
+      semanticGroupId: 'display_area',
+    } as const,
+    {
+      type: 'ADD_BEHAVIOR',
+      nodeIds: ['cmd-node'],
+      behavior: { hoverHighlight: true, clickSelect: true },
+    } as const,
+    { type: 'STRUCTURE_SHOWROOM_SCENE' } as const,
+    {
       type: 'DUPLICATE_NODE',
       nodeId: 'cmd-node',
       includeSubtree: true,

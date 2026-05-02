@@ -127,6 +127,49 @@ export function Inspector() {
       </section>
 
       <section className="inspector__section">
+        <div className="inspector__section-title">Semantics</div>
+        <div className="inspector__row">
+          <span className="inspector__key">Role</span>
+          <span className="inspector__value">{node.semanticRole ?? 'unknown'}</span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Group</span>
+          <span className="inspector__value inspector__value--mono">
+            {node.semanticGroupId ?? '-'}
+          </span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Hover</span>
+          <span className="inspector__value">
+            {node.behaviors?.hoverHighlight ? 'Highlight' : '-'}
+          </span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Click</span>
+          <span className="inspector__value">
+            {node.behaviors?.clickSelect
+              ? node.behaviors.focusOnClick
+                ? 'Select + focus'
+                : 'Select'
+              : '-'}
+          </span>
+        </div>
+        {node.behaviors?.info ? (
+          <>
+            <div className="inspector__row">
+              <span className="inspector__key">Info</span>
+              <span className="inspector__value">{node.behaviors.info.title}</span>
+            </div>
+            {node.behaviors.info.description ? (
+              <p className="inspector__description">
+                {node.behaviors.info.description}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+      </section>
+
+      <section className="inspector__section">
         <div className="inspector__section-title">Transform</div>
         <Vec3Editor
           label="Position"

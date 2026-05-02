@@ -76,6 +76,27 @@ describe('exportSceneToR3fJsx', () => {
     expect(out).not.toContain('Studio fill');
   });
 
+  it('emits semantic and behavior metadata as deterministic comments and userData', () => {
+    let s = applyCommand(showroomScene, { type: 'STRUCTURE_SHOWROOM_SCENE' });
+    s = applyCommand(s, {
+      type: 'ADD_BEHAVIOR',
+      nodeIds: ['product_01'],
+      behavior: {
+        hoverHighlight: true,
+        clickSelect: true,
+        info: { title: 'Product 01', description: 'Demo info' },
+      },
+    });
+
+    const out = exportSceneToR3fJsx(s);
+
+    expect(out).toContain('semantics: role=product | group=display_area');
+    expect(out).toContain('behavior=hoverHighlight+clickSelect');
+    expect(out).toContain('"semanticRole":"product"');
+    expect(out).toContain('"behaviors":{"hoverHighlight":true,"clickSelect":true');
+    expect(out).toMatchSnapshot();
+  });
+
   it('omits hidden nodes and their descendants', () => {
     const root = createNode({
       id: 'hidden-root',

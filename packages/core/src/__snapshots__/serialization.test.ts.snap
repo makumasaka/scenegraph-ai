@@ -69,43 +69,140 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
 "{
   "data": {
     "nodes": {
-      "showroom-accent": {
+      "backdrop_panel": {
         "children": [],
-        "id": "showroom-accent",
+        "id": "backdrop_panel",
         "metadata": {},
-        "name": "Accent",
+        "name": "Backdrop Panel",
         "transform": {
           "position": [
-            0,
-            1.1,
-            0
+            -2.4,
+            1.05,
+            -2.65
           ],
           "rotation": [
             0,
-            0.35,
+            0.18,
             0
           ],
           "scale": [
-            1.2,
-            1.2,
-            1.2
+            1.6,
+            2.1,
+            0.1
           ]
         },
         "type": "mesh",
         "visible": true
       },
-      "showroom-floor": {
-        "children": [
-          "showroom-pedestal-west",
-          "showroom-pedestal-east"
-        ],
-        "id": "showroom-floor",
+      "bench": {
+        "children": [],
+        "id": "bench",
+        "metadata": {},
+        "name": "Bench",
+        "transform": {
+          "position": [
+            -2.6,
+            0.32,
+            1.9
+          ],
+          "rotation": [
+            0,
+            0.18,
+            0
+          ],
+          "scale": [
+            1.5,
+            0.45,
+            0.55
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "chair": {
+        "children": [],
+        "id": "chair",
+        "metadata": {},
+        "name": "Chair",
+        "transform": {
+          "position": [
+            2.7,
+            0.45,
+            1.65
+          ],
+          "rotation": [
+            0,
+            -0.55,
+            0
+          ],
+          "scale": [
+            0.75,
+            0.9,
+            0.75
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "display_plinth": {
+        "children": [],
+        "id": "display_plinth",
+        "metadata": {},
+        "name": "Display Plinth",
+        "transform": {
+          "position": [
+            1.3,
+            0.32,
+            1.15
+          ],
+          "rotation": [
+            0,
+            0.1,
+            0
+          ],
+          "scale": [
+            0.9,
+            0.65,
+            0.9
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "display_table": {
+        "children": [],
+        "id": "display_table",
+        "metadata": {},
+        "name": "Display Table",
+        "transform": {
+          "position": [
+            -0.4,
+            0.28,
+            0.15
+          ],
+          "rotation": [
+            0,
+            -0.12,
+            0
+          ],
+          "scale": [
+            1.8,
+            0.35,
+            0.9
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "floor": {
+        "children": [],
+        "id": "floor",
         "metadata": {},
         "name": "Floor",
         "transform": {
           "position": [
             0,
-            0.05,
+            -0.05,
             0
           ],
           "rotation": [
@@ -114,59 +211,143 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
             0
           ],
           "scale": [
-            7,
+            8,
             0.1,
-            5
+            6
           ]
         },
         "type": "mesh",
         "visible": true
       },
-      "showroom-pedestal-east": {
+      "light_fill": {
         "children": [],
-        "id": "showroom-pedestal-east",
+        "id": "light_fill",
+        "light": {
+          "intensity": 0.35,
+          "kind": "ambient"
+        },
         "metadata": {},
-        "name": "Pedestal East",
+        "name": "Light Fill",
         "transform": {
           "position": [
-            2,
-            0.35,
-            0
+            3.1,
+            2.4,
+            2.5
           ],
           "rotation": [
             0,
-            0,
+            -0.4,
             0
           ],
           "scale": [
-            1,
-            1,
-            1
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "type": "light",
+        "visible": true
+      },
+      "light_key": {
+        "children": [],
+        "id": "light_key",
+        "light": {
+          "castShadow": true,
+          "intensity": 1.2,
+          "kind": "directional"
+        },
+        "metadata": {},
+        "name": "Light Key",
+        "transform": {
+          "position": [
+            -3.2,
+            3.4,
+            2.2
+          ],
+          "rotation": [
+            0,
+            0.5,
+            0
+          ],
+          "scale": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "type": "light",
+        "visible": true
+      },
+      "product_01": {
+        "children": [],
+        "id": "product_01",
+        "metadata": {},
+        "name": "Product 01",
+        "transform": {
+          "position": [
+            -1.8,
+            0.65,
+            0.4
+          ],
+          "rotation": [
+            0,
+            0.4,
+            0
+          ],
+          "scale": [
+            0.65,
+            0.9,
+            0.65
           ]
         },
         "type": "mesh",
         "visible": true
       },
-      "showroom-pedestal-west": {
+      "product_02": {
         "children": [],
-        "id": "showroom-pedestal-west",
+        "id": "product_02",
         "metadata": {},
-        "name": "Pedestal West",
+        "name": "Product 02",
         "transform": {
           "position": [
-            -2,
-            0.35,
-            0
+            2.1,
+            0.55,
+            -0.2
           ],
           "rotation": [
             0,
-            0,
+            -0.25,
             0
           ],
           "scale": [
-            1,
-            1,
-            1
+            0.8,
+            0.7,
+            0.8
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "product_03": {
+        "children": [],
+        "id": "product_03",
+        "metadata": {},
+        "name": "Product 03",
+        "transform": {
+          "position": [
+            0.35,
+            0.8,
+            1.45
+          ],
+          "rotation": [
+            0,
+            0.85,
+            0
+          ],
+          "scale": [
+            0.55,
+            1.1,
+            0.55
           ]
         },
         "type": "mesh",
@@ -174,12 +355,22 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
       },
       "showroom-root": {
         "children": [
-          "showroom-floor",
-          "showroom-accent"
+          "floor",
+          "wall",
+          "product_01",
+          "bench",
+          "display_table",
+          "product_03",
+          "light_fill",
+          "chair",
+          "display_plinth",
+          "product_02",
+          "light_key",
+          "backdrop_panel"
         ],
         "id": "showroom-root",
         "metadata": {},
-        "name": "Showroom",
+        "name": "Messy Product Showroom",
         "transform": {
           "position": [
             0,
@@ -198,6 +389,31 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
           ]
         },
         "type": "root",
+        "visible": true
+      },
+      "wall": {
+        "children": [],
+        "id": "wall",
+        "metadata": {},
+        "name": "North Wall",
+        "transform": {
+          "position": [
+            0,
+            1.6,
+            -3
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            8,
+            3.2,
+            0.12
+          ]
+        },
+        "type": "mesh",
         "visible": true
       }
     },

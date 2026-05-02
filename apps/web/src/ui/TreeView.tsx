@@ -15,6 +15,9 @@ function TreeRow({ scene, nodeId, depth, selectedId, onSelect }: TreeRowProps) {
 
   const isSelected = selectedId === nodeId;
   const isRoot = nodeId === scene.rootId;
+  const semantic = node.semanticRole
+    ? `${node.semanticRole}${node.semanticGroupId ? ` @ ${node.semanticGroupId}` : ''}`
+    : `${node.type}${node.visible ? '' : ' hidden'} - ${node.children.length} child${node.children.length === 1 ? '' : 'ren'}`;
 
   return (
     <div className="tree-group">
@@ -26,9 +29,7 @@ function TreeRow({ scene, nodeId, depth, selectedId, onSelect }: TreeRowProps) {
       >
         <span className="tree-row__name">{node.name}</span>
         <span className="tree-row__meta">
-          {isRoot
-            ? 'root'
-            : `${node.type}${node.visible ? '' : ' hidden'} - ${node.children.length} child${node.children.length === 1 ? '' : 'ren'}`}
+          {isRoot ? 'root' : semantic}
         </span>
       </button>
       {node.children.map((childId) => (

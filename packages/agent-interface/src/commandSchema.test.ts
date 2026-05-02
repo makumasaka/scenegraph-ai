@@ -26,6 +26,31 @@ const validPayloads: Record<Command['type'], unknown> = {
     nodeId: 'box',
     patch: { position: [1, 2, 3] },
   },
+  CREATE_SEMANTIC_GROUP: {
+    type: 'CREATE_SEMANTIC_GROUP',
+    groupId: 'display_area',
+    name: 'Display Area',
+    role: 'display',
+    nodeIds: ['box'],
+  },
+  SET_NODE_SEMANTICS: {
+    type: 'SET_NODE_SEMANTICS',
+    nodeIds: ['box'],
+    semanticRole: 'product',
+    semanticGroupId: 'display_area',
+  },
+  ADD_BEHAVIOR: {
+    type: 'ADD_BEHAVIOR',
+    nodeIds: ['box'],
+    behavior: {
+      hoverHighlight: true,
+      clickSelect: true,
+      info: { title: 'Box' },
+    },
+  },
+  STRUCTURE_SHOWROOM_SCENE: {
+    type: 'STRUCTURE_SHOWROOM_SCENE',
+  },
   DUPLICATE_NODE: {
     type: 'DUPLICATE_NODE',
     nodeId: 'box',
@@ -69,6 +94,27 @@ const invalidPayloads: Record<Command['type'], unknown> = {
     nodeId: 'box',
     patch: {},
   },
+  CREATE_SEMANTIC_GROUP: {
+    type: 'CREATE_SEMANTIC_GROUP',
+    groupId: '',
+    name: 'Display Area',
+    role: 'display',
+    nodeIds: ['box'],
+  },
+  SET_NODE_SEMANTICS: {
+    type: 'SET_NODE_SEMANTICS',
+    nodeIds: ['box'],
+    semanticRole: 'hero-product',
+  },
+  ADD_BEHAVIOR: {
+    type: 'ADD_BEHAVIOR',
+    nodeIds: ['box'],
+    behavior: { info: { title: 1 } },
+  },
+  STRUCTURE_SHOWROOM_SCENE: {
+    type: 'STRUCTURE_SHOWROOM_SCENE',
+    prompt: 'do AI things',
+  },
   DUPLICATE_NODE: {
     type: 'DUPLICATE_NODE',
     nodeId: 'box',
@@ -100,6 +146,10 @@ describe('CommandSchema', () => {
       'ADD_NODE',
       'DELETE_NODE',
       'UPDATE_TRANSFORM',
+      'CREATE_SEMANTIC_GROUP',
+      'SET_NODE_SEMANTICS',
+      'ADD_BEHAVIOR',
+      'STRUCTURE_SHOWROOM_SCENE',
       'DUPLICATE_NODE',
       'SET_PARENT',
       'ARRANGE_NODES',

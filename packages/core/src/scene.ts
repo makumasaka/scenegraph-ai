@@ -25,6 +25,9 @@ export interface CreateNodeInput {
   materialRef?: SceneNode['materialRef'];
   light?: SceneNode['light'];
   metadata?: SceneNode['metadata'];
+  semanticRole?: SceneNode['semanticRole'];
+  semanticGroupId?: SceneNode['semanticGroupId'];
+  behaviors?: SceneNode['behaviors'];
 }
 
 export const createNode = (input: CreateNodeInput = {}): SceneNode => {
@@ -46,6 +49,9 @@ export const createNode = (input: CreateNodeInput = {}): SceneNode => {
   if (input.assetRef !== undefined) node.assetRef = input.assetRef;
   if (input.materialRef !== undefined) node.materialRef = input.materialRef;
   if (input.light !== undefined) node.light = input.light;
+  if (input.semanticRole !== undefined) node.semanticRole = input.semanticRole;
+  if (input.semanticGroupId !== undefined) node.semanticGroupId = input.semanticGroupId;
+  if (input.behaviors !== undefined) node.behaviors = input.behaviors;
   return node;
 };
 
