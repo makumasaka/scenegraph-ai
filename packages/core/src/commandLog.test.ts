@@ -18,24 +18,41 @@ const sampleCommands = (): Command[] => {
     { type: 'DELETE_NODE', nodeId: 'cmd-node' } as const,
     { type: 'UPDATE_TRANSFORM', nodeId: root, patch: { position: [1, 2, 3] } } as const,
     {
+      type: 'STRUCTURE_SCENE',
+      preset: 'showroom',
+    } as const,
+    {
+      type: 'MAKE_INTERACTIVE',
+      targetRole: 'product',
+    } as const,
+    {
       type: 'CREATE_SEMANTIC_GROUP',
+      group: {
+        id: 'display_area',
+        name: 'Display Area',
+        role: 'display',
+        nodeIds: ['cmd-node'],
+      },
+    } as const,
+    {
+      type: 'ASSIGN_TO_SEMANTIC_GROUP',
       groupId: 'display_area',
-      name: 'Display Area',
-      role: 'display',
       nodeIds: ['cmd-node'],
     } as const,
     {
       type: 'SET_NODE_SEMANTICS',
       nodeIds: ['cmd-node'],
-      semanticRole: 'product',
-      semanticGroupId: 'display_area',
+      semantics: { role: 'product', groupId: 'display_area' },
     } as const,
     {
       type: 'ADD_BEHAVIOR',
-      nodeIds: ['cmd-node'],
-      behavior: { hoverHighlight: true, clickSelect: true },
+      behavior: {
+        id: 'cmd-hover',
+        type: 'hover_highlight',
+        nodeIds: ['cmd-node'],
+      },
     } as const,
-    { type: 'STRUCTURE_SHOWROOM_SCENE' } as const,
+    { type: 'REMOVE_BEHAVIOR', behaviorId: 'cmd-hover' } as const,
     {
       type: 'DUPLICATE_NODE',
       nodeId: 'cmd-node',

@@ -1,9 +1,12 @@
 import {
   cloneSceneFromJson,
   validateScene,
+  type BehaviorDefinition,
   type InteractionBehavior,
+  type NodeSemantics,
   type Scene,
   type SceneNode,
+  type SemanticGroup,
   type SemanticRole,
 } from '@diorama/schema';
 import { summarizeCommand, type CommandSummary } from './commandLog';
@@ -23,25 +26,27 @@ export type Command =
   | { type: 'ADD_NODE'; parentId: string; node: SceneNode }
   | { type: 'DELETE_NODE'; nodeId: string }
   | { type: 'UPDATE_TRANSFORM'; nodeId: string; patch: TransformPatch }
+  | { type: 'STRUCTURE_SCENE'; preset: 'showroom' }
+  | { type: 'MAKE_INTERACTIVE'; targetRole?: SemanticRole }
   | {
       type: 'CREATE_SEMANTIC_GROUP';
+      group: SemanticGroup;
+    }
+  | {
+      type: 'ASSIGN_TO_SEMANTIC_GROUP';
       groupId: string;
-      name: string;
-      role: SemanticRole;
       nodeIds: string[];
     }
   | {
       type: 'SET_NODE_SEMANTICS';
       nodeIds: string[];
-      semanticRole: SemanticRole;
-      semanticGroupId?: string;
+      semantics: Partial<NodeSemantics>;
     }
   | {
       type: 'ADD_BEHAVIOR';
-      nodeIds: string[];
-      behavior: InteractionBehavior;
+      behavior: BehaviorDefinition;
     }
-  | { type: 'STRUCTURE_SHOWROOM_SCENE' }
+  | { type: 'REMOVE_BEHAVIOR'; behaviorId: string }
   | {
       type: 'DUPLICATE_NODE';
       nodeId: string;
@@ -76,27 +81,6 @@ const removeChild = (node: SceneNode, childId: string): SceneNode => ({
   children: node.children.filter((id) => id !== childId),
 });
 
-const semanticGroupNode = (
-  groupId: string,
-  name: string,
-  role: SemanticRole,
-  children: string[],
-): SceneNode => ({
-  id: groupId,
-  name,
-  type: 'group',
-  children,
-  transform: {
-    position: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-  },
-  visible: true,
-  metadata: { semanticGroupRole: role },
-  semanticRole: 'group',
-  semanticGroupId: groupId,
-});
-
 const validNonRootIds = (scene: Scene, nodeIds: string[]): string[] => {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -106,14 +90,6 @@ const validNonRootIds = (scene: Scene, nodeIds: string[]): string[] => {
     out.push(id);
   }
   return out;
-};
-
-const topLevelTargets = (scene: Scene, nodeIds: string[]): string[] => {
-  const targets = validNonRootIds(scene, nodeIds);
-  const targetSet = new Set(targets);
-  return targets.filter(
-    (id) => !targets.some((candidate) => candidate !== id && targetSet.has(candidate) && isDescendant(scene, candidate, id)),
-  );
 };
 
 const applyAddNode = (
@@ -160,7 +136,40 @@ const applyDeleteNode = (scene: Scene, nodeId: string): Scene => {
     nextSelection = null;
   }
 
-  return { ...scene, nodes: nextNodes, selection: nextSelection };
+  const semanticGroups =
+    scene.semanticGroups === undefined
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(scene.semanticGroups).map(([id, group]) => [
+            id,
+            {
+              ...group,
+              nodeIds: group.nodeIds.filter((targetId) => !idsToRemove.has(targetId)),
+            },
+          ]),
+        );
+  const behaviors =
+    scene.behaviors === undefined
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(scene.behaviors).map(([id, behavior]) => [
+            id,
+            {
+              ...behavior,
+              nodeIds: behavior.nodeIds.filter((targetId) => !idsToRemove.has(targetId)),
+            },
+          ]),
+        );
+
+  const nextScene = {
+    ...scene,
+    nodes: nextNodes,
+    selection: nextSelection,
+    ...(semanticGroups !== undefined ? { semanticGroups } : {}),
+    ...(behaviors !== undefined ? { behaviors } : {}),
+  };
+  if (!validateScene(nextScene)) return scene;
+  return nextScene;
 };
 
 /** Reparents `nodeId` under `newParentId` without changing local transform. */
@@ -247,42 +256,42 @@ const applyUpdateTransform = (
 
 const applyCreateSemanticGroup = (
   scene: Scene,
-  groupId: string,
-  name: string,
-  role: SemanticRole,
-  nodeIds: string[],
+  group: SemanticGroup,
 ): Scene => {
-  if (!groupId || scene.nodes[groupId]) return scene;
-  const targets = topLevelTargets(scene, nodeIds);
-  if (targets.length === 0) return scene;
-
-  const targetSet = new Set(targets);
-  const nextNodes: Record<string, SceneNode> = {};
-  for (const [id, node] of Object.entries(scene.nodes)) {
-    const nextChildren =
-      id === scene.rootId
-        ? node.children.filter((childId) => !targetSet.has(childId)).concat(groupId)
-        : node.children.filter((childId) => !targetSet.has(childId));
-    const grouped = nodeIds.includes(id)
-      ? { ...node, semanticGroupId: groupId }
-      : node;
-    nextNodes[id] =
-      nextChildren === node.children
-        ? grouped
-        : { ...grouped, children: nextChildren };
-  }
-
-  nextNodes[groupId] = semanticGroupNode(groupId, name, role, targets);
-  const nextScene = { ...scene, nodes: nextNodes };
+  const validNodeIds = validNonRootIds(scene, group.nodeIds);
+  const nextGroup: SemanticGroup = {
+    ...group,
+    nodeIds: validNodeIds,
+    ...(group.tags !== undefined ? { tags: [...group.tags] } : {}),
+    ...(group.metadata !== undefined ? { metadata: { ...group.metadata } } : {}),
+  };
+  const nextScene: Scene = {
+    ...scene,
+    semanticGroups: {
+      ...(scene.semanticGroups ?? {}),
+      [group.id]: nextGroup,
+    },
+  };
   if (!validateScene(nextScene)) return scene;
+  if (JSON.stringify(scene.semanticGroups?.[group.id]) === JSON.stringify(nextGroup)) {
+    return scene;
+  }
   return nextScene;
 };
+
+const mergeNodeSemantics = (
+  current: NodeSemantics | undefined,
+  incoming: Partial<NodeSemantics>,
+): NodeSemantics => ({
+  ...(current ?? {}),
+  ...incoming,
+  ...(incoming.tags !== undefined ? { tags: [...incoming.tags] } : {}),
+});
 
 const applySetNodeSemantics = (
   scene: Scene,
   nodeIds: string[],
-  semanticRole: SemanticRole,
-  semanticGroupId?: string,
+  semantics: Partial<NodeSemantics>,
 ): Scene => {
   const targets = validNonRootIds(scene, nodeIds);
   if (targets.length === 0) return scene;
@@ -291,19 +300,14 @@ const applySetNodeSemantics = (
   for (const id of targets) {
     const node = (nextNodes ?? scene.nodes)[id];
     if (!node) continue;
-    if (
-      node.semanticRole === semanticRole &&
-      node.semanticGroupId === semanticGroupId
-    ) {
-      continue;
-    }
+    const nextSemantics = mergeNodeSemantics(node.semantics, semantics);
+    if (JSON.stringify(node.semantics ?? {}) === JSON.stringify(nextSemantics)) continue;
     if (!nextNodes) nextNodes = { ...scene.nodes };
     nextNodes[id] = {
       ...node,
-      semanticRole,
-      ...(semanticGroupId !== undefined
-        ? { semanticGroupId }
-        : { semanticGroupId: undefined }),
+      semantics: nextSemantics,
+      ...(nextSemantics.role !== undefined ? { semanticRole: nextSemantics.role } : {}),
+      ...(nextSemantics.groupId !== undefined ? { semanticGroupId: nextSemantics.groupId } : {}),
     };
   }
 
@@ -311,6 +315,25 @@ const applySetNodeSemantics = (
   const nextScene = { ...scene, nodes: nextNodes };
   if (!validateScene(nextScene)) return scene;
   return nextScene;
+};
+
+const applyAssignToSemanticGroup = (
+  scene: Scene,
+  groupId: string,
+  nodeIds: string[],
+): Scene => {
+  const group = scene.semanticGroups?.[groupId];
+  if (!group) return scene;
+  const targets = validNonRootIds(scene, nodeIds);
+  if (targets.length === 0) return scene;
+  const mergedNodeIds = Array.from(new Set([...group.nodeIds, ...targets]));
+  let next = applyCreateSemanticGroup(scene, { ...group, nodeIds: mergedNodeIds });
+  next = applySetNodeSemantics(next, targets, {
+    groupId,
+    role: group.role,
+    source: 'rule',
+  });
+  return next;
 };
 
 const mergeBehavior = (
@@ -336,26 +359,88 @@ const behaviorEqual = (
   b: InteractionBehavior | undefined,
 ): boolean => JSON.stringify(a ?? {}) === JSON.stringify(b ?? {});
 
-const applyAddBehavior = (
+const behaviorToLegacy = (behavior: BehaviorDefinition): InteractionBehavior => {
+  const params = behavior.params ?? {};
+  switch (behavior.type) {
+    case 'hover_highlight':
+      return { hoverHighlight: true };
+    case 'click_select':
+      return { clickSelect: true };
+    case 'focus_camera':
+      return { focusOnClick: true };
+    case 'show_info':
+      return {
+        info: {
+          title: typeof params.title === 'string' ? params.title : behavior.label ?? behavior.id,
+          ...(typeof params.description === 'string'
+            ? { description: params.description }
+            : behavior.description
+              ? { description: behavior.description }
+              : {}),
+        },
+      };
+    default:
+      return {};
+  }
+};
+
+const applyAddBehaviorDefinition = (
   scene: Scene,
-  nodeIds: string[],
-  behavior: InteractionBehavior,
+  behavior: BehaviorDefinition,
 ): Scene => {
-  const targets = validNonRootIds(scene, nodeIds);
+  const targets = validNonRootIds(scene, behavior.nodeIds);
   if (targets.length === 0) return scene;
 
   let nextNodes: Record<string, SceneNode> | null = null;
+  const legacy = behaviorToLegacy(behavior);
   for (const id of targets) {
     const node = (nextNodes ?? scene.nodes)[id];
     if (!node) continue;
-    const behaviors = mergeBehavior(node.behaviors, behavior);
-    if (behaviorEqual(node.behaviors, behaviors)) continue;
+    const behaviorRefs = node.behaviorRefs?.includes(behavior.id)
+      ? node.behaviorRefs
+      : [...(node.behaviorRefs ?? []), behavior.id];
+    const behaviors = mergeBehavior(node.behaviors, legacy);
+    if (node.behaviorRefs === behaviorRefs && behaviorEqual(node.behaviors, behaviors)) continue;
     if (!nextNodes) nextNodes = { ...scene.nodes };
-    nextNodes[id] = { ...node, behaviors };
+    nextNodes[id] = { ...node, behaviorRefs, behaviors };
   }
 
-  if (!nextNodes) return scene;
-  const nextScene = { ...scene, nodes: nextNodes };
+  const nextBehavior: BehaviorDefinition = { ...behavior, nodeIds: targets };
+  const nextScene: Scene = {
+    ...scene,
+    nodes: nextNodes ?? scene.nodes,
+    behaviors: {
+      ...(scene.behaviors ?? {}),
+      [behavior.id]: nextBehavior,
+    },
+  };
+  if (!validateScene(nextScene)) return scene;
+  if (!nextNodes && JSON.stringify(scene.behaviors?.[behavior.id]) === JSON.stringify(nextBehavior)) {
+    return scene;
+  }
+  return nextScene;
+};
+
+const applyRemoveBehavior = (scene: Scene, behaviorId: string): Scene => {
+  if (!scene.behaviors?.[behaviorId]) return scene;
+  const nextBehaviors = { ...scene.behaviors };
+  delete nextBehaviors[behaviorId];
+  const nextNodes = Object.fromEntries(
+    Object.entries(scene.nodes).map(([id, node]) => [
+      id,
+      node.behaviorRefs?.includes(behaviorId)
+        ? {
+            ...node,
+            behaviorRefs: node.behaviorRefs.filter((ref) => ref !== behaviorId),
+          }
+        : node,
+    ]),
+  );
+  const nextScene: Scene = {
+    ...scene,
+    nodes: nextNodes,
+    behaviors: Object.keys(nextBehaviors).length > 0 ? nextBehaviors : undefined,
+  };
   if (!validateScene(nextScene)) return scene;
   return nextScene;
 };
@@ -382,7 +467,7 @@ const showroomGroupSpecs = [
   {
     groupId: 'lighting_zone',
     name: 'Lighting Zone',
-    role: 'light' as SemanticRole,
+    role: 'lighting' as SemanticRole,
     match: (node: SceneNode) => {
       const s = `${node.id} ${node.name}`.toLowerCase();
       return node.type === 'light' || node.light !== undefined || s.includes('light');
@@ -404,22 +489,25 @@ const semanticRoleForNode = (node: SceneNode, groupRole: SemanticRole): Semantic
   if (s.includes('product')) return 'product';
   if (s.includes('display') || s.includes('plinth') || s.includes('table')) return 'display';
   if (s.includes('bench') || s.includes('chair') || s.includes('seat')) return 'seating';
-  if (node.type === 'light' || node.light !== undefined || s.includes('light')) return 'light';
+  if (node.type === 'light' || node.light !== undefined || s.includes('light') || s.includes('lamp')) return 'lighting';
   if (s.includes('wall') || s.includes('floor') || s.includes('backdrop')) return 'environment';
-  return groupRole === 'group' ? 'unknown' : groupRole;
+  return groupRole === 'container' ? 'unknown' : groupRole;
 };
 
 const applyStructureShowroomScene = (scene: Scene): Scene => {
   let next = scene;
   for (const spec of showroomGroupSpecs) {
     const nodeIds = Object.values(next.nodes)
-      .filter((node) => node.id !== next.rootId && node.semanticRole !== 'group' && spec.match(node))
+      .filter((node) => node.id !== next.rootId && spec.match(node))
       .map((node) => node.id);
     if (nodeIds.length === 0) continue;
 
-    if (!next.nodes[spec.groupId]) {
-      next = applyCreateSemanticGroup(next, spec.groupId, spec.name, spec.role, nodeIds);
-    }
+    next = applyCreateSemanticGroup(next, {
+      id: spec.groupId,
+      name: spec.name,
+      role: spec.role,
+      nodeIds,
+    });
 
     const groupedIds = nodeIds.filter((id) => next.nodes[id]);
     const nodesByRole = groupedIds.reduce<Record<SemanticRole, string[]>>(
@@ -434,19 +522,77 @@ const applyStructureShowroomScene = (scene: Scene): Scene => {
         product: [],
         display: [],
         seating: [],
+        lighting: [],
         light: [],
         environment: [],
-        group: [],
+        navigation: [],
+        decor: [],
+        container: [],
         unknown: [],
       },
     );
 
     for (const [role, ids] of Object.entries(nodesByRole) as Array<[SemanticRole, string[]]>) {
       if (ids.length > 0) {
-        next = applySetNodeSemantics(next, ids, role, spec.groupId);
+        next = applySetNodeSemantics(next, ids, {
+          role,
+          groupId: spec.groupId,
+          source: 'rule',
+        });
       }
     }
   }
+  return next;
+};
+
+const roleOf = (node: SceneNode): SemanticRole | undefined =>
+  node.semantics?.role ?? node.semanticRole;
+
+const applyMakeInteractive = (
+  scene: Scene,
+  targetRole: SemanticRole = 'product',
+): Scene => {
+  const targets = Object.values(scene.nodes)
+    .filter((node) => node.id !== scene.rootId && roleOf(node) === targetRole)
+    .map((node) => node.id);
+  if (targets.length === 0) return scene;
+
+  let next = scene;
+  const behaviorSpecs: Array<Pick<BehaviorDefinition, 'id' | 'type' | 'label' | 'description'>> = [
+    {
+      id: `${targetRole}_hover_highlight`,
+      type: 'hover_highlight',
+      label: 'Hover highlight',
+      description: 'Highlight product nodes on pointer hover.',
+    },
+    {
+      id: `${targetRole}_click_select`,
+      type: 'click_select',
+      label: 'Click select',
+      description: 'Select product nodes when clicked.',
+    },
+    {
+      id: `${targetRole}_show_info`,
+      type: 'show_info',
+      label: 'Show info',
+      description: 'Show selected product information in the inspector.',
+    },
+  ];
+
+  for (const spec of behaviorSpecs) {
+    next = applyAddBehaviorDefinition(next, {
+      ...spec,
+      nodeIds: targets,
+      params:
+        spec.type === 'show_info'
+          ? {
+              title: 'Product information',
+              description: 'Interactive showroom item generated from structured scene metadata.',
+            }
+          : undefined,
+    });
+  }
+
   return next;
 };
 
@@ -510,25 +656,20 @@ export const applyCommand = (scene: Scene, command: Command): Scene => {
       return applySetParent(scene, command);
     case 'UPDATE_TRANSFORM':
       return applyUpdateTransform(scene, command.nodeId, command.patch);
+    case 'STRUCTURE_SCENE':
+      return command.preset === 'showroom' ? applyStructureShowroomScene(scene) : scene;
+    case 'MAKE_INTERACTIVE':
+      return applyMakeInteractive(scene, command.targetRole);
     case 'CREATE_SEMANTIC_GROUP':
-      return applyCreateSemanticGroup(
-        scene,
-        command.groupId,
-        command.name,
-        command.role,
-        command.nodeIds,
-      );
+      return applyCreateSemanticGroup(scene, command.group);
+    case 'ASSIGN_TO_SEMANTIC_GROUP':
+      return applyAssignToSemanticGroup(scene, command.groupId, command.nodeIds);
     case 'SET_NODE_SEMANTICS':
-      return applySetNodeSemantics(
-        scene,
-        command.nodeIds,
-        command.semanticRole,
-        command.semanticGroupId,
-      );
+      return applySetNodeSemantics(scene, command.nodeIds, command.semantics);
     case 'ADD_BEHAVIOR':
-      return applyAddBehavior(scene, command.nodeIds, command.behavior);
-    case 'STRUCTURE_SHOWROOM_SCENE':
-      return applyStructureShowroomScene(scene);
+      return applyAddBehaviorDefinition(scene, command.behavior);
+    case 'REMOVE_BEHAVIOR':
+      return applyRemoveBehavior(scene, command.behaviorId);
     case 'DUPLICATE_NODE':
       return duplicateNodeInScene(
         scene,
@@ -609,24 +750,28 @@ const commandError = (scene: Scene, command: Command): string | undefined => {
       }
       return undefined;
     }
+    case 'STRUCTURE_SCENE':
+      return command.preset === 'showroom' && applyStructureShowroomScene(scene) !== scene
+        ? undefined
+        : 'STRUCTURE_SCENE found no showroom nodes to structure';
+    case 'MAKE_INTERACTIVE':
+      return applyMakeInteractive(scene, command.targetRole) !== scene
+        ? undefined
+        : 'MAKE_INTERACTIVE found no target nodes';
     case 'CREATE_SEMANTIC_GROUP': {
-      if (scene.nodes[command.groupId]) {
-        return 'CREATE_SEMANTIC_GROUP groupId already exists';
-      }
-      const targets = topLevelTargets(scene, command.nodeIds);
-      if (targets.length === 0) {
-        return 'CREATE_SEMANTIC_GROUP has no valid non-root targets';
-      }
-      const nextScene = applyCreateSemanticGroup(
-        scene,
-        command.groupId,
-        command.name,
-        command.role,
-        command.nodeIds,
-      );
-      if (nextScene === scene) return 'CREATE_SEMANTIC_GROUP would violate scene invariants';
+      const targets = validNonRootIds(scene, command.group.nodeIds);
+      if (targets.length === 0) return 'CREATE_SEMANTIC_GROUP has no valid non-root targets';
+      const nextScene = applyCreateSemanticGroup(scene, command.group);
+      if (nextScene === scene) return undefined;
       return undefined;
     }
+    case 'ASSIGN_TO_SEMANTIC_GROUP':
+      if (!scene.semanticGroups?.[command.groupId]) {
+        return 'ASSIGN_TO_SEMANTIC_GROUP groupId does not exist';
+      }
+      return validNonRootIds(scene, command.nodeIds).length > 0
+        ? undefined
+        : 'ASSIGN_TO_SEMANTIC_GROUP has no valid non-root targets';
     case 'SET_NODE_SEMANTICS': {
       const hasTarget = command.nodeIds.some(
         (id) => id !== scene.rootId && scene.nodes[id] !== undefined,
@@ -634,15 +779,15 @@ const commandError = (scene: Scene, command: Command): string | undefined => {
       return hasTarget ? undefined : 'SET_NODE_SEMANTICS has no valid non-root targets';
     }
     case 'ADD_BEHAVIOR': {
-      const hasTarget = command.nodeIds.some(
+      const hasTarget = command.behavior.nodeIds.some(
         (id) => id !== scene.rootId && scene.nodes[id] !== undefined,
       );
       return hasTarget ? undefined : 'ADD_BEHAVIOR has no valid non-root targets';
     }
-    case 'STRUCTURE_SHOWROOM_SCENE':
-      return applyStructureShowroomScene(scene) === scene
-        ? 'STRUCTURE_SHOWROOM_SCENE found no showroom nodes to structure'
-        : undefined;
+    case 'REMOVE_BEHAVIOR':
+      return scene.behaviors?.[command.behaviorId]
+        ? undefined
+        : 'REMOVE_BEHAVIOR behaviorId does not exist';
     case 'DUPLICATE_NODE': {
       if (command.nodeId === scene.rootId) return 'DUPLICATE_NODE cannot duplicate root';
       if (!scene.nodes[command.nodeId]) return 'DUPLICATE_NODE nodeId does not exist';

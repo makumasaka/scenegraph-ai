@@ -25,7 +25,8 @@ const showroomTargets = (scene: Scene): string[] =>
   Object.values(scene.nodes)
     .filter((node) => {
       if (node.id === scene.rootId || node.type === 'root') return false;
-      if (node.semanticRole === 'product' || node.semanticRole === 'display') return true;
+      const role = node.semantics?.role ?? node.semanticRole;
+      if (role === 'product' || role === 'display') return true;
       const label = `${node.id} ${node.name}`.toLowerCase();
       return label.includes('product') || label.includes('display') || label.includes('plinth');
     })
@@ -84,27 +85,11 @@ export function Toolbar() {
   };
 
   const handleStructureShowroom = () => {
-    dispatch({ type: 'STRUCTURE_SHOWROOM_SCENE' });
+    dispatch({ type: 'STRUCTURE_SCENE', preset: 'showroom' });
   };
 
   const handleMakeInteractive = () => {
-    for (const nodeId of showroomTargets(scene)) {
-      const node = scene.nodes[nodeId];
-      if (!node) continue;
-      dispatch({
-        type: 'ADD_BEHAVIOR',
-        nodeIds: [nodeId],
-        behavior: {
-          hoverHighlight: true,
-          clickSelect: true,
-          focusOnClick: true,
-          info: {
-            title: node.name,
-            description: `${node.name} is ready for showroom hover and click interactions.`,
-          },
-        },
-      });
-    }
+    dispatch({ type: 'MAKE_INTERACTIVE', targetRole: 'product' });
   };
 
   const handleArrangeProducts = () => {

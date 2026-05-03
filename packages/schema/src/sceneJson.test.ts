@@ -131,8 +131,32 @@ describe('scene JSON contract', () => {
 
   it('validates and roundtrips semantic and behavior metadata', () => {
     const scene = canonicalScene();
+    scene.semanticGroups = {
+      display_area: {
+        id: 'display_area',
+        name: 'Display Area',
+        role: 'display',
+        nodeIds: ['mesh'],
+        tags: ['showroom'],
+      },
+    };
+    scene.behaviors = {
+      mesh_hover: {
+        id: 'mesh_hover',
+        type: 'hover_highlight',
+        nodeIds: ['mesh'],
+        label: 'Hover highlight',
+      },
+    };
     scene.nodes.mesh = {
       ...scene.nodes.mesh!,
+      semantics: {
+        role: 'product',
+        groupId: 'display_area',
+        label: 'Mesh product',
+        source: 'manual',
+      },
+      behaviorRefs: ['mesh_hover'],
       semanticRole: 'product',
       semanticGroupId: 'display_area',
       behaviors: {
@@ -149,6 +173,10 @@ describe('scene JSON contract', () => {
     const parsed = parseSceneJson(serializeScene(scene));
 
     expect(parsed?.nodes.mesh?.semanticRole).toBe('product');
+    expect(parsed?.nodes.mesh?.semantics?.label).toBe('Mesh product');
+    expect(parsed?.nodes.mesh?.behaviorRefs).toEqual(['mesh_hover']);
+    expect(parsed?.semanticGroups?.display_area?.nodeIds).toEqual(['mesh']);
+    expect(parsed?.behaviors?.mesh_hover?.type).toBe('hover_highlight');
     expect(parsed?.nodes.mesh?.semanticGroupId).toBe('display_area');
     expect(parsed?.nodes.mesh?.behaviors).toEqual(scene.nodes.mesh.behaviors);
     expect(validateScene(parsed)).toBe(true);

@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import type { Command } from '@diorama/core';
 import {
-  InteractionBehaviorSchema,
+  BehaviorDefinitionSchema,
   SceneGraphSchema,
   SceneNodeSchema,
+  SemanticGroupSchema,
   SemanticRoleSchema,
+  NodeSemanticsSchema,
   Vec3Schema,
 } from '@diorama/schema';
 
@@ -12,10 +14,13 @@ export const COMMAND_TYPES = [
   'ADD_NODE',
   'DELETE_NODE',
   'UPDATE_TRANSFORM',
+  'STRUCTURE_SCENE',
+  'MAKE_INTERACTIVE',
   'CREATE_SEMANTIC_GROUP',
+  'ASSIGN_TO_SEMANTIC_GROUP',
   'SET_NODE_SEMANTICS',
   'ADD_BEHAVIOR',
-  'STRUCTURE_SHOWROOM_SCENE',
+  'REMOVE_BEHAVIOR',
   'DUPLICATE_NODE',
   'SET_PARENT',
   'ARRANGE_NODES',
@@ -29,10 +34,13 @@ export const COMMAND_SCHEMA_PARITY: CommandTypeParity = {
   ADD_NODE: true,
   DELETE_NODE: true,
   UPDATE_TRANSFORM: true,
+  STRUCTURE_SCENE: true,
+  MAKE_INTERACTIVE: true,
   CREATE_SEMANTIC_GROUP: true,
+  ASSIGN_TO_SEMANTIC_GROUP: true,
   SET_NODE_SEMANTICS: true,
   ADD_BEHAVIOR: true,
-  STRUCTURE_SHOWROOM_SCENE: true,
+  REMOVE_BEHAVIOR: true,
   DUPLICATE_NODE: true,
   SET_PARENT: true,
   ARRANGE_NODES: true,
@@ -98,10 +106,26 @@ export const CommandSchema = z.discriminatedUnion('type', [
     .strict(),
   z
     .object({
+      type: z.literal('STRUCTURE_SCENE'),
+      preset: z.literal('showroom'),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('MAKE_INTERACTIVE'),
+      targetRole: SemanticRoleSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal('CREATE_SEMANTIC_GROUP'),
+      group: SemanticGroupSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('ASSIGN_TO_SEMANTIC_GROUP'),
       groupId: z.string().min(1),
-      name: z.string(),
-      role: SemanticRoleSchema,
       nodeIds: z.array(z.string().min(1)),
     })
     .strict(),
@@ -109,20 +133,19 @@ export const CommandSchema = z.discriminatedUnion('type', [
     .object({
       type: z.literal('SET_NODE_SEMANTICS'),
       nodeIds: z.array(z.string().min(1)),
-      semanticRole: SemanticRoleSchema,
-      semanticGroupId: z.string().min(1).optional(),
+      semantics: NodeSemanticsSchema.partial(),
     })
     .strict(),
   z
     .object({
       type: z.literal('ADD_BEHAVIOR'),
-      nodeIds: z.array(z.string().min(1)),
-      behavior: InteractionBehaviorSchema,
+      behavior: BehaviorDefinitionSchema,
     })
     .strict(),
   z
     .object({
-      type: z.literal('STRUCTURE_SHOWROOM_SCENE'),
+      type: z.literal('REMOVE_BEHAVIOR'),
+      behaviorId: z.string().min(1),
     })
     .strict(),
   z

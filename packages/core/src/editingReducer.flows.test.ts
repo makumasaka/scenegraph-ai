@@ -47,7 +47,7 @@ describe('editing reducer — critical flows', () => {
 
   it('5 reparents a node under root', () => {
     let s = showroomScene;
-    s = applyCommand(s, { type: 'STRUCTURE_SHOWROOM_SCENE' });
+    s = applyCommand(s, { type: 'STRUCTURE_SCENE', preset: 'showroom' });
     s = applyCommand(s, {
       type: 'SET_PARENT',
       nodeId: 'product_01',
@@ -55,7 +55,7 @@ describe('editing reducer — critical flows', () => {
     });
     const root = s.nodes[s.rootId];
     expect(root?.children).toContain('product_01');
-    expect(s.nodes.display_area?.children.includes('product_01')).toBe(false);
+    expect(s.semanticGroups?.display_area?.nodeIds).toContain('product_01');
     expect(validateScene(s)).toBe(true);
   });
 

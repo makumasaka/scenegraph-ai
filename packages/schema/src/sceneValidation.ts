@@ -13,4 +13,9 @@ export const cloneSceneImmutable = (scene: Scene): Scene => ({
   rootId: scene.rootId,
   selection: scene.selection,
   nodes: { ...scene.nodes },
+  ...(scene.semanticGroups !== undefined ? { semanticGroups: { ...scene.semanticGroups } } : {}),
+  ...(scene.behaviors !== undefined ? { behaviors: { ...scene.behaviors } } : {}),
+  ...(scene.assets !== undefined ? { assets: { ...scene.assets } } : {}),
+  ...(scene.materials !== undefined ? { materials: { ...scene.materials } } : {}),
+  ...(scene.metadata !== undefined ? { metadata: { ...scene.metadata } } : {}),
 });

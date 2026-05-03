@@ -26,30 +26,44 @@ const validPayloads: Record<Command['type'], unknown> = {
     nodeId: 'box',
     patch: { position: [1, 2, 3] },
   },
+  STRUCTURE_SCENE: {
+    type: 'STRUCTURE_SCENE',
+    preset: 'showroom',
+  },
+  MAKE_INTERACTIVE: {
+    type: 'MAKE_INTERACTIVE',
+    targetRole: 'product',
+  },
   CREATE_SEMANTIC_GROUP: {
     type: 'CREATE_SEMANTIC_GROUP',
+    group: {
+      id: 'display_area',
+      name: 'Display Area',
+      role: 'display',
+      nodeIds: ['box'],
+    },
+  },
+  ASSIGN_TO_SEMANTIC_GROUP: {
+    type: 'ASSIGN_TO_SEMANTIC_GROUP',
     groupId: 'display_area',
-    name: 'Display Area',
-    role: 'display',
     nodeIds: ['box'],
   },
   SET_NODE_SEMANTICS: {
     type: 'SET_NODE_SEMANTICS',
     nodeIds: ['box'],
-    semanticRole: 'product',
-    semanticGroupId: 'display_area',
+    semantics: { role: 'product', groupId: 'display_area' },
   },
   ADD_BEHAVIOR: {
     type: 'ADD_BEHAVIOR',
-    nodeIds: ['box'],
     behavior: {
-      hoverHighlight: true,
-      clickSelect: true,
-      info: { title: 'Box' },
+      id: 'box-hover',
+      type: 'hover_highlight',
+      nodeIds: ['box'],
     },
   },
-  STRUCTURE_SHOWROOM_SCENE: {
-    type: 'STRUCTURE_SHOWROOM_SCENE',
+  REMOVE_BEHAVIOR: {
+    type: 'REMOVE_BEHAVIOR',
+    behaviorId: 'box-hover',
   },
   DUPLICATE_NODE: {
     type: 'DUPLICATE_NODE',
@@ -94,26 +108,40 @@ const invalidPayloads: Record<Command['type'], unknown> = {
     nodeId: 'box',
     patch: {},
   },
+  STRUCTURE_SCENE: {
+    type: 'STRUCTURE_SCENE',
+    preset: 'gallery',
+  },
+  MAKE_INTERACTIVE: {
+    type: 'MAKE_INTERACTIVE',
+    targetRole: 'hero-product',
+  },
   CREATE_SEMANTIC_GROUP: {
     type: 'CREATE_SEMANTIC_GROUP',
+    group: {
+      id: '',
+      name: 'Display Area',
+      role: 'display',
+      nodeIds: ['box'],
+    },
+  },
+  ASSIGN_TO_SEMANTIC_GROUP: {
+    type: 'ASSIGN_TO_SEMANTIC_GROUP',
     groupId: '',
-    name: 'Display Area',
-    role: 'display',
     nodeIds: ['box'],
   },
   SET_NODE_SEMANTICS: {
     type: 'SET_NODE_SEMANTICS',
     nodeIds: ['box'],
-    semanticRole: 'hero-product',
+    semantics: { role: 'hero-product' },
   },
   ADD_BEHAVIOR: {
     type: 'ADD_BEHAVIOR',
-    nodeIds: ['box'],
-    behavior: { info: { title: 1 } },
+    behavior: { id: 'bad', type: 'show_info', nodeIds: ['box'], params: { title: Infinity } },
   },
-  STRUCTURE_SHOWROOM_SCENE: {
-    type: 'STRUCTURE_SHOWROOM_SCENE',
-    prompt: 'do AI things',
+  REMOVE_BEHAVIOR: {
+    type: 'REMOVE_BEHAVIOR',
+    behaviorId: '',
   },
   DUPLICATE_NODE: {
     type: 'DUPLICATE_NODE',
@@ -146,10 +174,13 @@ describe('CommandSchema', () => {
       'ADD_NODE',
       'DELETE_NODE',
       'UPDATE_TRANSFORM',
+      'STRUCTURE_SCENE',
+      'MAKE_INTERACTIVE',
       'CREATE_SEMANTIC_GROUP',
+      'ASSIGN_TO_SEMANTIC_GROUP',
       'SET_NODE_SEMANTICS',
       'ADD_BEHAVIOR',
-      'STRUCTURE_SHOWROOM_SCENE',
+      'REMOVE_BEHAVIOR',
       'DUPLICATE_NODE',
       'SET_PARENT',
       'ARRANGE_NODES',

@@ -104,6 +104,22 @@ export const duplicateNodeInScene = (
     if (old.assetRef !== undefined) dup.assetRef = old.assetRef;
     if (old.materialRef !== undefined) dup.materialRef = old.materialRef;
     if (old.light !== undefined) dup.light = old.light;
+    if (old.semantics !== undefined) {
+      dup.semantics = {
+        ...old.semantics,
+        ...(old.semantics.tags !== undefined ? { tags: [...old.semantics.tags] } : {}),
+      };
+    }
+    if (old.behaviorRefs !== undefined) dup.behaviorRefs = [...old.behaviorRefs];
+    if (old.locked !== undefined) dup.locked = old.locked;
+    if (old.semanticRole !== undefined) dup.semanticRole = old.semanticRole;
+    if (old.semanticGroupId !== undefined) dup.semanticGroupId = old.semanticGroupId;
+    if (old.behaviors !== undefined) {
+      dup.behaviors = {
+        ...old.behaviors,
+        ...(old.behaviors.info !== undefined ? { info: { ...old.behaviors.info } } : {}),
+      };
+    }
     nextNodes[newId] = dup;
   }
 

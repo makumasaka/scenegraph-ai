@@ -30,25 +30,40 @@ export const summarizeCommand = (command: Command): CommandSummary => {
         title: 'Update transform',
         detail: `node ${shortId(command.nodeId)}`,
       };
+    case 'STRUCTURE_SCENE':
+      return {
+        title: 'Structure scene',
+        detail: `preset ${command.preset} - semantic groups and node roles`,
+      };
+    case 'MAKE_INTERACTIVE':
+      return {
+        title: 'Make interactive',
+        detail: `target role ${command.targetRole ?? 'product'} - hover, click, info`,
+      };
     case 'CREATE_SEMANTIC_GROUP':
       return {
         title: 'Create semantic group',
-        detail: `${command.name} (${command.role}) - ${command.nodeIds.length} node(s)`,
+        detail: `${command.group.name} (${command.group.role}) - ${command.group.nodeIds.length} node(s)`,
+      };
+    case 'ASSIGN_TO_SEMANTIC_GROUP':
+      return {
+        title: 'Assign semantic group',
+        detail: `${command.nodeIds.length} node(s) -> ${shortId(command.groupId)}`,
       };
     case 'SET_NODE_SEMANTICS':
       return {
         title: 'Set node semantics',
-        detail: `${command.semanticRole}${command.semanticGroupId ? ` in ${shortId(command.semanticGroupId)}` : ''} - ${command.nodeIds.length} node(s)`,
+        detail: `${command.semantics.role ?? 'metadata'}${command.semantics.groupId ? ` in ${shortId(command.semantics.groupId)}` : ''} - ${command.nodeIds.length} node(s)`,
       };
     case 'ADD_BEHAVIOR':
       return {
         title: 'Add behavior',
-        detail: `${command.nodeIds.length} node(s) - ${Object.keys(command.behavior).join(', ')}`,
+        detail: `${command.behavior.type} - ${command.behavior.nodeIds.length} node(s)`,
       };
-    case 'STRUCTURE_SHOWROOM_SCENE':
+    case 'REMOVE_BEHAVIOR':
       return {
-        title: 'Structure showroom scene',
-        detail: 'Create display, seating, lighting, and environment groups',
+        title: 'Remove behavior',
+        detail: shortId(command.behaviorId),
       };
     case 'DUPLICATE_NODE':
       return {

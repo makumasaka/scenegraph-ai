@@ -88,6 +88,21 @@ export function Inspector() {
   };
 
   const rotationDeg = toDeg(node.transform.rotation);
+  const semantics = node.semantics;
+  const semanticGroupId = semantics?.groupId ?? node.semanticGroupId;
+  const semanticGroup = semanticGroupId ? scene.semanticGroups?.[semanticGroupId] : undefined;
+  const behaviorDefinitions = (node.behaviorRefs ?? [])
+    .map((id) => scene.behaviors?.[id])
+    .filter((behavior): behavior is NonNullable<typeof behavior> => Boolean(behavior));
+  const infoBehavior = behaviorDefinitions.find((behavior) => behavior.type === 'show_info');
+  const infoTitle =
+    typeof infoBehavior?.params?.title === 'string'
+      ? infoBehavior.params.title
+      : node.behaviors?.info?.title;
+  const infoDescription =
+    typeof infoBehavior?.params?.description === 'string'
+      ? infoBehavior.params.description
+      : node.behaviors?.info?.description;
 
   return (
     <aside className="inspector">
@@ -130,39 +145,58 @@ export function Inspector() {
         <div className="inspector__section-title">Semantics</div>
         <div className="inspector__row">
           <span className="inspector__key">Role</span>
-          <span className="inspector__value">{node.semanticRole ?? 'unknown'}</span>
+          <span className="inspector__value">{semantics?.role ?? node.semanticRole ?? 'unknown'}</span>
         </div>
         <div className="inspector__row">
           <span className="inspector__key">Group</span>
           <span className="inspector__value inspector__value--mono">
-            {node.semanticGroupId ?? '-'}
+            {semanticGroup?.name ?? semanticGroupId ?? '-'}
           </span>
         </div>
+        {semantics?.tags?.length ? (
+          <div className="inspector__row">
+            <span className="inspector__key">Tags</span>
+            <span className="inspector__value">{semantics.tags.join(', ')}</span>
+          </div>
+        ) : null}
+        {semantics?.description ? (
+          <p className="inspector__description">{semantics.description}</p>
+        ) : null}
         <div className="inspector__row">
           <span className="inspector__key">Hover</span>
           <span className="inspector__value">
-            {node.behaviors?.hoverHighlight ? 'Highlight' : '-'}
+            {node.behaviors?.hoverHighlight || behaviorDefinitions.some((b) => b.type === 'hover_highlight')
+              ? 'Highlight'
+              : '-'}
           </span>
         </div>
         <div className="inspector__row">
           <span className="inspector__key">Click</span>
           <span className="inspector__value">
-            {node.behaviors?.clickSelect
+            {node.behaviors?.clickSelect || behaviorDefinitions.some((b) => b.type === 'click_select')
               ? node.behaviors.focusOnClick
                 ? 'Select + focus'
                 : 'Select'
               : '-'}
           </span>
         </div>
-        {node.behaviors?.info ? (
+        <div className="inspector__row">
+          <span className="inspector__key">Behaviors</span>
+          <span className="inspector__value inspector__value--mono">
+            {behaviorDefinitions.length > 0
+              ? behaviorDefinitions.map((behavior) => behavior.type).join(', ')
+              : '-'}
+          </span>
+        </div>
+        {infoTitle ? (
           <>
             <div className="inspector__row">
               <span className="inspector__key">Info</span>
-              <span className="inspector__value">{node.behaviors.info.title}</span>
+              <span className="inspector__value">{infoTitle}</span>
             </div>
-            {node.behaviors.info.description ? (
+            {infoDescription ? (
               <p className="inspector__description">
-                {node.behaviors.info.description}
+                {infoDescription}
               </p>
             ) : null}
           </>

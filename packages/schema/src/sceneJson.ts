@@ -106,6 +106,57 @@ export const parseSceneJson = (text: string): Scene | null => {
 export const cloneSceneFromJson = (scene: Scene): Scene => ({
   rootId: scene.rootId,
   selection: scene.selection,
+  ...(scene.semanticGroups !== undefined
+    ? {
+        semanticGroups: Object.fromEntries(
+          Object.entries(scene.semanticGroups).map(([id, group]) => [
+            id,
+            {
+              ...group,
+              nodeIds: [...group.nodeIds],
+              ...(group.tags !== undefined ? { tags: [...group.tags] } : {}),
+              ...(group.metadata !== undefined ? { metadata: { ...group.metadata } } : {}),
+            },
+          ]),
+        ),
+      }
+    : {}),
+  ...(scene.behaviors !== undefined
+    ? {
+        behaviors: Object.fromEntries(
+          Object.entries(scene.behaviors).map(([id, behavior]) => [
+            id,
+            {
+              ...behavior,
+              nodeIds: [...behavior.nodeIds],
+              ...(behavior.params !== undefined ? { params: { ...behavior.params } } : {}),
+            },
+          ]),
+        ),
+      }
+    : {}),
+  ...(scene.assets !== undefined
+    ? {
+        assets: Object.fromEntries(
+          Object.entries(scene.assets).map(([id, asset]) => [
+            id,
+            {
+              ...asset,
+              ...(asset.generator !== undefined ? { generator: { ...asset.generator } } : {}),
+              ...(asset.metadata !== undefined ? { metadata: { ...asset.metadata } } : {}),
+            },
+          ]),
+        ),
+      }
+    : {}),
+  ...(scene.materials !== undefined
+    ? {
+        materials: Object.fromEntries(
+          Object.entries(scene.materials).map(([id, material]) => [id, { ...material }]),
+        ),
+      }
+    : {}),
+  ...(scene.metadata !== undefined ? { metadata: { ...scene.metadata } } : {}),
   nodes: Object.fromEntries(
     Object.entries(scene.nodes).map(([id, node]) => [
       id,
@@ -120,6 +171,16 @@ export const cloneSceneFromJson = (scene: Scene): Scene => ({
         type: node.type,
         visible: node.visible,
         metadata: { ...node.metadata },
+        ...(node.semantics !== undefined
+          ? {
+              semantics: {
+                ...node.semantics,
+                ...(node.semantics.tags !== undefined ? { tags: [...node.semantics.tags] } : {}),
+              },
+            }
+          : {}),
+        ...(node.behaviorRefs !== undefined ? { behaviorRefs: [...node.behaviorRefs] } : {}),
+        ...(node.locked !== undefined ? { locked: node.locked } : {}),
         ...(node.semanticRole !== undefined ? { semanticRole: node.semanticRole } : {}),
         ...(node.semanticGroupId !== undefined ? { semanticGroupId: node.semanticGroupId } : {}),
         ...(node.behaviors !== undefined

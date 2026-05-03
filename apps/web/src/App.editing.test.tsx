@@ -29,7 +29,7 @@ describe('App — core editing flows (component)', () => {
     vi.restoreAllMocks();
   });
 
-  it('loads showroom kit, structures it, selects a nested node, reparents to root, undoes', async () => {
+  it('loads showroom kit, structures it, selects a product, and preserves hierarchy', async () => {
     render(<App />);
 
     await user.selectOptions(screen.getByRole('combobox'), 'showroom');
@@ -41,15 +41,11 @@ describe('App — core editing flows (component)', () => {
     expect(useSceneStore.getState().scene.selection).toBe('product_01');
 
     const toRoot = screen.getByRole('button', { name: 'To root' });
-    expect(toRoot).not.toBeDisabled();
-    await user.click(toRoot);
+    expect(toRoot).toBeDisabled();
 
-    let scene = useSceneStore.getState().scene;
+    const scene = useSceneStore.getState().scene;
     expect(scene.nodes[scene.rootId]?.children).toContain('product_01');
-
-    await user.click(screen.getByRole('button', { name: 'Undo' }));
-    scene = useSceneStore.getState().scene;
-    expect(scene.nodes.display_area?.children).toContain('product_01');
+    expect(scene.semanticGroups?.display_area?.nodeIds).toContain('product_01');
   });
 
   it('runs the showroom demo actions through commands and exposes semantic UI', async () => {
@@ -60,27 +56,28 @@ describe('App — core editing flows (component)', () => {
     await user.click(screen.getByRole('button', { name: 'Structure Scene' }));
 
     let scene = useSceneStore.getState().scene;
-    expect(scene.nodes.display_area?.children).toContain('product_01');
-    expect(scene.nodes.product_01?.semanticRole).toBe('product');
-    expect(screen.getByRole('button', { name: /Display Area/i })).toBeInTheDocument();
+    expect(scene.semanticGroups?.display_area?.nodeIds).toContain('product_01');
+    expect(scene.nodes.product_01?.semantics?.role).toBe('product');
+    expect(screen.getAllByText('Display Area').length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'Make Interactive' }));
     scene = useSceneStore.getState().scene;
+    expect(scene.nodes.product_01?.behaviorRefs).toContain('product_hover_highlight');
     expect(scene.nodes.product_01?.behaviors?.hoverHighlight).toBe(true);
     expect(scene.nodes.product_01?.behaviors?.clickSelect).toBe(true);
 
     await user.click(screen.getByRole('button', { name: /Product 01/i }));
     expect(screen.getByText('product')).toBeInTheDocument();
-    expect(screen.getByText('display_area')).toBeInTheDocument();
-    expect(screen.getByText('Product 01 is ready for showroom hover and click interactions.')).toBeInTheDocument();
+    expect(screen.getAllByText('Display Area').length).toBeGreaterThan(0);
+    expect(screen.getByText('Interactive showroom item generated from structured scene metadata.')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Arrange Products' }));
     scene = useSceneStore.getState().scene;
     expect(scene.nodes.product_01?.transform.position).toEqual([-1.45, 0.5, -0.725]);
 
     const logTypes = useSceneStore.getState().commandLog.map((entry) => entry.command.type);
-    expect(logTypes).toContain('STRUCTURE_SHOWROOM_SCENE');
-    expect(logTypes).toContain('ADD_BEHAVIOR');
+    expect(logTypes).toContain('STRUCTURE_SCENE');
+    expect(logTypes).toContain('MAKE_INTERACTIVE');
     expect(logTypes).toContain('ARRANGE_NODES');
   });
 

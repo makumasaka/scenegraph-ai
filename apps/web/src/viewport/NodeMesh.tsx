@@ -26,12 +26,17 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
   const tcRef = useRef<TransformControlsImpl | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const { node, isSelected, gizmoMode, dispatch, select } = useSceneStore(
+  const { node, hasHoverHighlight, isSelected, gizmoMode, dispatch, select } = useSceneStore(
     useShallow((s) => {
       const self = s.scene.nodes[nodeId];
+      const behaviorRefs = self?.behaviorRefs ?? [];
+      const hasHover = behaviorRefs.some(
+        (id) => s.scene.behaviors?.[id]?.type === 'hover_highlight',
+      );
       const isSel = s.scene.selection === nodeId;
       return {
         node: self,
+        hasHoverHighlight: Boolean(self?.behaviors?.hoverHighlight) || hasHover,
         isSelected: isSel,
         gizmoMode: isSel ? s.gizmoMode : 'translate',
         dispatch: s.dispatch,
@@ -64,14 +69,14 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
 
   const color = useMemo(() => {
     if (isSelected) return '#fbbf24';
-    if (isHovered && node?.behaviors?.hoverHighlight) return '#38bdf8';
+    if (isHovered && hasHoverHighlight) return '#38bdf8';
     let hash = 0;
     for (let i = 0; i < nodeId.length; i += 1) {
       hash = (hash * 31 + nodeId.charCodeAt(i)) >>> 0;
     }
     const hue = hash % 360;
     return `hsl(${hue}, 65%, 55%)`;
-  }, [isHovered, isSelected, node?.behaviors?.hoverHighlight, nodeId]);
+  }, [hasHoverHighlight, isHovered, isSelected, nodeId]);
 
   if (!node || node.visible === false) return null;
 
@@ -82,7 +87,7 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>): void => {
     e.stopPropagation();
-    if (node.behaviors?.hoverHighlight) setIsHovered(true);
+    if (hasHoverHighlight) setIsHovered(true);
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>): void => {

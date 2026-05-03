@@ -181,7 +181,7 @@ describe('applyCommand', () => {
     expect(next).toBe(scene);
   });
 
-  it('CREATE_SEMANTIC_GROUP creates a group node and assigns listed nodes', () => {
+  it('CREATE_SEMANTIC_GROUP records a scene-level semantic group', () => {
     let scene = createEmptyScene();
     scene = applyCommand(scene, {
       type: 'ADD_NODE',
@@ -196,16 +196,21 @@ describe('applyCommand', () => {
 
     const next = applyCommand(scene, {
       type: 'CREATE_SEMANTIC_GROUP',
-      groupId: 'display_area',
+      group: {
+        id: 'display_area',
+        name: 'Display Area',
+        role: 'display',
+        nodeIds: ['product-a', 'product-b'],
+      },
+    });
+
+    expect(next.semanticGroups?.display_area).toEqual({
+      id: 'display_area',
       name: 'Display Area',
       role: 'display',
       nodeIds: ['product-a', 'product-b'],
     });
-
-    expect(next.nodes.display_area?.semanticRole).toBe('group');
-    expect(next.nodes.display_area?.children).toEqual(['product-a', 'product-b']);
-    expect(next.nodes['product-a']?.semanticGroupId).toBe('display_area');
-    expect(next.nodes[next.rootId]?.children).toContain('display_area');
+    expect(next.nodes[next.rootId]?.children).toEqual(scene.nodes[scene.rootId]?.children);
     assertValid(next);
   });
 
@@ -225,12 +230,15 @@ describe('applyCommand', () => {
     const next = applyCommand(scene, {
       type: 'SET_NODE_SEMANTICS',
       nodeIds: ['product-a', 'missing'],
-      semanticRole: 'product',
-      semanticGroupId: 'display_area',
+      semantics: { role: 'product', label: 'Hero product', source: 'manual' },
     });
 
+    expect(next.nodes['product-a']?.semantics).toEqual({
+      role: 'product',
+      label: 'Hero product',
+      source: 'manual',
+    });
     expect(next.nodes['product-a']?.semanticRole).toBe('product');
-    expect(next.nodes['product-a']?.semanticGroupId).toBe('display_area');
     expect(next.nodes['product-a']?.behaviors).toEqual({ hoverHighlight: true });
     expect(next.nodes['product-a']?.transform.position).toEqual([1, 2, 3]);
     assertValid(next);
@@ -244,41 +252,59 @@ describe('applyCommand', () => {
       node: createNode({
         id: 'product-a',
         name: 'Product A',
-        semanticRole: 'product',
+        semantics: { role: 'product' },
         behaviors: { hoverHighlight: true, info: { title: 'Old' } },
       }),
     });
 
     const next = applyCommand(scene, {
       type: 'ADD_BEHAVIOR',
-      nodeIds: ['product-a'],
       behavior: {
-        clickSelect: true,
-        info: { title: 'Product A', description: 'Details' },
+        id: 'product-info',
+        type: 'show_info',
+        nodeIds: ['product-a'],
+        params: { title: 'Product A', description: 'Details' },
       },
     });
 
-    expect(next.nodes['product-a']?.semanticRole).toBe('product');
+    expect(next.behaviors?.['product-info']?.type).toBe('show_info');
+    expect(next.nodes['product-a']?.behaviorRefs).toEqual(['product-info']);
     expect(next.nodes['product-a']?.behaviors).toEqual({
       hoverHighlight: true,
-      clickSelect: true,
       info: { title: 'Product A', description: 'Details' },
     });
     assertValid(next);
   });
 
-  it('STRUCTURE_SHOWROOM_SCENE creates semantic showroom groups and roles', () => {
-    const next = applyCommand(showroomScene, { type: 'STRUCTURE_SHOWROOM_SCENE' });
+  it('STRUCTURE_SCENE creates semantic showroom groups and roles', () => {
+    const next = applyCommand(showroomScene, { type: 'STRUCTURE_SCENE', preset: 'showroom' });
 
-    expect(next.nodes.display_area?.semanticRole).toBe('group');
-    expect(next.nodes.seating_area?.semanticRole).toBe('group');
-    expect(next.nodes.lighting_zone?.semanticRole).toBe('group');
-    expect(next.nodes.environment?.semanticRole).toBe('group');
-    expect(next.nodes.product_01?.semanticRole).toBe('product');
-    expect(next.nodes.display_table?.semanticRole).toBe('display');
-    expect(next.nodes.bench?.semanticRole).toBe('seating');
-    expect(next.nodes.light_key?.semanticRole).toBe('light');
-    expect(next.nodes.floor?.semanticRole).toBe('environment');
+    expect(next.semanticGroups?.display_area?.nodeIds).toContain('product_01');
+    expect(next.semanticGroups?.seating_area?.nodeIds).toContain('bench');
+    expect(next.semanticGroups?.lighting_zone?.nodeIds).toContain('light_key');
+    expect(next.semanticGroups?.environment?.nodeIds).toContain('floor');
+    expect(next.nodes.product_01?.semantics?.role).toBe('product');
+    expect(next.nodes.display_table?.semantics?.role).toBe('display');
+    expect(next.nodes.bench?.semantics?.role).toBe('seating');
+    expect(next.nodes.light_key?.semantics?.role).toBe('lighting');
+    expect(next.nodes.floor?.semantics?.role).toBe('environment');
+    assertValid(next);
+  });
+
+  it('MAKE_INTERACTIVE adds product behavior definitions and refs', () => {
+    const structured = applyCommand(showroomScene, { type: 'STRUCTURE_SCENE', preset: 'showroom' });
+    const next = applyCommand(structured, { type: 'MAKE_INTERACTIVE' });
+
+    expect(next.behaviors?.product_hover_highlight?.type).toBe('hover_highlight');
+    expect(next.behaviors?.product_click_select?.type).toBe('click_select');
+    expect(next.behaviors?.product_show_info?.type).toBe('show_info');
+    expect(next.nodes.product_01?.behaviorRefs).toEqual([
+      'product_hover_highlight',
+      'product_click_select',
+      'product_show_info',
+    ]);
+    expect(next.nodes.product_01?.behaviors?.hoverHighlight).toBe(true);
+    expect(next.nodes.product_01?.behaviors?.clickSelect).toBe(true);
     assertValid(next);
   });
 
@@ -399,15 +425,14 @@ describe('applyCommandWithResult', () => {
         {
           type: 'SET_NODE_SEMANTICS',
           nodeIds: ['missing'],
-          semanticRole: 'product',
+          semantics: { role: 'product' },
         },
         'SET_NODE_SEMANTICS has no valid non-root targets',
       ],
       [
         {
           type: 'ADD_BEHAVIOR',
-          nodeIds: ['missing'],
-          behavior: { hoverHighlight: true },
+          behavior: { id: 'missing-hover', type: 'hover_highlight', nodeIds: ['missing'] },
         },
         'ADD_BEHAVIOR has no valid non-root targets',
       ],

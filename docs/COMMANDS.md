@@ -13,10 +13,12 @@ Commands operate on canonical version 2 `Scene` state from `@diorama/schema`.
 Import code may accept wrapped v1 documents or legacy bare scenes, but those
 inputs are normalized before reducers receive them.
 
-Canonical `SceneNode` fields are `id`, `name`, `type`, `children`,
-`transform`, `visible`, optional `assetRef`, optional `materialRef`, optional
-`light`, `metadata`, optional `semanticRole`, optional `semanticGroupId`, and
-optional `behaviors`.
+Canonical `Scene` state includes `rootId`, `nodes`, `selection`, optional
+`semanticGroups`, optional `behaviors`, optional asset/material registries, and
+JSON-safe `metadata`. Canonical `SceneNode` fields are `id`, `name`, `type`,
+`children`, `transform`, `visible`, optional `assetRef`, optional `materialRef`,
+optional `light`, `metadata`, optional `semantics`, optional `behaviorRefs`,
+and compatibility fields for the current viewport preview.
 
 `rootId` must point to a node whose `type` is `root`. Persistent transforms are
 local only; world transforms are computed from scene hierarchy. Rotations are
@@ -309,6 +311,35 @@ Test coverage notes:
 - `packages/agent-interface/src/agentInterface.test.ts` covers malformed patch
   validation before reducer execution.
 
+## STRUCTURE_SCENE
+
+Purpose: deterministically structure a raw scene using a local preset.
+
+Payload shape:
+
+```ts
+{ type: 'STRUCTURE_SCENE'; preset: 'showroom' }
+```
+
+For the showroom preset, Diorama creates scene-level semantic groups
+`display_area`, `seating_area`, `lighting_zone`, and `environment`, then assigns
+node semantics from deterministic name/type cues. It does not call AI or mutate
+the hierarchy.
+
+## MAKE_INTERACTIVE
+
+Purpose: add simple behavior definitions for nodes with a target semantic role.
+
+Payload shape:
+
+```ts
+{ type: 'MAKE_INTERACTIVE'; targetRole?: SemanticRole }
+```
+
+For the MVP, the default role is `product`. The command adds `hover_highlight`,
+`click_select`, and `show_info` behavior definitions and references them from
+target nodes.
+
 ## CREATE_SEMANTIC_GROUP
 
 Purpose: create an explicit semantic group node and assign existing nodes to it.
@@ -318,19 +349,35 @@ Payload shape:
 ```ts
 {
   type: 'CREATE_SEMANTIC_GROUP';
+  group: SemanticGroup;
+}
+```
+
+Behavior:
+
+- Adds or updates a scene-level semantic group.
+- Keeps scene graph hierarchy unchanged.
+- Returns the original scene for duplicate group ids or no valid targets.
+
+## ASSIGN_TO_SEMANTIC_GROUP
+
+Purpose: assign existing nodes to a semantic group without reparenting.
+
+Payload shape:
+
+```ts
+{
+  type: 'ASSIGN_TO_SEMANTIC_GROUP';
   groupId: string;
-  name: string;
-  role: SemanticRole;
   nodeIds: string[];
 }
 ```
 
 Behavior:
 
-- Creates a deterministic `group` node under the root.
-- Reparents valid non-root target nodes under the group.
-- Sets `semanticGroupId` on listed nodes.
-- Returns the original scene for duplicate group ids or no valid targets.
+- Updates `semanticGroups[groupId].nodeIds`.
+- Sets each valid node's `semantics.groupId`.
+- Preserves child order and graph hierarchy.
 
 ## SET_NODE_SEMANTICS
 
@@ -342,15 +389,14 @@ Payload shape:
 {
   type: 'SET_NODE_SEMANTICS';
   nodeIds: string[];
-  semanticRole: SemanticRole;
-  semanticGroupId?: string;
+  semantics: Partial<NodeSemantics>;
 }
 ```
 
 Behavior:
 
 - Filters invalid ids and root.
-- Sets `semanticRole` and optional `semanticGroupId`.
+- Merges `semantics` onto each valid node.
 - Preserves transforms, refs, visibility, metadata, and behaviors.
 
 ## ADD_BEHAVIOR
@@ -362,35 +408,30 @@ Payload shape:
 ```ts
 {
   type: 'ADD_BEHAVIOR';
-  nodeIds: string[];
-  behavior: InteractionBehavior;
+  behavior: BehaviorDefinition;
 }
 ```
 
 Behavior:
 
-- Filters invalid ids and root.
-- Shallow-merges behavior metadata, with `info` merged by field.
+- Adds or updates a scene-level behavior definition.
+- Appends the behavior id to target nodes' `behaviorRefs`.
 - Does not execute runtime code or store transient hover state.
 
-## STRUCTURE_SHOWROOM_SCENE
+## REMOVE_BEHAVIOR
 
-Purpose: deterministic MVP demo command that structures a raw showroom fixture.
+Purpose: remove a behavior definition and node references to it.
 
 Payload shape:
 
 ```ts
-{ type: 'STRUCTURE_SHOWROOM_SCENE' }
+{ type: 'REMOVE_BEHAVIOR'; behaviorId: string }
 ```
 
 Behavior:
 
-- Uses node id/name/type cues only; no AI or external services.
-- Creates semantic groups `display_area`, `seating_area`, `lighting_zone`, and
-  `environment` when matching nodes exist.
-- Assigns simple roles such as `product`, `display`, `seating`, `light`, and
-  `environment`.
-- Preserves graph invariants and remains replayable.
+- Deletes `scene.behaviors[behaviorId]`.
+- Removes that id from all node `behaviorRefs`.
 
 ## DUPLICATE_NODE
 

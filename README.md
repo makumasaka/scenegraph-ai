@@ -1,17 +1,24 @@
 # Diorama
 
-Diorama is a deterministic spatial control system for building, editing, and exporting 3D scenes.
+Diorama is an open spatial middleware layer that turns generated or imported 3D
+assets into structured, interactive, deployable web experiences.
 
-Diorama treats a scene as a structured spatial system: a scene graph plus
-commands. The canvas visualizes state, the API exposes a programmable interface,
-and every meaningful change flows through deterministic command execution.
+Generative 3D tools create assets. Diorama turns those assets into usable
+products: raw 3D -> structured scene -> interactive app -> code.
+
+The current MVP proves this locally with a built-in messy showroom scene. There
+is no generator integration, MCP transport, Blender adapter, or broad import
+pipeline in this slice.
 
 ## How it works
 
 - **Scene graph**: Zod-validated nodes, hierarchy, transforms, visibility,
-  optional assets/materials/lights, and metadata.
+  optional assets/materials/lights, semantic groups, behavior definitions, and
+  JSON-safe metadata.
 - **Command system**: every persistent change is a typed command applied to the
   scene graph.
+- **Semantic and behavior layer**: commands can structure raw scenes into
+  product concepts and attach inspectable interaction metadata.
 - **Deterministic updates**: the same starting scene plus the same command
   sequence produces the same result.
 - **Serialization and export**: scenes export as stable `diorama-scene` JSON and
@@ -28,6 +35,14 @@ Diorama exposes two equal interfaces over the same scene graph + commands:
 
 Neither interface owns scene state. Both use the same schemas, reducers, and
 export paths.
+
+## Product Loop
+
+1. Load a raw/generated asset or starter scene.
+2. Diorama adds semantic structure.
+3. Diorama adds behavior metadata.
+4. The canvas previews the interactive scene.
+5. Export produces app-ready React Three Fiber code.
 
 ## AI Workflow
 
@@ -54,7 +69,8 @@ Diorama is not:
 - Blender
 - a DCC
 - a renderer
-- generative AI
+- a model generator
+- a generic scenegraph tool
 - a broad 3D format interchange pipeline
 - a shader graph or animation timeline
 

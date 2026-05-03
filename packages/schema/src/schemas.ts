@@ -31,39 +31,6 @@ export const MaterialRefSchema = z.discriminatedUnion('kind', [
 
 export type MaterialRef = z.infer<typeof MaterialRefSchema>;
 
-export const NodeTypeSchema = z.enum(['root', 'group', 'mesh', 'light', 'empty']);
-
-export type NodeType = z.infer<typeof NodeTypeSchema>;
-
-export const SemanticRoleSchema = z.enum([
-  'product',
-  'display',
-  'seating',
-  'light',
-  'environment',
-  'group',
-  'unknown',
-]);
-
-export type SemanticRole = z.infer<typeof SemanticRoleSchema>;
-
-export const InteractionBehaviorSchema = z
-  .object({
-    hoverHighlight: z.boolean().optional(),
-    clickSelect: z.boolean().optional(),
-    focusOnClick: z.boolean().optional(),
-    info: z
-      .object({
-        title: z.string(),
-        description: z.string().optional(),
-      })
-      .strict()
-      .optional(),
-  })
-  .strict();
-
-export type InteractionBehavior = z.infer<typeof InteractionBehaviorSchema>;
-
 export type JsonValue =
   | null
   | string
@@ -86,6 +53,113 @@ export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
 export const MetadataSchema = z.record(JsonValueSchema);
 
 export type Metadata = z.infer<typeof MetadataSchema>;
+
+export const NodeTypeSchema = z.enum(['root', 'group', 'mesh', 'light', 'empty']);
+
+export type NodeType = z.infer<typeof NodeTypeSchema>;
+
+export const SemanticRoleSchema = z.enum([
+  'product',
+  'display',
+  'seating',
+  'lighting',
+  'light',
+  'environment',
+  'navigation',
+  'decor',
+  'container',
+  'unknown',
+]);
+
+export type SemanticRole = z.infer<typeof SemanticRoleSchema>;
+
+export const SemanticSourceSchema = z.enum(['manual', 'rule', 'agent', 'import']);
+
+export type SemanticSource = z.infer<typeof SemanticSourceSchema>;
+
+export const NodeSemanticsSchema = z
+  .object({
+    role: SemanticRoleSchema.optional(),
+    groupId: z.string().min(1).optional(),
+    label: z.string().optional(),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    confidence: z.number().finite().min(0).max(1).optional(),
+    source: SemanticSourceSchema.optional(),
+  })
+  .strict();
+
+export type NodeSemantics = z.infer<typeof NodeSemanticsSchema>;
+
+export const SemanticGroupSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string(),
+    role: SemanticRoleSchema,
+    nodeIds: z.array(z.string().min(1)),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    metadata: MetadataSchema.optional(),
+  })
+  .strict();
+
+export type SemanticGroup = z.infer<typeof SemanticGroupSchema>;
+
+export const BehaviorTypeSchema = z.enum([
+  'hover_highlight',
+  'click_select',
+  'focus_camera',
+  'show_info',
+  'open_url',
+  'rotate_idle',
+  'scroll_reveal',
+]);
+
+export type BehaviorType = z.infer<typeof BehaviorTypeSchema>;
+
+export const BehaviorDefinitionSchema = z
+  .object({
+    id: z.string().min(1),
+    type: BehaviorTypeSchema,
+    nodeIds: z.array(z.string().min(1)),
+    params: MetadataSchema.optional(),
+    label: z.string().optional(),
+    description: z.string().optional(),
+  })
+  .strict();
+
+export type BehaviorDefinition = z.infer<typeof BehaviorDefinitionSchema>;
+
+export const DioramaAssetSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string(),
+    kind: z.enum(['primitive', 'gltf', 'glb', 'splat', 'external']),
+    uri: z.string().min(1).optional(),
+    source: z.enum(['starter', 'upload', 'generator', 'manual']).optional(),
+    generator: MetadataSchema.optional(),
+    metadata: MetadataSchema.optional(),
+  })
+  .strict();
+
+export type DioramaAsset = z.infer<typeof DioramaAssetSchema>;
+
+export const InteractionBehaviorSchema = z
+  .object({
+    hoverHighlight: z.boolean().optional(),
+    clickSelect: z.boolean().optional(),
+    focusOnClick: z.boolean().optional(),
+    info: z
+      .object({
+        title: z.string(),
+        description: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export type InteractionBehavior = z.infer<typeof InteractionBehaviorSchema>;
 
 /** Optional authored light; viewport may ignore until wired. */
 export const SceneLightSchema = z.discriminatedUnion('kind', [
@@ -116,6 +190,9 @@ export const SceneNodeSchema = SceneNodeBaseSchema.extend({
   type: NodeTypeSchema,
   visible: z.boolean(),
   metadata: MetadataSchema,
+  semantics: NodeSemanticsSchema.optional(),
+  behaviorRefs: z.array(z.string().min(1)).optional(),
+  locked: z.boolean().optional(),
   semanticRole: SemanticRoleSchema.optional(),
   semanticGroupId: z.string().min(1).optional(),
   behaviors: InteractionBehaviorSchema.optional(),
@@ -261,18 +338,90 @@ const graphRootTypeRefinement = (
   }
 };
 
+const semanticAndBehaviorRefinements = (
+  val: {
+    nodes: Record<string, SceneNode>;
+    semanticGroups?: Record<string, SemanticGroup>;
+    behaviors?: Record<string, BehaviorDefinition>;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  const ids = new Set(Object.keys(val.nodes));
+  for (const [groupId, group] of Object.entries(val.semanticGroups ?? {})) {
+    if (group.id !== groupId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `semantic group key/id mismatch for ${groupId}`,
+      });
+    }
+    for (const nodeId of group.nodeIds) {
+      if (!ids.has(nodeId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `semantic group ${groupId} references missing node ${nodeId}`,
+        });
+      }
+    }
+  }
+  const behaviorIds = new Set(Object.keys(val.behaviors ?? {}));
+  for (const [behaviorId, behavior] of Object.entries(val.behaviors ?? {})) {
+    if (behavior.id !== behaviorId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `behavior key/id mismatch for ${behaviorId}`,
+      });
+    }
+    for (const nodeId of behavior.nodeIds) {
+      if (!ids.has(nodeId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `behavior ${behaviorId} references missing node ${nodeId}`,
+        });
+      }
+    }
+  }
+  for (const [nodeId, node] of Object.entries(val.nodes)) {
+    if (node.semantics?.groupId && !(node.semantics.groupId in (val.semanticGroups ?? {}))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `node ${nodeId} references missing semantic group ${node.semantics.groupId}`,
+      });
+    }
+    for (const behaviorId of node.behaviorRefs ?? []) {
+      if (!behaviorIds.has(behaviorId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `node ${nodeId} references missing behavior ${behaviorId}`,
+        });
+      }
+    }
+  }
+};
+
 const currentGraphRefinements = (
-  val: { rootId: string; nodes: Record<string, SceneNode>; selection: string | null },
+  val: {
+    rootId: string;
+    nodes: Record<string, SceneNode>;
+    selection: string | null;
+    semanticGroups?: Record<string, SemanticGroup>;
+    behaviors?: Record<string, BehaviorDefinition>;
+  },
   ctx: z.RefinementCtx,
 ) => {
   graphStructuralRefinements(val, ctx);
   graphRootTypeRefinement(val, ctx);
+  semanticAndBehaviorRefinements(val, ctx);
 };
 
 const SceneGraphBaseSchema = z.object({
   rootId: z.string().min(1),
   nodes: z.record(z.string(), SceneNodeSchema),
   selection: z.string().nullable().default(null),
+  semanticGroups: z.record(z.string(), SemanticGroupSchema).optional(),
+  behaviors: z.record(z.string(), BehaviorDefinitionSchema).optional(),
+  assets: z.record(z.string(), DioramaAssetSchema).optional(),
+  materials: z.record(z.string(), MetadataSchema).optional(),
+  metadata: MetadataSchema.optional(),
 });
 
 const LegacySceneGraphBaseSchema = z.object({

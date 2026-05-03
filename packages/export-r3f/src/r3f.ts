@@ -39,8 +39,11 @@ const escapeComment = (s: string): string => s.replace(/\*\//g, '* /');
 
 const emitSemanticComment = (node: SceneNode, indent: string): string => {
   const parts: string[] = [];
-  if (node.semanticRole) parts.push(`role=${node.semanticRole}`);
-  if (node.semanticGroupId) parts.push(`group=${node.semanticGroupId}`);
+  const role = node.semantics?.role ?? node.semanticRole;
+  const groupId = node.semantics?.groupId ?? node.semanticGroupId;
+  if (role) parts.push(`role=${role}`);
+  if (groupId) parts.push(`group=${groupId}`);
+  if (node.semantics?.label) parts.push(`label=${escapeComment(node.semantics.label)}`);
   if (node.behaviors) {
     const enabled = Object.entries(node.behaviors)
       .filter(([key, value]) => key !== 'info' && value === true)
@@ -55,6 +58,8 @@ const emitSemanticComment = (node: SceneNode, indent: string): string => {
 
 const emitUserDataAttr = (node: SceneNode): string => {
   const userData: Record<string, unknown> = {};
+  if (node.semantics) userData.semantics = node.semantics;
+  if (node.behaviorRefs) userData.behaviorRefs = node.behaviorRefs;
   if (node.semanticRole) userData.semanticRole = node.semanticRole;
   if (node.semanticGroupId) userData.semanticGroupId = node.semanticGroupId;
   if (node.behaviors) userData.behaviors = node.behaviors;
@@ -148,6 +153,18 @@ export const exportSceneToR3fJsx = (
   options: R3fExportOptions = {},
 ): string => {
   const tree = emitNode(scene, scene.rootId, 2);
+  const semanticGroups =
+    scene.semanticGroups && Object.keys(scene.semanticGroups).length > 0
+      ? `/* Semantic groups: ${Object.values(scene.semanticGroups)
+          .map((group) => `${group.id}=${group.role}(${group.nodeIds.length})`)
+          .join(', ')} */\n`
+      : '';
+  const behaviors =
+    scene.behaviors && Object.keys(scene.behaviors).length > 0
+      ? `/* Behaviors: ${Object.values(scene.behaviors)
+          .map((behavior) => `${behavior.id}:${behavior.type}(${behavior.nodeIds.length})`)
+          .join(', ')} */\n`
+      : '';
   const studioWanted =
     options.includeStudioLights === true || options.includeLights === true;
   const studio = studioWanted
@@ -159,6 +176,8 @@ export const exportSceneToR3fJsx = (
   return (
     `/* eslint-disable */\n` +
     `/* Auto-generated for React Three Fiber - paste inside <Canvas> */\n` +
+    semanticGroups +
+    behaviors +
     `<>\n` +
     `${studio}${tree}` +
     `</>\n`

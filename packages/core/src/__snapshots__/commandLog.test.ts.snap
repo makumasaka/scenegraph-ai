@@ -15,20 +15,32 @@ exports[`summarizeCommand (command log regression) > produces stable titles and 
     "title": "Update transform",
   },
   {
+    "detail": "preset showroom - semantic groups and node roles",
+    "title": "Structure scene",
+  },
+  {
+    "detail": "target role product - hover, click, info",
+    "title": "Make interactive",
+  },
+  {
     "detail": "Display Area (display) - 1 node(s)",
     "title": "Create semantic group",
+  },
+  {
+    "detail": "1 node(s) -> display_...",
+    "title": "Assign semantic group",
   },
   {
     "detail": "product in display_... - 1 node(s)",
     "title": "Set node semantics",
   },
   {
-    "detail": "1 node(s) - hoverHighlight, clickSelect",
+    "detail": "hover_highlight - 1 node(s)",
     "title": "Add behavior",
   },
   {
-    "detail": "Create display, seating, lighting, and environment groups",
-    "title": "Structure showroom scene",
+    "detail": "cmd-hover",
+    "title": "Remove behavior",
   },
   {
     "detail": "cmd-node - subtree=true -> cmd-log-...",

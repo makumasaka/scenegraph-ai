@@ -18,13 +18,20 @@ const commandTouchedNodes = (scene: Scene, command: Command): string[] => {
     case 'DELETE_NODE':
     case 'DUPLICATE_NODE':
       return [label(command.nodeId)];
-    case 'CREATE_SEMANTIC_GROUP':
-      return [command.name, ...command.nodeIds.slice(0, 3).map(label)];
-    case 'SET_NODE_SEMANTICS':
-    case 'ADD_BEHAVIOR':
-      return command.nodeIds.slice(0, 4).map(label);
-    case 'STRUCTURE_SHOWROOM_SCENE':
+    case 'STRUCTURE_SCENE':
       return ['display_area', 'seating_area', 'lighting_zone', 'environment'];
+    case 'MAKE_INTERACTIVE':
+      return [`role ${command.targetRole ?? 'product'}`];
+    case 'CREATE_SEMANTIC_GROUP':
+      return [command.group.name, ...command.group.nodeIds.slice(0, 3).map(label)];
+    case 'ASSIGN_TO_SEMANTIC_GROUP':
+      return command.nodeIds.slice(0, 4).map(label);
+    case 'SET_NODE_SEMANTICS':
+      return command.nodeIds.slice(0, 4).map(label);
+    case 'ADD_BEHAVIOR':
+      return command.behavior.nodeIds.slice(0, 4).map(label);
+    case 'REMOVE_BEHAVIOR':
+      return [command.behaviorId];
     case 'SET_PARENT':
       return [label(command.nodeId), label(command.parentId)];
     case 'ARRANGE_NODES':
