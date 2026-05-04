@@ -354,6 +354,19 @@ describe('createAgentSession', () => {
     expect(r.data.mediaType).toBe('text/jsx');
   });
 
+  it('exportScene can produce a structured r3f module', () => {
+    const session = createAgentSession(createEmptyScene());
+    const r = session.exportScene({
+      format: 'r3f',
+      r3f: { mode: 'module', componentName: 'AgentScene' },
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.data.content).toContain('export function AgentScene()');
+    expect(r.data.content).toContain('function SemanticNode');
+    expect(r.data.mediaType).toBe('text/jsx');
+  });
+
   it('loadScene accepts embedded scene object', () => {
     const scene = cloneSceneFromJson(createEmptyScene());
     const session = createAgentSession();

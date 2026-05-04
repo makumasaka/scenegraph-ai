@@ -4,7 +4,7 @@ import {
   type Command,
   type CommandSummary,
 } from '@diorama/core';
-import { exportSceneToR3fJsx } from '@diorama/export-r3f';
+import { exportSceneToR3fJsx, exportSceneToR3fModule } from '@diorama/export-r3f';
 import {
   cloneSceneFromJson,
   parseSceneJson,
@@ -338,6 +338,13 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
           format: 'json',
           content: serializeScene(scene),
           mediaType: mediaTypeForFormat('json'),
+        });
+      }
+      if (p.r3f?.mode === 'module') {
+        return ok({
+          format: 'r3f',
+          content: exportSceneToR3fModule(scene, p.r3f).code,
+          mediaType: mediaTypeForFormat('r3f'),
         });
       }
       return ok({

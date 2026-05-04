@@ -156,6 +156,9 @@ export const cloneSceneFromJson = (scene: Scene): Scene => ({
         ),
       }
     : {}),
+  ...(scene.layoutMetadata !== undefined
+    ? { layoutMetadata: { ...scene.layoutMetadata } }
+    : {}),
   ...(scene.metadata !== undefined ? { metadata: { ...scene.metadata } } : {}),
   nodes: Object.fromEntries(
     Object.entries(scene.nodes).map(([id, node]) => [
@@ -175,6 +178,9 @@ export const cloneSceneFromJson = (scene: Scene): Scene => ({
           ? {
               semantics: {
                 ...node.semantics,
+                ...(node.semantics.traits !== undefined
+                  ? { traits: [...node.semantics.traits] }
+                  : {}),
                 ...(node.semantics.tags !== undefined ? { tags: [...node.semantics.tags] } : {}),
               },
             }

@@ -12,7 +12,7 @@ import {
   serializeScene,
   type Scene,
 } from '@diorama/schema';
-import { exportSceneToR3fJsx } from './r3f';
+import { exportSceneToR3fJsx, exportSceneToR3fModule } from './r3f';
 
 const examples = [
   ['default', defaultFixtureScene],
@@ -166,6 +166,40 @@ describe('Milestone 5 export loop lock', () => {
       expect(out).not.toContain('"gizmoMode"');
       expect(out).not.toContain('/Users/');
       expect(out).not.toContain('file:///');
+    });
+
+    it('does not leak editor-only state or local filesystem paths into module output', () => {
+      const sceneWithEditorState = {
+        ...defaultFixtureScene,
+        selection: 'default-cube-1',
+        commandLog: [{ type: 'SET_SELECTION', nodeId: 'default-cube-1' }],
+        nodes: {
+          ...defaultFixtureScene.nodes,
+          'default-cube-1': {
+            ...defaultFixtureScene.nodes['default-cube-1']!,
+            metadata: { sourcePath: '/Users/example/private.glb' },
+            assetRef: { kind: 'uri', uri: 'file:///Users/example/private.glb' },
+          },
+        },
+        behaviors: {
+          default_open_url: {
+            id: 'default_open_url',
+            type: 'open_url',
+            nodeIds: ['default-cube-1'],
+            params: { url: 'https://example.com/private' },
+          },
+        },
+      } as Scene & { commandLog: unknown[] };
+
+      const out = exportSceneToR3fModule(sceneWithEditorState).code;
+
+      expect(out).toContain('TODO: open_url is scaffolded');
+      expect(out).not.toContain('"selection"');
+      expect(out).not.toContain('"commandLog"');
+      expect(out).not.toContain('SET_SELECTION');
+      expect(out).not.toContain('/Users/');
+      expect(out).not.toContain('file:///');
+      expect(out).not.toContain('https://example.com/private');
     });
   });
 

@@ -77,10 +77,22 @@ export const SemanticSourceSchema = z.enum(['manual', 'rule', 'agent', 'import']
 
 export type SemanticSource = z.infer<typeof SemanticSourceSchema>;
 
+export const TraitSchema = z.enum([
+  'seatable',
+  'clickable',
+  'focusable',
+  'hoverable',
+  'displayable',
+  'navigable',
+]);
+
+export type Trait = z.infer<typeof TraitSchema>;
+
 export const NodeSemanticsSchema = z
   .object({
     role: SemanticRoleSchema.optional(),
     groupId: z.string().min(1).optional(),
+    traits: z.array(TraitSchema).optional(),
     label: z.string().optional(),
     description: z.string().optional(),
     tags: z.array(z.string()).optional(),
@@ -109,6 +121,7 @@ export const BehaviorTypeSchema = z.enum([
   'hover_highlight',
   'click_select',
   'focus_camera',
+  'anchor_point',
   'show_info',
   'open_url',
   'rotate_idle',
@@ -421,6 +434,7 @@ const SceneGraphBaseSchema = z.object({
   behaviors: z.record(z.string(), BehaviorDefinitionSchema).optional(),
   assets: z.record(z.string(), DioramaAssetSchema).optional(),
   materials: z.record(z.string(), MetadataSchema).optional(),
+  layoutMetadata: MetadataSchema.optional(),
   metadata: MetadataSchema.optional(),
 });
 

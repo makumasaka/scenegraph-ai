@@ -6,6 +6,7 @@ export type {
   NodeType,
   SemanticRole,
   SemanticSource,
+  Trait,
   NodeSemantics,
   SemanticGroup,
   BehaviorType,

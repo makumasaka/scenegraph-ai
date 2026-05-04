@@ -51,13 +51,17 @@ const validPayloads: Record<Command['type'], unknown> = {
   SET_NODE_SEMANTICS: {
     type: 'SET_NODE_SEMANTICS',
     nodeIds: ['box'],
-    semantics: { role: 'product', groupId: 'display_area' },
+    semantics: {
+      role: 'product',
+      groupId: 'display_area',
+      traits: ['clickable', 'hoverable', 'displayable'],
+    },
   },
   ADD_BEHAVIOR: {
     type: 'ADD_BEHAVIOR',
     behavior: {
       id: 'box-hover',
-      type: 'hover_highlight',
+      type: 'anchor_point',
       nodeIds: ['box'],
     },
   },

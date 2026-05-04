@@ -4,6 +4,11 @@ const R3fExportOptionsSchema = z
   .object({
     includeStudioLights: z.boolean().optional(),
     includeLights: z.boolean().optional(),
+    mode: z.enum(['fragment', 'module']).optional(),
+    componentName: z.string().min(1).optional(),
+    semanticComponents: z.boolean().optional(),
+    behaviorScaffold: z.enum(['none', 'comments', 'handlers']).optional(),
+    includeUserData: z.boolean().optional(),
   })
   .strict();
 

@@ -1,19 +1,10 @@
 ---
+description: Core product guardrails for Diorama
 alwaysApply: true
 ---
 
-- Diorama is not a 3D editor. It is a deterministic spatial system built on a
-  scene graph and command system.
-- Diorama is not a DCC tool, rendering engine, Blender replacement, broad 3D
-  import/export pipeline, or generic generative AI tool.
-- All features must reinforce command-based architecture.
-- No feature may bypass commands for persistent scene changes.
-- Phase 1 prioritizes the canvas-first MVP: load starter scenes, render them,
-  select nodes, inspect hierarchy, edit transforms, arrange nodes, log commands,
-  undo/redo, and export JSON/R3F.
-- Phase 2 agent work must compile intent into commands. Never allow direct
-  hidden mutation of scene state.
-- The scene graph and command system are the single source of truth. UI, export,
-  eval, and MCP layers consume that state; they do not own it.
-- Keep MVP scope tight. Defer modeling tools, shader graphs, multiplayer,
-  animation timelines, Blender parity, and broad asset pipelines.
+- Diorama is a deterministic spatial canvas, not a full 3D editor.
+- Optimize for structured scene editing, inspectability, and export.
+- Do not introduce features that widen MVP scope unless explicitly requested.
+- Every important user edit should correspond to a command.
+- Preserve code-to-canvas-to-code loop.

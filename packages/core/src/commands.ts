@@ -8,6 +8,7 @@ import {
   type SceneNode,
   type SemanticGroup,
   type SemanticRole,
+  type Trait,
 } from '@diorama/schema';
 import { summarizeCommand, type CommandSummary } from './commandLog';
 import { duplicateNodeInScene } from './duplicate';
@@ -285,6 +286,7 @@ const mergeNodeSemantics = (
 ): NodeSemantics => ({
   ...(current ?? {}),
   ...incoming,
+  ...(incoming.traits !== undefined ? { traits: [...incoming.traits] } : {}),
   ...(incoming.tags !== undefined ? { tags: [...incoming.tags] } : {}),
 });
 
@@ -368,6 +370,8 @@ const behaviorToLegacy = (behavior: BehaviorDefinition): InteractionBehavior => 
       return { clickSelect: true };
     case 'focus_camera':
       return { focusOnClick: true };
+    case 'anchor_point':
+      return {};
     case 'show_info':
       return {
         info: {
@@ -484,6 +488,21 @@ const showroomGroupSpecs = [
   },
 ] as const;
 
+const traitsForRole = (role: SemanticRole): Trait[] => {
+  switch (role) {
+    case 'product':
+      return ['clickable', 'hoverable', 'displayable', 'focusable'];
+    case 'display':
+      return ['displayable'];
+    case 'seating':
+      return ['seatable', 'focusable'];
+    case 'navigation':
+      return ['navigable', 'clickable'];
+    default:
+      return [];
+  }
+};
+
 const semanticRoleForNode = (node: SceneNode, groupRole: SemanticRole): SemanticRole => {
   const s = `${node.id} ${node.name}`.toLowerCase();
   if (s.includes('product')) return 'product';
@@ -537,6 +556,7 @@ const applyStructureShowroomScene = (scene: Scene): Scene => {
         next = applySetNodeSemantics(next, ids, {
           role,
           groupId: spec.groupId,
+          traits: traitsForRole(role),
           source: 'rule',
         });
       }
@@ -548,6 +568,47 @@ const applyStructureShowroomScene = (scene: Scene): Scene => {
 const roleOf = (node: SceneNode): SemanticRole | undefined =>
   node.semantics?.role ?? node.semanticRole;
 
+const behaviorTypesForTraits = (traits: Trait[]): BehaviorDefinition['type'][] => {
+  const out: BehaviorDefinition['type'][] = [];
+  const add = (type: BehaviorDefinition['type']) => {
+    if (!out.includes(type)) out.push(type);
+  };
+  for (const trait of traits) {
+    switch (trait) {
+      case 'seatable':
+        add('focus_camera');
+        add('anchor_point');
+        break;
+      case 'clickable':
+        add('click_select');
+        break;
+      case 'focusable':
+        add('focus_camera');
+        break;
+      case 'hoverable':
+        add('hover_highlight');
+        break;
+      case 'displayable':
+        add('show_info');
+        break;
+      case 'navigable':
+        add('focus_camera');
+        break;
+      default: {
+        const _exhaustive: never = trait;
+        return _exhaustive;
+      }
+    }
+  }
+  return out;
+};
+
+const behaviorLabel = (type: BehaviorDefinition['type']): string =>
+  type
+    .split('_')
+    .map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`)
+    .join(' ');
+
 const applyMakeInteractive = (
   scene: Scene,
   targetRole: SemanticRole = 'product',
@@ -558,33 +619,22 @@ const applyMakeInteractive = (
   if (targets.length === 0) return scene;
 
   let next = scene;
-  const behaviorSpecs: Array<Pick<BehaviorDefinition, 'id' | 'type' | 'label' | 'description'>> = [
-    {
-      id: `${targetRole}_hover_highlight`,
-      type: 'hover_highlight',
-      label: 'Hover highlight',
-      description: 'Highlight product nodes on pointer hover.',
-    },
-    {
-      id: `${targetRole}_click_select`,
-      type: 'click_select',
-      label: 'Click select',
-      description: 'Select product nodes when clicked.',
-    },
-    {
-      id: `${targetRole}_show_info`,
-      type: 'show_info',
-      label: 'Show info',
-      description: 'Show selected product information in the inspector.',
-    },
-  ];
+  const traits = Array.from(
+    new Set(
+      targets.flatMap((id) => scene.nodes[id]?.semantics?.traits ?? traitsForRole(targetRole)),
+    ),
+  );
+  const behaviorTypes = behaviorTypesForTraits(traits);
 
-  for (const spec of behaviorSpecs) {
+  for (const type of behaviorTypes) {
     next = applyAddBehaviorDefinition(next, {
-      ...spec,
+      id: `${targetRole}_${type}`,
+      type,
       nodeIds: targets,
+      label: behaviorLabel(type),
+      description: `${behaviorLabel(type)} behavior inferred from ${targetRole} traits.`,
       params:
-        spec.type === 'show_info'
+        type === 'show_info'
           ? {
               title: 'Product information',
               description: 'Interactive showroom item generated from structured scene metadata.',

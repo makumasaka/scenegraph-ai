@@ -92,7 +92,9 @@ describe('exportSceneToR3fJsx', () => {
 
     expect(out).toContain('semantics: role=product | group=display_area');
     expect(out).toContain('Behaviors: product_01_info:show_info(1)');
-    expect(out).toContain('"semantics":{"role":"product","groupId":"display_area","source":"rule"}');
+    expect(out).toContain(
+      '"semantics":{"role":"product","groupId":"display_area","traits":["clickable","hoverable","displayable","focusable"],"source":"rule"}',
+    );
     expect(out).toContain('"behaviorRefs":["product_01_info"]');
     expect(out).toMatchSnapshot();
   });

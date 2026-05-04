@@ -284,6 +284,12 @@ describe('applyCommand', () => {
     expect(next.semanticGroups?.lighting_zone?.nodeIds).toContain('light_key');
     expect(next.semanticGroups?.environment?.nodeIds).toContain('floor');
     expect(next.nodes.product_01?.semantics?.role).toBe('product');
+    expect(next.nodes.product_01?.semantics?.traits).toEqual([
+      'clickable',
+      'hoverable',
+      'displayable',
+      'focusable',
+    ]);
     expect(next.nodes.display_table?.semantics?.role).toBe('display');
     expect(next.nodes.bench?.semantics?.role).toBe('seating');
     expect(next.nodes.light_key?.semantics?.role).toBe('lighting');
@@ -295,16 +301,35 @@ describe('applyCommand', () => {
     const structured = applyCommand(showroomScene, { type: 'STRUCTURE_SCENE', preset: 'showroom' });
     const next = applyCommand(structured, { type: 'MAKE_INTERACTIVE' });
 
-    expect(next.behaviors?.product_hover_highlight?.type).toBe('hover_highlight');
     expect(next.behaviors?.product_click_select?.type).toBe('click_select');
+    expect(next.behaviors?.product_hover_highlight?.type).toBe('hover_highlight');
     expect(next.behaviors?.product_show_info?.type).toBe('show_info');
+    expect(next.behaviors?.product_focus_camera?.type).toBe('focus_camera');
     expect(next.nodes.product_01?.behaviorRefs).toEqual([
-      'product_hover_highlight',
       'product_click_select',
+      'product_hover_highlight',
       'product_show_info',
+      'product_focus_camera',
     ]);
     expect(next.nodes.product_01?.behaviors?.hoverHighlight).toBe(true);
     expect(next.nodes.product_01?.behaviors?.clickSelect).toBe(true);
+    assertValid(next);
+  });
+
+  it('MAKE_INTERACTIVE maps seatable traits to focus and anchor behaviors', () => {
+    const structured = applyCommand(showroomScene, { type: 'STRUCTURE_SCENE', preset: 'showroom' });
+    const next = applyCommand(structured, {
+      type: 'MAKE_INTERACTIVE',
+      targetRole: 'seating',
+    });
+
+    expect(next.nodes.bench?.semantics?.traits).toEqual(['seatable', 'focusable']);
+    expect(next.behaviors?.seating_focus_camera?.type).toBe('focus_camera');
+    expect(next.behaviors?.seating_anchor_point?.type).toBe('anchor_point');
+    expect(next.nodes.bench?.behaviorRefs).toEqual([
+      'seating_focus_camera',
+      'seating_anchor_point',
+    ]);
     assertValid(next);
   });
 

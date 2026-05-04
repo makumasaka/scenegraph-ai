@@ -76,6 +76,35 @@ describe('Milestone 7 export eval', () => {
     expect(exported.content).toMatchSnapshot(fixture.id);
   });
 
+  it('exports a structured R3F module for an interactive showroom agent flow', () => {
+    const session = createAgentSession(getStarterScene('showroom'));
+    expectOk(
+      session.applyCommandBatch([
+        { type: 'STRUCTURE_SCENE', preset: 'showroom' },
+        { type: 'MAKE_INTERACTIVE', targetRole: 'product' },
+      ]),
+    );
+
+    const exported = expectOk(
+      session.exportScene({
+        format: 'r3f',
+        r3f: {
+          mode: 'module',
+          componentName: 'InteractiveShowroom',
+          includeStudioLights: true,
+        },
+      }),
+    );
+
+    expect(exported.content).toContain('export function InteractiveShowroom()');
+    expect(exported.content).toContain('function Product');
+    expect(exported.content).toContain('function DisplaySurface');
+    expect(exported.content).toContain('handleSelect');
+    expect(exported.content).toContain('handleHoverStart');
+    expect(exported.content).not.toContain('command_batch');
+    expect(exported.content).toMatchSnapshot('interactive showroom module');
+  });
+
   describe('hierarchy and local transforms', () => {
     it('emits living-space children in scene-graph order with the moved table local transform', () => {
       const fixture = fixtures.find((f) => f.id === '003-living-transform-export');

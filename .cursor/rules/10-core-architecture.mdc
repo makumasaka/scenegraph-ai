@@ -1,26 +1,12 @@
 ---
-alwaysApply: true
+description: Rules for packages/core and packages/schema
+globs: packages/core/**,packages/schema/**
+alwaysApply: false
 ---
 
-- `packages/schema` owns the runtime scene shape, document format, validation,
-  parsing, serialization, and migrations.
-- `packages/core` owns scene helpers, command semantics, pure reducers,
-  invariants, layout utilities, transform math, fixtures, and reducer tests.
-- The scene graph is canonical scene state.
-- Commands are the only mutation path for persistent scene changes.
-- Keep reducers deterministic and side-effect free. No DOM, network, storage,
-  clocks, or random IDs inside command application.
-- Reducers must support replay, undo/redo, tests, and agent usage.
-- Expected invalid user or agent commands must not throw; return unchanged scenes
-  and structured errors through `applyCommandWithResult`.
-- Replay-safe `DUPLICATE_NODE` commands must provide a deterministic `idMap`.
-- Return the same scene reference for no-op commands where practical.
-- Preserve graph invariants after every changing command: one root, no cycles,
-  no orphans, valid child refs, one parent per non-root node, and valid
-  selection.
-- Store local transforms only. Compute world transforms from hierarchy when
-  needed.
-- Euler rotations are radians in storage. Three.js math is allowed in core only
-  for TRS composition/decomposition that serves command semantics.
-- Command contract changes must update `packages/core/src/commands.ts`,
-  `packages/agent-interface/src/commandSchema.ts`, docs, and tests together.
+- Scene schema is the source of truth.
+- Prefer Zod schemas and generated JSON-schema-compatible contracts.
+- Reducers must be pure and deterministic.
+- No UI concerns inside core.
+- Preserve no-op reference equality when possible.
+- Protect against invalid states: cycles, orphan nodes, invalid selection.

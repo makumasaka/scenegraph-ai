@@ -174,7 +174,7 @@ export function Inspector() {
           <span className="inspector__key">Click</span>
           <span className="inspector__value">
             {node.behaviors?.clickSelect || behaviorDefinitions.some((b) => b.type === 'click_select')
-              ? node.behaviors.focusOnClick
+              ? node.behaviors?.focusOnClick
                 ? 'Select + focus'
                 : 'Select'
               : '-'}

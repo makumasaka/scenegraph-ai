@@ -148,11 +148,13 @@ describe('scene JSON contract', () => {
         label: 'Hover highlight',
       },
     };
+    scene.layoutMetadata = { preset: 'showroom-grid' };
     scene.nodes.mesh = {
       ...scene.nodes.mesh!,
       semantics: {
         role: 'product',
         groupId: 'display_area',
+        traits: ['clickable', 'hoverable', 'displayable'],
         label: 'Mesh product',
         source: 'manual',
       },
@@ -174,9 +176,15 @@ describe('scene JSON contract', () => {
 
     expect(parsed?.nodes.mesh?.semanticRole).toBe('product');
     expect(parsed?.nodes.mesh?.semantics?.label).toBe('Mesh product');
+    expect(parsed?.nodes.mesh?.semantics?.traits).toEqual([
+      'clickable',
+      'hoverable',
+      'displayable',
+    ]);
     expect(parsed?.nodes.mesh?.behaviorRefs).toEqual(['mesh_hover']);
     expect(parsed?.semanticGroups?.display_area?.nodeIds).toEqual(['mesh']);
     expect(parsed?.behaviors?.mesh_hover?.type).toBe('hover_highlight');
+    expect(parsed?.layoutMetadata).toEqual({ preset: 'showroom-grid' });
     expect(parsed?.nodes.mesh?.semanticGroupId).toBe('display_area');
     expect(parsed?.nodes.mesh?.behaviors).toEqual(scene.nodes.mesh.behaviors);
     expect(validateScene(parsed)).toBe(true);

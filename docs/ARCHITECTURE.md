@@ -102,6 +102,8 @@ composition/decomposition that serves command semantics, as documented in ADR
   UI-only state.
 - Emits visible nodes as nested `<group>` elements, primitive mesh placeholders
   for `mesh` nodes, and simple ambient/directional lights for scene light nodes.
+- Also exposes a structured React module bridge with semantic component
+  mapping and behavior scaffolds; see [R3F_BRIDGE.md](R3F_BRIDGE.md).
 - Omits hidden nodes and their descendants.
 - Does not resolve assets, material graphs, animation, shader graphs, glTF, or
   full renderer semantics.
