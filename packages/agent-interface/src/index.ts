@@ -30,3 +30,17 @@ export {
   ExportSceneParamsSchema,
   mediaTypeForFormat,
 } from './exportParams';
+export type {
+  ArrangeNodesInput,
+  ExportR3FInput,
+  MakeInteractiveInput,
+  McpLiteRuntime,
+  StructureSceneInput,
+} from './mcpLite';
+export {
+  ArrangeNodesInputSchema,
+  ExportR3FInputSchema,
+  MakeInteractiveInputSchema,
+  StructureSceneInputSchema,
+  createMcpLiteRuntime,
+} from './mcpLite';
