@@ -1,0 +1,756 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MCP-lite showroom → R3F export validation > 01 messy showroom (before STRUCTURE_SCENE) — fragment snapshot > 01-messy-fragment 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+<>
+    {/* showroom-root - Messy Product Showroom */}
+    <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* floor - Floor */}
+      <group name="Floor" position={[0, -0.05, 0]} rotation={[0, 0, 0]} scale={[8, 0.1, 6]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* wall - North Wall */}
+      <group name="North Wall" position={[0, 1.6, -3]} rotation={[0, 0, 0]} scale={[8, 3.2, 0.12]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_01 - Product 01 */}
+      <group name="Product 01" position={[-1.8, 0.65, 0.4]} rotation={[0, 0.4, 0]} scale={[0.65, 0.9, 0.65]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* bench - Bench */}
+      <group name="Bench" position={[-2.6, 0.32, 1.9]} rotation={[0, 0.18, 0]} scale={[1.5, 0.45, 0.55]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_table - Display Table */}
+      <group name="Display Table" position={[-0.4, 0.28, 0.15]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_03 - Product 03 */}
+      <group name="Product 03" position={[0.35, 0.8, 1.45]} rotation={[0, 0.85, 0]} scale={[0.55, 1.1, 0.55]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_fill - Light Fill */}
+      <group name="Light Fill" position={[3.1, 2.4, 2.5]} rotation={[0, -0.4, 0]} scale={[0.25, 0.25, 0.25]}>
+        <ambientLight intensity={0.35} />
+      </group>
+      {/* chair - Chair */}
+      <group name="Chair" position={[2.7, 0.45, 1.65]} rotation={[0, -0.55, 0]} scale={[0.75, 0.9, 0.75]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_plinth - Display Plinth */}
+      <group name="Display Plinth" position={[1.3, 0.32, 1.15]} rotation={[0, 0.1, 0]} scale={[0.9, 0.65, 0.9]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_02 - Product 02 */}
+      <group name="Product 02" position={[2.1, 0.55, -0.2]} rotation={[0, -0.25, 0]} scale={[0.8, 0.7, 0.8]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_key - Light Key */}
+      <group name="Light Key" position={[-3.2, 3.4, 2.2]} rotation={[0, 0.5, 0]} scale={[0.25, 0.25, 0.25]}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+      {/* backdrop_panel - Backdrop Panel */}
+      <group name="Backdrop Panel" position={[-2.4, 1.05, -2.65]} rotation={[0, 0.18, 0]} scale={[1.6, 2.1, 0.1]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`MCP-lite showroom → R3F export validation > 02 after STRUCTURE_SCENE — semantic groups + traits in comments > 02-structured-fragment 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+/* Semantic groups: display_area=display(5), environment=environment(3), lighting_zone=lighting(2), seating_area=seating(2) */
+<>
+    {/* showroom-root - Messy Product Showroom */}
+    <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* floor - Floor */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Floor" position={[0, -0.05, 0]} rotation={[0, 0, 0]} scale={[8, 0.1, 6]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* wall - North Wall */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="North Wall" position={[0, 1.6, -3]} rotation={[0, 0, 0]} scale={[8, 3.2, 0.12]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_01 - Product 01 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable */}
+      <group name="Product 01" position={[-1.8, 0.65, 0.4]} rotation={[0, 0.4, 0]} scale={[0.65, 0.9, 0.65]} userData={{"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* bench - Bench */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Bench" position={[-2.6, 0.32, 1.9]} rotation={[0, 0.18, 0]} scale={[1.5, 0.45, 0.55]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_table - Display Table */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Table" position={[-0.4, 0.28, 0.15]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_03 - Product 03 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable */}
+      <group name="Product 03" position={[0.35, 0.8, 1.45]} rotation={[0, 0.85, 0]} scale={[0.55, 1.1, 0.55]} userData={{"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_fill - Light Fill */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Fill" position={[3.1, 2.4, 2.5]} rotation={[0, -0.4, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <ambientLight intensity={0.35} />
+      </group>
+      {/* chair - Chair */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Chair" position={[2.7, 0.45, 1.65]} rotation={[0, -0.55, 0]} scale={[0.75, 0.9, 0.75]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_plinth - Display Plinth */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Plinth" position={[1.3, 0.32, 1.15]} rotation={[0, 0.1, 0]} scale={[0.9, 0.65, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_02 - Product 02 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable */}
+      <group name="Product 02" position={[2.1, 0.55, -0.2]} rotation={[0, -0.25, 0]} scale={[0.8, 0.7, 0.8]} userData={{"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_key - Light Key */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Key" position={[-3.2, 3.4, 2.2]} rotation={[0, 0.5, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+      {/* backdrop_panel - Backdrop Panel */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Backdrop Panel" position={[-2.4, 1.05, -2.65]} rotation={[0, 0.18, 0]} scale={[1.6, 2.1, 0.1]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`MCP-lite showroom → R3F export validation > 03 after MAKE_INTERACTIVE — behavior refs + behavior header > 03-interactive-fragment 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+/* Semantic groups: display_area=display(5), environment=environment(3), lighting_zone=lighting(2), seating_area=seating(2) */
+/* Behaviors: product_click_select:click_select(3), product_focus_camera:focus_camera(3), product_hover_highlight:hover_highlight(3), product_show_info:show_info(3) */
+<>
+    {/* showroom-root - Messy Product Showroom */}
+    <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* floor - Floor */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Floor" position={[0, -0.05, 0]} rotation={[0, 0, 0]} scale={[8, 0.1, 6]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* wall - North Wall */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="North Wall" position={[0, 1.6, -3]} rotation={[0, 0, 0]} scale={[8, 3.2, 0.12]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_01 - Product 01 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 01" position={[-1.8, 0.65, 0.4]} rotation={[0, 0.4, 0]} scale={[0.65, 0.9, 0.65]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* bench - Bench */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Bench" position={[-2.6, 0.32, 1.9]} rotation={[0, 0.18, 0]} scale={[1.5, 0.45, 0.55]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_table - Display Table */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Table" position={[-0.4, 0.28, 0.15]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_03 - Product 03 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 03" position={[0.35, 0.8, 1.45]} rotation={[0, 0.85, 0]} scale={[0.55, 1.1, 0.55]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_fill - Light Fill */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Fill" position={[3.1, 2.4, 2.5]} rotation={[0, -0.4, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <ambientLight intensity={0.35} />
+      </group>
+      {/* chair - Chair */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Chair" position={[2.7, 0.45, 1.65]} rotation={[0, -0.55, 0]} scale={[0.75, 0.9, 0.75]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_plinth - Display Plinth */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Plinth" position={[1.3, 0.32, 1.15]} rotation={[0, 0.1, 0]} scale={[0.9, 0.65, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_02 - Product 02 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 02" position={[2.1, 0.55, -0.2]} rotation={[0, -0.25, 0]} scale={[0.8, 0.7, 0.8]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_key - Light Key */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Key" position={[-3.2, 3.4, 2.2]} rotation={[0, 0.5, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+      {/* backdrop_panel - Backdrop Panel */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Backdrop Panel" position={[-2.4, 1.05, -2.65]} rotation={[0, 0.18, 0]} scale={[1.6, 2.1, 0.1]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`MCP-lite showroom → R3F export validation > 04 after ARRANGE_NODES — positions change; semantics preserved > 04-arranged-fragment 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+/* Semantic groups: display_area=display(5), environment=environment(3), lighting_zone=lighting(2), seating_area=seating(2) */
+/* Behaviors: product_click_select:click_select(3), product_focus_camera:focus_camera(3), product_hover_highlight:hover_highlight(3), product_show_info:show_info(3) */
+<>
+    {/* showroom-root - Messy Product Showroom */}
+    <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* floor - Floor */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Floor" position={[0, -0.05, 0]} rotation={[0, 0, 0]} scale={[8, 0.1, 6]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* wall - North Wall */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="North Wall" position={[0, 1.6, -3]} rotation={[0, 0, 0]} scale={[8, 3.2, 0.12]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_01 - Product 01 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 01" position={[-1.25, 0.5, 0]} rotation={[0, 0.4, 0]} scale={[0.65, 0.9, 0.65]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* bench - Bench */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Bench" position={[-2.6, 0.32, 1.9]} rotation={[0, 0.18, 0]} scale={[1.5, 0.45, 0.55]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_table - Display Table */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Table" position={[-0.4, 0.28, 0.15]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_03 - Product 03 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 03" position={[1.25, 0.5, 0]} rotation={[0, 0.85, 0]} scale={[0.55, 1.1, 0.55]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_fill - Light Fill */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Fill" position={[3.1, 2.4, 2.5]} rotation={[0, -0.4, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <ambientLight intensity={0.35} />
+      </group>
+      {/* chair - Chair */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Chair" position={[2.7, 0.45, 1.65]} rotation={[0, -0.55, 0]} scale={[0.75, 0.9, 0.75]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_plinth - Display Plinth */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Plinth" position={[1.3, 0.32, 1.15]} rotation={[0, 0.1, 0]} scale={[0.9, 0.65, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_02 - Product 02 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 02" position={[0, 0.5, 0]} rotation={[0, -0.25, 0]} scale={[0.8, 0.7, 0.8]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_key - Light Key */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Key" position={[-3.2, 3.4, 2.2]} rotation={[0, 0.5, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+      {/* backdrop_panel - Backdrop Panel */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Backdrop Panel" position={[-2.4, 1.05, -2.65]} rotation={[0, 0.18, 0]} scale={[1.6, 2.1, 0.1]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`MCP-lite showroom → R3F export validation > 05 full workflow — deterministic duplicate export > 05-workflow-fragment 1`] = `
+"/* eslint-disable */
+/* Auto-generated for React Three Fiber - paste inside <Canvas> */
+/* Semantic groups: display_area=display(5), environment=environment(3), lighting_zone=lighting(2), seating_area=seating(2) */
+/* Behaviors: product_click_select:click_select(3), product_focus_camera:focus_camera(3), product_hover_highlight:hover_highlight(3), product_show_info:show_info(3) */
+<>
+    {/* showroom-root - Messy Product Showroom */}
+    <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+      {/* floor - Floor */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Floor" position={[0, -0.05, 0]} rotation={[0, 0, 0]} scale={[8, 0.1, 6]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* wall - North Wall */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="North Wall" position={[0, 1.6, -3]} rotation={[0, 0, 0]} scale={[8, 3.2, 0.12]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_01 - Product 01 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 01" position={[-1.25, 0.5, 0]} rotation={[0, 0.4, 0]} scale={[0.65, 0.9, 0.65]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* bench - Bench */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Bench" position={[-2.6, 0.32, 1.9]} rotation={[0, 0.18, 0]} scale={[1.5, 0.45, 0.55]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_table - Display Table */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Table" position={[-0.4, 0.28, 0.15]} rotation={[0, -0.12, 0]} scale={[1.8, 0.35, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_03 - Product 03 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 03" position={[1.25, 0.5, 0]} rotation={[0, 0.85, 0]} scale={[0.55, 1.1, 0.55]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_fill - Light Fill */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Fill" position={[3.1, 2.4, 2.5]} rotation={[0, -0.4, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <ambientLight intensity={0.35} />
+      </group>
+      {/* chair - Chair */}
+      {/* semantics: role=seating | group=seating_area | traits=focusable,seatable */}
+      <group name="Chair" position={[2.7, 0.45, 1.65]} rotation={[0, -0.55, 0]} scale={[0.75, 0.9, 0.75]} userData={{"semanticGroupId":"seating_area","semanticRole":"seating","semantics":{"groupId":"seating_area","role":"seating","source":"rule","traits":["seatable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* display_plinth - Display Plinth */}
+      {/* semantics: role=display | group=display_area | traits=displayable */}
+      <group name="Display Plinth" position={[1.3, 0.32, 1.15]} rotation={[0, 0.1, 0]} scale={[0.9, 0.65, 0.9]} userData={{"semanticGroupId":"display_area","semanticRole":"display","semantics":{"groupId":"display_area","role":"display","source":"rule","traits":["displayable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* product_02 - Product 02 */}
+      {/* semantics: role=product | group=display_area | traits=clickable,displayable,focusable,hoverable | behavior=clickSelect+focusOnClick+hoverHighlight | info=Product information */}
+      <group name="Product 02" position={[0, 0.5, 0]} rotation={[0, -0.25, 0]} scale={[0.8, 0.7, 0.8]} userData={{"behaviorRefs":["product_click_select","product_hover_highlight","product_show_info","product_focus_camera"],"behaviors":{"clickSelect":true,"focusOnClick":true,"hoverHighlight":true,"info":{"description":"Interactive showroom item generated from structured scene metadata.","title":"Product information"}},"semanticGroupId":"display_area","semanticRole":"product","semantics":{"groupId":"display_area","role":"product","source":"rule","traits":["clickable","hoverable","displayable","focusable"]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+      {/* light_key - Light Key */}
+      {/* semantics: role=lighting | group=lighting_zone */}
+      <group name="Light Key" position={[-3.2, 3.4, 2.2]} rotation={[0, 0.5, 0]} scale={[0.25, 0.25, 0.25]} userData={{"semanticGroupId":"lighting_zone","semanticRole":"lighting","semantics":{"groupId":"lighting_zone","role":"lighting","source":"rule","traits":[]}}}>
+        <directionalLight intensity={1.2} castShadow />
+      </group>
+      {/* backdrop_panel - Backdrop Panel */}
+      {/* semantics: role=environment | group=environment */}
+      <group name="Backdrop Panel" position={[-2.4, 1.05, -2.65]} rotation={[0, 0.18, 0]} scale={[1.6, 2.1, 0.1]} userData={{"semanticGroupId":"environment","semanticRole":"environment","semantics":{"groupId":"environment","role":"environment","source":"rule","traits":[]}}}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      </group>
+    </group>
+</>
+"
+`;
+
+exports[`MCP-lite showroom → R3F export validation > 05 full workflow — module: semantic components + handler scaffolding > 05-workflow-module 1`] = `
+"/* eslint-disable */
+/* Auto-generated by Diorama R3F bridge. Review TODOs before shipping. */
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import type { ThreeElements } from '@react-three/fiber';
+
+type SemanticNodeProps = Omit<ThreeElements['group'], 'children'> & {
+  sourceId: string;
+  semanticRole: string;
+  renderMesh?: boolean;
+  children?: ReactNode;
+  onSelect?: () => void;
+  onHoverStart?: () => void;
+  onHoverEnd?: () => void;
+};
+
+function SemanticNode(props: SemanticNodeProps) {
+  const { sourceId, semanticRole, renderMesh, children, onSelect, onHoverStart, onHoverEnd, ...groupProps } = props;
+  return (
+    <group
+      {...groupProps}
+      userData={{ sourceId, semanticRole }}
+      onPointerOver={onHoverStart}
+      onPointerOut={onHoverEnd}
+      onClick={onSelect}
+    >
+      {renderMesh ? (
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#9ca3af" />
+        </mesh>
+      ) : null}
+      {children}
+    </group>
+  );
+}
+
+type SemanticComponentProps = Omit<SemanticNodeProps, 'semanticRole'>;
+
+function DisplaySurface(props: SemanticComponentProps) {
+  return <SemanticNode {...props} semanticRole="display" />;
+}
+
+function EnvironmentGroup(props: SemanticComponentProps) {
+  return <SemanticNode {...props} semanticRole="environment" />;
+}
+
+function Product(props: SemanticComponentProps) {
+  return <SemanticNode {...props} semanticRole="product" />;
+}
+
+function SceneLight(props: ThreeElements['group'] & { sourceId: string; lightKind: 'ambient' | 'directional'; lightIntensity?: number; lightCastShadow?: boolean; children?: ReactNode }) {
+  const { sourceId, lightKind, lightIntensity, lightCastShadow, children, ...groupProps } = props;
+  return (
+    <group {...groupProps} userData={{ sourceId, semanticRole: 'light' }}>
+      {lightKind === 'ambient' ? (
+        <ambientLight intensity={lightIntensity} />
+      ) : (
+        <directionalLight intensity={lightIntensity} castShadow={lightCastShadow} />
+      )}
+      {children}
+    </group>
+  );
+}
+
+function SeatingElement(props: SemanticComponentProps) {
+  return <SemanticNode {...props} semanticRole="seating" />;
+}
+
+export function McpLiteShowroom() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+  };
+
+  const handleHoverStart = (id: string) => {
+    // TODO: highlight object with this source id.
+    void id;
+  };
+
+  const handleHoverEnd = (id: string) => {
+    // TODO: clear highlight for this source id.
+    void id;
+  };
+
+  const handleFocusCamera = (id: string) => {
+    // TODO: move or retarget the app camera for this source id.
+    void id;
+  };
+
+  return (
+    <>
+      {/* Semantic group: display_area | role=display | nodes=product_01,product_02,product_03,display_table,display_plinth */}
+      {/* Semantic group: environment | role=environment | nodes=floor,wall,backdrop_panel */}
+      {/* Semantic group: lighting_zone | role=lighting | nodes=light_key,light_fill */}
+      {/* Semantic group: seating_area | role=seating | nodes=bench,chair */}
+      {/* showroom-root - Messy Product Showroom */}
+      <group name="Messy Product Showroom" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* floor - Floor | role=environment | group=environment */}
+        <EnvironmentGroup
+          sourceId="floor"
+          name="Floor"
+          position={[0, -0.05, 0]}
+          rotation={[0, 0, 0]}
+          scale={[8, 0.1, 6]}
+          renderMesh
+        />
+        {/* wall - North Wall | role=environment | group=environment */}
+        <EnvironmentGroup
+          sourceId="wall"
+          name="North Wall"
+          position={[0, 1.6, -3]}
+          rotation={[0, 0, 0]}
+          scale={[8, 3.2, 0.12]}
+          renderMesh
+        />
+        {/* product_01 - Product 01 | role=product | group=display_area | traits=clickable,hoverable,displayable,focusable | behavior=click_select,hover_highlight,show_info,focus_camera */}
+        <Product
+          sourceId="product_01"
+          name="Product 01"
+          position={[-1.25, 0.5, 0]}
+          rotation={[0, 0.4, 0]}
+          scale={[0.65, 0.9, 0.65]}
+          renderMesh
+          onHoverStart={() => handleHoverStart('product_01')}
+          onHoverEnd={() => handleHoverEnd('product_01')}
+          onSelect={() => {
+            handleSelect('product_01');
+            handleFocusCamera('product_01');
+          }}
+        />
+        {selectedId === 'product_01' ? (
+          <>{/* TODO: render info panel for Product information: Interactive showroom item generated from structured scene metadata.. */}</>
+        ) : null}
+        {/* bench - Bench | role=seating | group=seating_area | traits=seatable,focusable | behavior=focus_camera,anchor_point */}
+        {/* TODO: anchor_point is scaffolded as a developer hook; no runtime behavior is generated. */}
+        <SeatingElement
+          sourceId="bench"
+          name="Bench"
+          position={[-2.6, 0.32, 1.9]}
+          rotation={[0, 0.18, 0]}
+          scale={[1.5, 0.45, 0.55]}
+          renderMesh
+          onSelect={() => handleFocusCamera('bench')}
+        />
+        {/* display_table - Display Table | role=display | group=display_area | traits=displayable | behavior=show_info */}
+        <DisplaySurface
+          sourceId="display_table"
+          name="Display Table"
+          position={[-0.4, 0.28, 0.15]}
+          rotation={[0, -0.12, 0]}
+          scale={[1.8, 0.35, 0.9]}
+          renderMesh
+        />
+        {selectedId === 'display_table' ? (
+          <>{/* TODO: render info panel for Display Table. */}</>
+        ) : null}
+        {/* product_03 - Product 03 | role=product | group=display_area | traits=clickable,hoverable,displayable,focusable | behavior=click_select,hover_highlight,show_info,focus_camera */}
+        <Product
+          sourceId="product_03"
+          name="Product 03"
+          position={[1.25, 0.5, 0]}
+          rotation={[0, 0.85, 0]}
+          scale={[0.55, 1.1, 0.55]}
+          renderMesh
+          onHoverStart={() => handleHoverStart('product_03')}
+          onHoverEnd={() => handleHoverEnd('product_03')}
+          onSelect={() => {
+            handleSelect('product_03');
+            handleFocusCamera('product_03');
+          }}
+        />
+        {selectedId === 'product_03' ? (
+          <>{/* TODO: render info panel for Product information: Interactive showroom item generated from structured scene metadata.. */}</>
+        ) : null}
+        {/* light_fill - Light Fill | role=lighting | group=lighting_zone */}
+        <SceneLight
+          sourceId="light_fill"
+          name="Light Fill"
+          position={[3.1, 2.4, 2.5]}
+          rotation={[0, -0.4, 0]}
+          scale={[0.25, 0.25, 0.25]}
+          lightKind="ambient"
+          lightIntensity={0.35}
+        />
+        {/* chair - Chair | role=seating | group=seating_area | traits=seatable,focusable | behavior=focus_camera,anchor_point */}
+        {/* TODO: anchor_point is scaffolded as a developer hook; no runtime behavior is generated. */}
+        <SeatingElement
+          sourceId="chair"
+          name="Chair"
+          position={[2.7, 0.45, 1.65]}
+          rotation={[0, -0.55, 0]}
+          scale={[0.75, 0.9, 0.75]}
+          renderMesh
+          onSelect={() => handleFocusCamera('chair')}
+        />
+        {/* display_plinth - Display Plinth | role=display | group=display_area | traits=displayable | behavior=show_info */}
+        <DisplaySurface
+          sourceId="display_plinth"
+          name="Display Plinth"
+          position={[1.3, 0.32, 1.15]}
+          rotation={[0, 0.1, 0]}
+          scale={[0.9, 0.65, 0.9]}
+          renderMesh
+        />
+        {selectedId === 'display_plinth' ? (
+          <>{/* TODO: render info panel for Display Plinth. */}</>
+        ) : null}
+        {/* product_02 - Product 02 | role=product | group=display_area | traits=clickable,hoverable,displayable,focusable | behavior=click_select,hover_highlight,show_info,focus_camera */}
+        <Product
+          sourceId="product_02"
+          name="Product 02"
+          position={[0, 0.5, 0]}
+          rotation={[0, -0.25, 0]}
+          scale={[0.8, 0.7, 0.8]}
+          renderMesh
+          onHoverStart={() => handleHoverStart('product_02')}
+          onHoverEnd={() => handleHoverEnd('product_02')}
+          onSelect={() => {
+            handleSelect('product_02');
+            handleFocusCamera('product_02');
+          }}
+        />
+        {selectedId === 'product_02' ? (
+          <>{/* TODO: render info panel for Product information: Interactive showroom item generated from structured scene metadata.. */}</>
+        ) : null}
+        {/* light_key - Light Key | role=lighting | group=lighting_zone */}
+        <SceneLight
+          sourceId="light_key"
+          name="Light Key"
+          position={[-3.2, 3.4, 2.2]}
+          rotation={[0, 0.5, 0]}
+          scale={[0.25, 0.25, 0.25]}
+          lightKind="directional"
+          lightIntensity={1.2}
+          lightCastShadow
+        />
+        {/* backdrop_panel - Backdrop Panel | role=environment | group=environment */}
+        <EnvironmentGroup
+          sourceId="backdrop_panel"
+          name="Backdrop Panel"
+          position={[-2.4, 1.05, -2.65]}
+          rotation={[0, 0.18, 0]}
+          scale={[1.6, 2.1, 0.1]}
+          renderMesh
+        />
+      </group>
+    </>
+  );
+}
+"
+`;

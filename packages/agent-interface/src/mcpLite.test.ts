@@ -92,6 +92,61 @@ describe('createMcpLiteRuntime', () => {
     expect(expectOk(runtime.getScene()).scene.nodes.product_01!.transform.position).not.toEqual(before);
   });
 
+  it('arrangeNodes can target nodes by semantic role', () => {
+    const runtime = createMcpLiteRuntime(showroomScene);
+    expectOk(runtime.structureScene());
+    const before = expectOk(runtime.getScene()).scene.nodes.product_01!.transform.position;
+
+    const arranged = expectOk(
+      runtime.arrangeNodes({
+        role: 'product',
+        layout: 'line',
+        options: { spacing: 1.1, axis: 'x' },
+      }),
+    );
+
+    expect(arranged.changed).toBe(true);
+    expect(expectOk(runtime.getScene()).scene.nodes.product_01!.transform.position).not.toEqual(before);
+  });
+
+  it('getSelection and generic exportScene expose the lite API shape', () => {
+    const runtime = createMcpLiteRuntime(showroomScene);
+    expectOk(runtime.applyCommand({ type: 'SET_SELECTION', nodeId: 'product_01' }));
+
+    expect(expectOk(runtime.getSelection()).selection).toBe('product_01');
+    expect(expectOk(runtime.exportScene({ format: 'json' })).format).toBe('json');
+    expect(
+      expectOk(
+        runtime.exportScene({
+          format: 'r3f',
+          options: { mode: 'module', componentName: 'LiteScene' },
+        }),
+      ).content,
+    ).toContain('export function LiteScene()');
+  });
+
+  it('records dry-run, apply, and error actions without timestamps', () => {
+    const runtime = createMcpLiteRuntime(showroomScene);
+    expectOk(runtime.structureScene({ dryRun: true }));
+    expectOk(runtime.structureScene());
+    runtime.applyCommand({ type: 'DELETE_NODE', nodeId: 'missing' });
+
+    const entries = expectOk(runtime.getActionLog()).entries;
+    expect(entries.map((entry) => entry.sequence)).toEqual([1, 2, 3]);
+    expect(entries.every((entry) => !('timestamp' in entry))).toBe(true);
+    expect(entries).toEqual([
+      expect.objectContaining({ type: 'command', source: 'agent', dryRun: true, changed: true }),
+      expect.objectContaining({ type: 'command', source: 'agent', dryRun: false, changed: true }),
+      expect.objectContaining({
+        type: 'command',
+        source: 'agent',
+        dryRun: false,
+        changed: false,
+        error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+      }),
+    ]);
+  });
+
   it('dry-runs and applies command batches atomically', () => {
     const runtime = createMcpLiteRuntime(showroomScene);
     const commands = [

@@ -54,20 +54,9 @@ instead of throwing.
 
 ## Future Tool Mapping
 
-| Future MCP tool | MCP-lite helper | Input | Output | Mutates? | Dry-run support |
-|-----------------|-----------------|-------|--------|----------|-----------------|
-| `get_scene` | `getScene()` | none | cloned `Scene` | No | N/A |
-| `get_semantic_groups` | `getSemanticGroups()` | none | `Record<string, SemanticGroup>` | No | N/A |
-| `get_behaviors` | `getBehaviors()` | none | `Record<string, BehaviorDefinition>` | No | N/A |
-| `dry_run_command` | `dryRunCommand(command)` | unknown command payload | `ApplyCommandResult` | No | Built-in |
-| `apply_command` | `applyCommand(command)` | unknown command payload | `ApplyCommandResult` | Yes | Use dry-run tool first |
-| `dry_run_command_batch` | `dryRunCommandBatch(commands)` | unknown command array | `CommandBatchResult` | No | Built-in |
-| `apply_command_batch` | `applyCommandBatch(commands)` | unknown command array | `CommandBatchResult` | Yes | Use dry-run tool first |
-| `structure_scene` | `structureScene({ preset, dryRun? })` | preset (`showroom`) | command result | Optional | Yes |
-| `make_interactive` | `makeInteractive({ targetRole, dryRun? })` | semantic role | command result | Optional | Yes |
-| `arrange_nodes` | `arrangeNodes({ nodeIds, layout, options, dryRun? })` | arrange payload | command result | Optional | Yes |
-| `export_r3f` | `exportR3F(options)` | R3F options | `{ content, mediaType }` | No | N/A |
-| `export_json` | `exportJSON()` | none | `{ content, mediaType }` | No | N/A |
+The full future MCP tool contract now lives in `docs/mcp-tools.md`. MCP-lite
+keeps the same boundary: helpers compile to commands or delegate to the
+agent-interface runtime, and real transport remains deferred.
 
 ## Go Criteria For Real MCP
 

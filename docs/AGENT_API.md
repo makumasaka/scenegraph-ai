@@ -80,44 +80,55 @@ This is an agent/runtime action log, not the web product's visible command log.
 
 ## Runtime Architecture
 
-Future direction:
+Target MCP direction:
 
 ```text
-Cursor/Claude -> local Diorama MCP server -> Diorama commands -> live canvas -> export code
+Cursor/Claude/Codex
+  -> local Diorama MCP server
+  -> Diorama agent runtime
+  -> validated commands
+  -> structured scene
+  -> R3F export
 ```
 
 Current boundary:
 
-- MCP remains deferred.
+- MCP-lite is implemented as a library/runtime facade, not transport.
 - `packages/mcp` currently re-exports `@diorama/agent-interface` for future tool
   handlers.
-- Future MCP tools should wrap `DioramaSceneRuntime`.
+- Future MCP tools must wrap `DioramaSceneRuntime` or the MCP-lite facade.
 - MCP must not invent a second scene shape or mutation path.
 - MCP must not connect directly to Zustand.
 - MCP must not access R3F objects, files, shells, or arbitrary JS execution.
+- Mutating future MCP tools must validate payloads, support dry-run, and log
+  applied actions through the runtime action log or an explicitly scoped
+  successor.
 
 ## Future MCP Mapping
 
-ADR 011 defines the future MCP tool contract. Narrow MCP tools should compile to
-the runtime APIs below instead of bypassing commands.
+`docs/mcp-tools.md` is the canonical future MCP tool contract. ADR 011 records
+the architecture decision. Narrow MCP tools should compile to runtime APIs or
+validated commands instead of bypassing commands.
 
-| Future MCP tool | Runtime API |
+| Future MCP tool | Underlying agent-interface API |
 | --- | --- |
-| `get_scene_graph` | `getScene()` |
-| `get_selected_nodes` / `get_selection` | `getSelection()` |
-| `select_nodes` | `applyCommand({ type: "SET_SELECTION", ... })` |
-| `apply_command` | `applyCommand()` |
-| `dry_run_command` | `dryRunCommand()` |
-| `apply_command_batch` | `applyCommandBatch()` |
-| `dry_run_command_batch` | `dryRunCommandBatch()` |
-| `update_transform` | `applyCommand({ type: "UPDATE_TRANSFORM", ... })` |
-| `duplicate_node` | `applyCommand({ type: "DUPLICATE_NODE", ... })` |
-| `set_parent` | `applyCommand({ type: "SET_PARENT", ... })` |
-| `arrange_nodes` | `applyCommand({ type: "ARRANGE_NODES", ... })` |
-| `load_scene` | `loadScene()` |
-| `export_r3f` | `exportScene({ format: "r3f" })` |
+| `get_scene` | `getScene()` |
+| `get_semantic_groups` | MCP-lite facade over `getScene().scene.semanticGroups ?? {}` |
+| `get_behaviors` | MCP-lite facade over `getScene().scene.behaviors ?? {}` |
+| `get_selected_nodes` | `getSelection()` plus `getScene()` when node details are requested |
+| `structure_scene` | `structureScene()` or `applyCommand({ type: "STRUCTURE_SCENE", ... })` |
+| `set_node_semantics` | `applyCommand({ type: "SET_NODE_SEMANTICS", ... })` |
+| `create_semantic_group` | `applyCommand({ type: "CREATE_SEMANTIC_GROUP", ... })` |
+| `assign_to_semantic_group` | `applyCommand({ type: "ASSIGN_TO_SEMANTIC_GROUP", ... })` |
+| `add_behavior` | `applyCommand({ type: "ADD_BEHAVIOR", ... })` |
+| `remove_behavior` | `applyCommand({ type: "REMOVE_BEHAVIOR", ... })` |
+| `make_interactive` | `makeInteractive()` or `applyCommand({ type: "MAKE_INTERACTIVE", ... })` |
+| `arrange_nodes` | `arrangeNodes()` or `applyCommand({ type: "ARRANGE_NODES", ... })` |
+| `apply_command` | `dryRunCommand()` / `applyCommand()` |
+| `apply_command_batch` | `dryRunCommandBatch()` / `applyCommandBatch()` |
+| `load_scene` | `loadScene()` plus an MCP adapter dry-run validation path |
 | `export_json` | `exportScene({ format: "json" })` |
-| `get_command_log` | `getCommandLog()` |
+| `export_r3f` | `exportScene({ format: "r3f", r3f })` |
 
 ## Eval Contract
 

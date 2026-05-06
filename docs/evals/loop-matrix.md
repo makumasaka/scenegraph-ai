@@ -282,51 +282,67 @@ Owner: future MCP owner with QA Agent.
 
 Required APIs:
 
-- `get_scene_graph`
+- `get_scene`
+- `get_semantic_groups`
+- `get_behaviors`
 - `get_selected_nodes`
-- `select_nodes`
-- `dry_run_command`
-- `apply_command`
-- `dry_run_command_batch`
-- `apply_command_batch`
-- `update_transform`
-- `duplicate_node`
-- `set_parent`
+- `structure_scene`
+- `set_node_semantics`
+- `create_semantic_group`
+- `assign_to_semantic_group`
+- `add_behavior`
+- `remove_behavior`
+- `make_interactive`
 - `arrange_nodes`
+- `apply_command`
+- `apply_command_batch`
 - `load_scene`
 - `export_json`
 - `export_r3f`
-- `get_command_log`
 
 Flow:
 
-1. External agent reads scene state.
-2. Agent reads selection when needed.
-3. Agent proposes a command or command batch.
-4. Tool dry-runs the command or command batch.
-5. Tool applies the command or command batch only after dry-run succeeds.
-6. Scene updates through the same reducer.
-7. Tool exports JSON or R3F.
-8. Eval replays the same command batch from the original scene.
-9. Eval verifies tool action logs include source, payload, dry-run status, and
-   result data for mutating tools.
+1. Cursor, Claude, or Codex connects to a local Diorama MCP server.
+2. The MCP server wraps the Diorama agent runtime only.
+3. External agent reads scene state with `get_scene`.
+4. Agent inspects `get_semantic_groups`, `get_behaviors`, and
+   `get_selected_nodes` when needed.
+5. Agent proposes a narrow mutation tool call or generic command batch.
+6. Tool validates the payload and dry-runs the mutation.
+7. Tool applies only after dry-run succeeds.
+8. Scene updates through validated commands or validated scene replacement.
+9. Tool exports JSON or R3F from the structured scene.
+10. Eval replays the same command batch from the original scene.
+11. Eval verifies applied actions are logged with source, payload, dry-run
+    status, result data, errors, and warnings.
 
 Pass criteria:
 
 - Every write validates payloads.
 - Common tools use narrow schemas; generic `apply_command` remains available for
   advanced command payloads.
-- `select_nodes` validates ids, maps to `SET_SELECTION`, supports dry-run, and
-  mutates selection only.
-- `update_transform` validates a non-empty transform patch, maps to
-  `UPDATE_TRANSFORM`, supports dry-run, and mutates scene transforms only.
-- `duplicate_node` validates node id and deterministic `idMap`, maps to
-  `DUPLICATE_NODE`, supports dry-run, and mutates scene.
-- `set_parent` validates hierarchy requests, maps to `SET_PARENT`, supports
-  dry-run, and mutates scene hierarchy.
+- `structure_scene` maps to `STRUCTURE_SCENE`, supports dry-run, and mutates
+  semantic groups and node semantics only through core commands.
+- `set_node_semantics` maps to `SET_NODE_SEMANTICS`, supports dry-run, and
+  mutates node semantics only.
+- `create_semantic_group` maps to `CREATE_SEMANTIC_GROUP`, supports dry-run,
+  and mutates semantic group definitions.
+- `assign_to_semantic_group` maps to `ASSIGN_TO_SEMANTIC_GROUP`, supports
+  dry-run, and mutates group membership plus node semantics.
+- `add_behavior` maps to `ADD_BEHAVIOR`, supports dry-run, and mutates behavior
+  definitions and refs.
+- `remove_behavior` maps to `REMOVE_BEHAVIOR`, supports dry-run, and removes
+  behavior definitions and refs.
+- `make_interactive` maps to `MAKE_INTERACTIVE`, supports dry-run, and creates
+  structured behavior definitions from semantic roles.
 - `arrange_nodes` validates layout/options, maps to `ARRANGE_NODES`, supports
   dry-run, and mutates scene transforms.
+- `apply_command` validates generic command payloads with `CommandSchema` and
+  supports dry-run.
+- `apply_command_batch` validates command arrays with `CommandSchema`, supports
+  dry-run, and commits atomically only when all commands pass.
 - `load_scene` validates a full scene or JSON and acts as a session boundary.
+- `load_scene` supports a future MCP dry-run validation path before committing.
 - `export_json` and `export_r3f` validate options and never mutate scene state.
 - No tool mutates hidden state directly.
 - Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
@@ -337,12 +353,12 @@ Pass criteria:
   JavaScript execution, direct Zustand access, or direct R3F object access.
 - Every mutating tool logs source, payload, dry-run status, result, errors, and
   warnings through the runtime action log or an explicitly scoped successor.
-- Future tools expose committed action history through `get_command_log` if MCP
-  agents need observability.
+- Future tools record action history through the runtime action log or an
+  explicitly scoped successor.
 - Command replay produces the same final scene.
-- Real MCP transport remains no-go until command validation, dry-run, action
-  logging, replay tests, export snapshots, runtime adapter choice, live canvas
-  bridge architecture, and security review are complete.
+- Real MCP transport remains no-go until schema, R3F bridge, command
+  validation, dry-run, batch API, action log scope, replay tests, export
+  snapshots, runtime adapter decision, and security review are complete.
 
 Tests live in:
 
@@ -351,3 +367,4 @@ Tests live in:
 - `packages/agent-interface/src/mcpSimulation.eval.test.ts`
 - eval fixtures in `docs/evals/fixtures/m7`
 - `docs/adr/011-mcp-tool-contract.md`
+- `docs/mcp-tools.md`

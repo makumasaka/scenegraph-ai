@@ -12,7 +12,17 @@
   ],
   "tools": [
     {
-      "name": "get_scene_graph",
+      "name": "get_scene",
+      "runtimeMethod": "getScene",
+      "type": "read"
+    },
+    {
+      "name": "get_semantic_groups",
+      "runtimeMethod": "getScene",
+      "type": "read"
+    },
+    {
+      "name": "get_behaviors",
       "runtimeMethod": "getScene",
       "type": "read"
     },
@@ -22,14 +32,44 @@
       "type": "read"
     },
     {
-      "name": "select_nodes",
+      "name": "structure_scene",
       "runtimeMethod": "applyCommand",
       "type": "write"
     },
     {
-      "name": "dry_run_command",
-      "runtimeMethod": "dryRunCommand",
-      "type": "preview"
+      "name": "set_node_semantics",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "create_semantic_group",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "assign_to_semantic_group",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "add_behavior",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "remove_behavior",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "make_interactive",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
+    },
+    {
+      "name": "arrange_nodes",
+      "runtimeMethod": "applyCommand",
+      "type": "write"
     },
     {
       "name": "apply_command",
@@ -37,33 +77,8 @@
       "type": "write"
     },
     {
-      "name": "dry_run_command_batch",
-      "runtimeMethod": "dryRunCommandBatch",
-      "type": "preview"
-    },
-    {
       "name": "apply_command_batch",
       "runtimeMethod": "applyCommandBatch",
-      "type": "write"
-    },
-    {
-      "name": "update_transform",
-      "runtimeMethod": "applyCommand",
-      "type": "write"
-    },
-    {
-      "name": "duplicate_node",
-      "runtimeMethod": "applyCommand",
-      "type": "write"
-    },
-    {
-      "name": "set_parent",
-      "runtimeMethod": "applyCommand",
-      "type": "write"
-    },
-    {
-      "name": "arrange_nodes",
-      "runtimeMethod": "applyCommand",
       "type": "write"
     },
     {
@@ -80,12 +95,7 @@
       "name": "export_r3f",
       "runtimeMethod": "exportScene",
       "type": "read"
-    },
-    {
-      "name": "get_command_log",
-      "runtimeMethod": "getCommandLog",
-      "type": "read"
     }
   ],
-  "version": 1
+  "version": 2
 }

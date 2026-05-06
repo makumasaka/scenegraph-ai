@@ -78,7 +78,13 @@ describe('Milestone 7 MCP simulation eval', () => {
     expect(preview.warnings).toEqual(fixture.expectedWarnings);
     expect(expectOk(session.getScene()).scene).toEqual(before);
     expect(expectOk(session.getSelection()).selection).toBe(selectionBefore);
-    expect(expectOk(session.getCommandLog()).entries).toEqual([]);
+    expect(expectOk(session.getActionLog()).entries).toEqual([
+      expect.objectContaining({
+        type: 'command_batch',
+        dryRun: true,
+        changed: true,
+      }),
+    ]);
 
     const applied = expectOk(session.applyCommandBatch(fixture.commands));
     expect(applied.dryRun).toBe(false);
@@ -97,11 +103,19 @@ describe('Milestone 7 MCP simulation eval', () => {
     }
 
     const log = expectOk(session.getCommandLog()).entries;
-    expect(log).toHaveLength(1);
+    expect(log).toHaveLength(2);
     expect(log[0]).toEqual(
       expect.objectContaining({
         sequence: 1,
-        operation: 'command_batch',
+        type: 'command_batch',
+        dryRun: true,
+        changed: true,
+      }),
+    );
+    expect(log[1]).toEqual(
+      expect.objectContaining({
+        sequence: 2,
+        type: 'command_batch',
         dryRun: false,
         changed: true,
       }),
@@ -144,6 +158,19 @@ describe('Milestone 7 MCP simulation eval', () => {
     expect(applied.errors).toEqual(fixture.expectedErrors);
     expect(applied.appliedCommandCount).toBe(0);
     expect(expectOk(session.getScene()).scene).toEqual(before);
-    expect(expectOk(session.getCommandLog()).entries).toEqual([]);
+    expect(expectOk(session.getActionLog()).entries).toEqual([
+      expect.objectContaining({
+        type: 'command_batch',
+        dryRun: true,
+        changed: false,
+        error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+      }),
+      expect.objectContaining({
+        type: 'command_batch',
+        dryRun: false,
+        changed: false,
+        error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+      }),
+    ]);
   });
 });

@@ -86,7 +86,9 @@ describe('Milestone 6 agent-ready internal API', () => {
       expect(preview.changed).toBe(true);
       expect(preview.scene.nodes.box).toBeDefined();
       expect(expectOk(session.getScene()).scene.nodes.box).toBeUndefined();
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({ type: 'command', dryRun: true, changed: true }),
+      ]);
     });
 
     it('applyCommand mutates through the core reducer and records a deterministic action', () => {
@@ -104,10 +106,10 @@ describe('Milestone 6 agent-ready internal API', () => {
         expect.objectContaining({
           sequence: 1,
           source: 'agent',
-          operation: 'command',
+          type: 'command',
           dryRun: false,
           changed: true,
-          command: expect.objectContaining({ type: 'ADD_NODE' }),
+          summary: expect.objectContaining({ title: 'Add node' }),
         }),
       ]);
     });
@@ -126,7 +128,13 @@ describe('Milestone 6 agent-ready internal API', () => {
 
       expect(error.code).toBe('VALIDATION_ERROR');
       expect(expectOk(session.getScene()).scene).toEqual(before);
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({
+          type: 'command',
+          changed: false,
+          error: expect.objectContaining({ code: 'VALIDATION_ERROR' }),
+        }),
+      ]);
     });
 
     it('returns structured errors for schema-valid but semantically invalid commands', () => {
@@ -135,7 +143,13 @@ describe('Milestone 6 agent-ready internal API', () => {
 
       expect(error.code).toBe('COMMAND_REJECTED');
       expect(error.message).toBe('DELETE_NODE nodeId does not exist');
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({
+          type: 'command',
+          changed: false,
+          error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+        }),
+      ]);
     });
 
     it('surfaces warnings for nondeterministic duplicate ids', () => {
@@ -177,7 +191,9 @@ describe('Milestone 6 agent-ready internal API', () => {
       expect(result.appliedCommandCount).toBe(0);
       expect(result.scene.nodes.box?.transform.position).toEqual([1, 2, 3]);
       expect(expectOk(session.getScene()).scene.nodes.box).toBeUndefined();
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({ type: 'command_batch', dryRun: true, changed: true }),
+      ]);
     });
 
     it('applyCommandBatch applies a valid sequence and logs one batch action', () => {
@@ -193,7 +209,7 @@ describe('Milestone 6 agent-ready internal API', () => {
       expect(expectOk(session.getCommandLog()).entries).toEqual([
         expect.objectContaining({
           sequence: 1,
-          operation: 'command_batch',
+          type: 'command_batch',
           dryRun: false,
           changed: true,
         }),
@@ -223,7 +239,13 @@ describe('Milestone 6 agent-ready internal API', () => {
       expect(result.appliedCommandCount).toBe(0);
       expect(result.failedCommandIndex).toBe(1);
       expect(expectOk(session.getScene()).scene.nodes.box).toBeUndefined();
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({
+          type: 'command_batch',
+          changed: false,
+          error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+        }),
+      ]);
     });
 
     it('reports schema-invalid commands in a batch clearly', () => {
@@ -299,11 +321,11 @@ describe('Milestone 6 agent-ready internal API', () => {
       expectOk(session.loadScene({ kind: 'scene', scene: galleryScene }));
 
       expect(expectOk(session.getCommandLog()).entries).toEqual([
-        expect.objectContaining({ sequence: 1, operation: 'command' }),
+        expect.objectContaining({ sequence: 1, type: 'command' }),
         expect.objectContaining({
           sequence: 2,
-          source: 'import',
-          operation: 'load_scene',
+          source: 'system',
+          type: 'load_scene',
           dryRun: false,
           changed: true,
         }),
@@ -358,11 +380,11 @@ describe('Milestone 6 agent-ready internal API', () => {
       const entries = expectOk(session.getCommandLog()).entries;
       expect(entries.map((entry) => entry.sequence)).toEqual([1, 2]);
       expect(entries.every((entry) => !('timestamp' in entry))).toBe(true);
-      expect(entries[0]).toEqual(expect.objectContaining({ operation: 'command' }));
-      expect(entries[1]).toEqual(expect.objectContaining({ operation: 'command_batch' }));
+      expect(entries[0]).toEqual(expect.objectContaining({ type: 'command' }));
+      expect(entries[1]).toEqual(expect.objectContaining({ type: 'command_batch' }));
     });
 
-    it('does not log dry-run actions or rejected commands under the accepted policy', () => {
+    it('logs dry-run actions and rejected commands without mutating scene state', () => {
       const session = createAgentSession(createEmptyScene());
       const rootId = expectOk(session.getScene()).scene.rootId;
       expectOk(session.dryRunCommand(addBoxCommand(rootId)));
@@ -374,7 +396,16 @@ describe('Milestone 6 agent-ready internal API', () => {
         ]),
       );
 
-      expect(expectOk(session.getCommandLog()).entries).toHaveLength(0);
+      expect(expectOk(session.getActionLog()).entries).toEqual([
+        expect.objectContaining({ type: 'command', dryRun: true, changed: true }),
+        expect.objectContaining({
+          type: 'command',
+          dryRun: false,
+          changed: false,
+          error: expect.objectContaining({ code: 'COMMAND_REJECTED' }),
+        }),
+        expect.objectContaining({ type: 'command_batch', dryRun: true, changed: true }),
+      ]);
     });
 
     it('getCommandLog returns safe copies', () => {
@@ -384,11 +415,11 @@ describe('Milestone 6 agent-ready internal API', () => {
 
       const first = expectOk(session.getCommandLog()).entries;
       first[0]!.changed = false;
-      first[0]!.command = { type: 'DELETE_NODE', nodeId: 'box' };
+      first[0]!.summary = { title: 'Tampered', detail: 'Tampered' };
 
       const second = expectOk(session.getCommandLog()).entries;
       expect(second[0]?.changed).toBe(true);
-      expect(second[0]?.command).toEqual(expect.objectContaining({ type: 'ADD_NODE' }));
+      expect(second[0]?.summary).toEqual(expect.objectContaining({ title: 'Add node' }));
     });
   });
 
@@ -403,6 +434,7 @@ describe('Milestone 6 agent-ready internal API', () => {
         'dryRunCommand',
         'dryRunCommandBatch',
         'exportScene',
+        'getActionLog',
         'getCommandLog',
         'getScene',
         'getSelection',

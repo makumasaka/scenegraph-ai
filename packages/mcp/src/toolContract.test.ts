@@ -5,7 +5,7 @@ import { createAgentSession } from './index';
 type FutureTool = {
   name: string;
   runtimeMethod: string;
-  type: 'read' | 'preview' | 'write';
+  type: 'read' | 'write';
 };
 
 type ToolContractFixture = {
@@ -23,23 +23,25 @@ describe('Milestone 7 future MCP tool contract', () => {
     const session = createAgentSession();
     const runtimeKeys = Object.keys(session).sort();
 
-    expect(fixture.version).toBe(1);
+    expect(fixture.version).toBe(2);
     expect(fixture.tools.map((tool) => tool.name)).toEqual([
-      'get_scene_graph',
+      'get_scene',
+      'get_semantic_groups',
+      'get_behaviors',
       'get_selected_nodes',
-      'select_nodes',
-      'dry_run_command',
-      'apply_command',
-      'dry_run_command_batch',
-      'apply_command_batch',
-      'update_transform',
-      'duplicate_node',
-      'set_parent',
+      'structure_scene',
+      'set_node_semantics',
+      'create_semantic_group',
+      'assign_to_semantic_group',
+      'add_behavior',
+      'remove_behavior',
+      'make_interactive',
       'arrange_nodes',
+      'apply_command',
+      'apply_command_batch',
       'load_scene',
       'export_json',
       'export_r3f',
-      'get_command_log',
     ]);
 
     for (const tool of fixture.tools) {
@@ -51,23 +53,29 @@ describe('Milestone 7 future MCP tool contract', () => {
     const writeTools = fixture.tools.filter((tool) => tool.type === 'write');
 
     expect(writeTools.map((tool) => tool.name)).toEqual([
-      'select_nodes',
+      'structure_scene',
+      'set_node_semantics',
+      'create_semantic_group',
+      'assign_to_semantic_group',
+      'add_behavior',
+      'remove_behavior',
+      'make_interactive',
+      'arrange_nodes',
       'apply_command',
       'apply_command_batch',
-      'update_transform',
-      'duplicate_node',
-      'set_parent',
-      'arrange_nodes',
       'load_scene',
     ]);
     expect(writeTools.map((tool) => tool.runtimeMethod)).toEqual([
       'applyCommand',
       'applyCommand',
+      'applyCommand',
+      'applyCommand',
+      'applyCommand',
+      'applyCommand',
+      'applyCommand',
+      'applyCommand',
+      'applyCommand',
       'applyCommandBatch',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
       'loadScene',
     ]);
   });

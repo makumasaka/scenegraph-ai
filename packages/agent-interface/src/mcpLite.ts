@@ -3,6 +3,7 @@ import type {
   BehaviorDefinition,
   Scene,
   SemanticGroup,
+  SemanticRole,
 } from '@diorama/schema';
 import { SemanticRoleSchema } from '@diorama/schema';
 import type { Command } from '@diorama/core';
@@ -13,6 +14,8 @@ import {
 import {
   createAgentSession,
   type AgentSession,
+  type ActionLogEntry,
+  type ApplyCommandOptions,
   type ApplyCommandResult,
   type CommandBatchResult,
   type ExportSceneResult,
@@ -39,6 +42,13 @@ const DryRunOptionSchema = z
   })
   .strict();
 
+const CommandOptionSchema = z
+  .object({
+    dryRun: z.boolean().optional(),
+    source: z.enum(['agent', 'system', 'user']).optional(),
+  })
+  .strict();
+
 export const StructureSceneInputSchema = DryRunOptionSchema.extend({
   preset: z.literal('showroom').optional(),
 });
@@ -61,9 +71,12 @@ const ArrangeOptionsSchema = z
   .strict();
 
 export const ArrangeNodesInputSchema = DryRunOptionSchema.extend({
-  nodeIds: z.array(z.string().min(1)),
+  nodeIds: z.array(z.string().min(1)).optional(),
+  role: SemanticRoleSchema.optional(),
   layout: z.enum(['line', 'grid', 'circle']),
   options: ArrangeOptionsSchema.optional(),
+}).refine((input) => input.nodeIds !== undefined || input.role !== undefined, {
+  message: 'arrangeNodes requires nodeIds or role',
 });
 
 export type ArrangeNodesInput = z.infer<typeof ArrangeNodesInputSchema>;
@@ -82,21 +95,31 @@ export const ExportR3FInputSchema = z
 
 export type ExportR3FInput = z.infer<typeof ExportR3FInputSchema>;
 
+export const McpLiteExportSceneInputSchema = z
+  .object({
+    format: z.enum(['json', 'r3f']),
+    options: ExportR3FInputSchema.optional(),
+  })
+  .strict();
+
+export type McpLiteExportSceneInput = z.infer<typeof McpLiteExportSceneInputSchema>;
+
 export type McpLiteRuntime = {
   getScene(): AgentResult<{ scene: Scene }>;
   getSemanticGroups(): AgentResult<{ semanticGroups: Record<string, SemanticGroup> }>;
   getBehaviors(): AgentResult<{ behaviors: Record<string, BehaviorDefinition> }>;
+  getSelection(): AgentResult<{ selection: string | null }>;
+  getActionLog(): AgentResult<{ entries: ActionLogEntry[] }>;
   dryRunCommand(input: unknown): AgentResult<ApplyCommandResult>;
-  applyCommand(input: unknown): AgentResult<ApplyCommandResult>;
+  applyCommand(input: unknown, options?: unknown): AgentResult<ApplyCommandResult>;
   dryRunCommandBatch(input: unknown): AgentResult<CommandBatchResult>;
-  applyCommandBatch(input: unknown): AgentResult<CommandBatchResult>;
+  applyCommandBatch(input: unknown, options?: unknown): AgentResult<CommandBatchResult>;
   structureScene(input?: unknown): AgentResult<ApplyCommandResult>;
   makeInteractive(input?: unknown): AgentResult<ApplyCommandResult>;
   arrangeNodes(input: unknown): AgentResult<ApplyCommandResult>;
+  exportScene(input: unknown): AgentResult<ExportSceneResult>;
   exportR3F(input?: unknown): AgentResult<ExportSceneResult>;
   exportJSON(): AgentResult<ExportSceneResult>;
-  /** Exposes the underlying safe runtime for tests and future transport adapters. */
-  runtime: AgentSession;
 };
 
 const commandResult = (
@@ -108,12 +131,26 @@ const commandResult = (
     ? runtime.dryRunCommand(command)
     : runtime.applyCommand(command, { source: 'agent' });
 
+const nodeIdsForRole = (scene: Scene, role: SemanticRole): string[] =>
+  Object.values(scene.nodes)
+    .filter((node) => node.id !== scene.rootId)
+    .filter((node) => node.semantics?.role === role || node.semanticRole === role)
+    .map((node) => node.id);
+
+const parseCommandOptions = (
+  input: unknown,
+): AgentResult<ApplyCommandOptions> => {
+  const parsed = CommandOptionSchema.safeParse(input ?? {});
+  if (!parsed.success) {
+    return validationError('Invalid command options payload', parsed.error);
+  }
+  return ok(parsed.data);
+};
+
 export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
   const runtime = createAgentSession(initialScene);
 
   return {
-    runtime,
-
     getScene() {
       return runtime.getScene();
     },
@@ -134,20 +171,38 @@ export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
       });
     },
 
+    getSelection() {
+      return runtime.getSelection();
+    },
+
+    getActionLog() {
+      return runtime.getActionLog();
+    },
+
     dryRunCommand(input: unknown) {
       return runtime.dryRunCommand(input);
     },
 
-    applyCommand(input: unknown) {
-      return runtime.applyCommand(input, { source: 'agent' });
+    applyCommand(input: unknown, options?: unknown) {
+      const parsedOptions = parseCommandOptions(options);
+      if (!parsedOptions.ok) return parsedOptions;
+      return runtime.applyCommand(input, {
+        source: parsedOptions.data.source ?? 'agent',
+        dryRun: parsedOptions.data.dryRun,
+      });
     },
 
     dryRunCommandBatch(input: unknown) {
       return runtime.dryRunCommandBatch(input);
     },
 
-    applyCommandBatch(input: unknown) {
-      return runtime.applyCommandBatch(input, { source: 'agent' });
+    applyCommandBatch(input: unknown, options?: unknown) {
+      const parsedOptions = parseCommandOptions(options);
+      if (!parsedOptions.ok) return parsedOptions;
+      return runtime.applyCommandBatch(input, {
+        source: parsedOptions.data.source ?? 'agent',
+        dryRun: parsedOptions.data.dryRun,
+      });
     },
 
     structureScene(input: unknown = {}) {
@@ -182,11 +237,17 @@ export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
       if (!parsed.success) {
         return validationError('Invalid arrangeNodes payload', parsed.error);
       }
+      let nodeIds = parsed.data.nodeIds;
+      if (nodeIds === undefined) {
+        const scene = runtime.getScene();
+        if (!scene.ok) return scene;
+        nodeIds = nodeIdsForRole(scene.data.scene, parsed.data.role as SemanticRole);
+      }
       return commandResult(
         runtime,
         {
           type: 'ARRANGE_NODES',
-          nodeIds: parsed.data.nodeIds,
+          nodeIds,
           layout: parsed.data.layout as ArrangeLayout,
           ...(parsed.data.options !== undefined
             ? { options: parsed.data.options as ArrangeOptions }
@@ -194,6 +255,17 @@ export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
         },
         parsed.data.dryRun,
       );
+    },
+
+    exportScene(input: unknown) {
+      const parsed = McpLiteExportSceneInputSchema.safeParse(input);
+      if (!parsed.success) {
+        return validationError('Invalid exportScene payload', parsed.error);
+      }
+      if (parsed.data.format === 'json') {
+        return runtime.exportScene({ format: 'json' });
+      }
+      return runtime.exportScene({ format: 'r3f', r3f: parsed.data.options ?? {} });
     },
 
     exportR3F(input: unknown = {}) {

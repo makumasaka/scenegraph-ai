@@ -6,6 +6,7 @@ export type {
   AgentSession,
   ApplyCommandOptions,
   ApplyCommandResult,
+  CommandBatchLogSummary,
   CommandBatchError,
   CommandBatchItemResult,
   CommandBatchResult,
@@ -34,13 +35,15 @@ export type {
   ArrangeNodesInput,
   ExportR3FInput,
   MakeInteractiveInput,
+  McpLiteExportSceneInput,
   McpLiteRuntime,
   StructureSceneInput,
 } from './mcpLite';
 export {
   ArrangeNodesInputSchema,
+  createMcpLiteRuntime,
   ExportR3FInputSchema,
   MakeInteractiveInputSchema,
+  McpLiteExportSceneInputSchema,
   StructureSceneInputSchema,
-  createMcpLiteRuntime,
 } from './mcpLite';

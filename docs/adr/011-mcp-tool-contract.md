@@ -1,53 +1,83 @@
-# ADR 011: Future MCP tool contract
+# ADR 011: Future MCP Tool Contract
 
 ## Status
 
-Accepted for Milestone 7 simulation. Real MCP transport remains deferred.
+Accepted after MCP-lite. Real MCP transport remains deferred.
 
 ## Context
 
-Milestone 7 proves the future code -> canvas -> code loop without implementing a
-local MCP server. The target architecture is:
+MCP-lite proves the future agent workflow without implementing a local MCP
+server. The future target architecture is:
 
 ```text
-Cursor/Claude/Codex -> local Diorama MCP server -> Diorama API layer -> validated commands -> live canvas updates -> JSON/R3F export
+Cursor/Claude/Codex
+  -> local Diorama MCP server
+  -> Diorama agent runtime
+  -> validated commands
+  -> structured scene
+  -> R3F export
 ```
 
 The existing `@diorama/agent-interface` runtime already supports validated scene
 reads, command dry-run, command apply, scene load, action logging, and export.
+MCP-lite adds a library facade with helpers named like future MCP tools. Real
 MCP should become a thin transport over that runtime, not a second scene system.
 
 ## Decision
 
-Future MCP will expose narrow, typed tools for common operations plus a generic
-`apply_command` escape hatch for advanced command payloads. Every tool maps to
-`DioramaSceneRuntime`, `CommandSchema`, or an explicit command constructor. MCP
-tools must not connect directly to Zustand, R3F objects, files, shells, or
-arbitrary JavaScript execution.
+Future MCP will expose narrow, typed tools for common scene structuring,
+semantics, behaviors, arrangement, loading, and export, plus generic
+`apply_command` and `apply_command_batch` escape hatches for advanced command
+payloads.
+
+Every tool maps to `DioramaSceneRuntime`, the MCP-lite facade, `CommandSchema`,
+or an explicit command constructor. MCP tools must not connect directly to
+Zustand, R3F objects, files, shells, or arbitrary JavaScript execution.
+
+`docs/mcp-tools.md` is the canonical detailed tool contract. This ADR records
+the architecture decision and gate for real transport work.
 
 ## Runtime Mapping
 
 | Tool | Kind | Runtime or command mapping | Mutation |
 | --- | --- | --- | --- |
-| `get_scene_graph` | read | `getScene()` | none |
+| `get_scene` | read | `getScene()` | none |
+| `get_semantic_groups` | read | MCP-lite facade over `getScene()` | none |
+| `get_behaviors` | read | MCP-lite facade over `getScene()` | none |
 | `get_selected_nodes` | read | `getSelection()` plus scene lookup when needed | none |
-| `select_nodes` | command | `SET_SELECTION` | selection only |
-| `apply_command` | command | generic `CommandSchema` -> `applyCommand()` | scene or selection |
-| `update_transform` | command | `UPDATE_TRANSFORM` | scene |
-| `duplicate_node` | command | `DUPLICATE_NODE` | scene |
-| `set_parent` | command | `SET_PARENT` | scene |
-| `arrange_nodes` | command | `ARRANGE_NODES` | scene |
-| `export_r3f` | read/export | `exportScene({ format: "r3f" })` | none |
+| `structure_scene` | command | `STRUCTURE_SCENE` | scene semantics |
+| `set_node_semantics` | command | `SET_NODE_SEMANTICS` | node semantics |
+| `create_semantic_group` | command | `CREATE_SEMANTIC_GROUP` | semantic groups |
+| `assign_to_semantic_group` | command | `ASSIGN_TO_SEMANTIC_GROUP` | semantic groups and node semantics |
+| `add_behavior` | command | `ADD_BEHAVIOR` | behaviors and refs |
+| `remove_behavior` | command | `REMOVE_BEHAVIOR` | behaviors and refs |
+| `make_interactive` | command | `MAKE_INTERACTIVE` | behaviors and refs |
+| `arrange_nodes` | command | `ARRANGE_NODES` | local transforms |
+| `apply_command` | command | generic `CommandSchema` -> `dryRunCommand()` / `applyCommand()` | command-defined |
+| `apply_command_batch` | command | `CommandSchema.array()` -> `dryRunCommandBatch()` / `applyCommandBatch()` | command-defined |
+| `load_scene` | session boundary | `LoadSceneInputSchema` -> `loadScene()` | replaces scene |
 | `export_json` | read/export | `exportScene({ format: "json" })` | none |
-| `load_scene` | session boundary | `loadScene()` | replaces scene |
+| `export_r3f` | read/export | `exportScene({ format: "r3f" })` | none |
 
 ## Tool Contracts
 
-### `get_scene_graph`
+### `get_scene`
 
 - Read-only.
-- Returns the validated canonical scene document or a graph summary derived from
-  it.
+- Returns the validated canonical scene.
+- Does not mutate scene, selection, action log, UI state, or viewport state.
+
+### `get_semantic_groups`
+
+- Read-only.
+- Returns cloned `scene.semanticGroups ?? {}`.
+- Does not mutate scene, selection, action log, UI state, or viewport state.
+
+### `get_behaviors`
+
+- Read-only.
+- Returns cloned `scene.behaviors ?? {}`.
+- Does not execute behavior metadata.
 - Does not mutate scene, selection, action log, UI state, or viewport state.
 
 ### `get_selected_nodes`
@@ -56,13 +86,25 @@ arbitrary JavaScript execution.
 - Returns the current selection id and, when requested, selected node summaries.
 - Does not mutate scene, selection, action log, UI state, or viewport state.
 
-### `select_nodes`
+### Semantic And Behavior Mutation Tools
 
-- Validates node ids against the current scene.
-- MVP maps to `SET_SELECTION` and supports one selected node id or `null`.
+- `structure_scene` maps to `STRUCTURE_SCENE`.
+- `set_node_semantics` maps to `SET_NODE_SEMANTICS`.
+- `create_semantic_group` maps to `CREATE_SEMANTIC_GROUP`.
+- `assign_to_semantic_group` maps to `ASSIGN_TO_SEMANTIC_GROUP`.
+- `add_behavior` maps to `ADD_BEHAVIOR`.
+- `remove_behavior` maps to `REMOVE_BEHAVIOR`.
+- `make_interactive` maps to `MAKE_INTERACTIVE`.
+- All support dry-run.
+- All validate payloads before reducer execution.
+- Behavior and semantic metadata are JSON data only and must not be executed.
+
+### `arrange_nodes`
+
+- Validates node ids, layout, and layout options.
+- Maps to `ARRANGE_NODES`.
 - Supports dry-run.
-- Mutates selection only.
-- Must return structured rejection for missing ids.
+- Mutates scene transforms for the provided node set.
 
 ### `apply_command`
 
@@ -73,38 +115,13 @@ arbitrary JavaScript execution.
 - Intended for advanced or newly added commands that do not yet have a narrow
   tool.
 
-### `update_transform`
+### `apply_command_batch`
 
-- Validates `nodeId` and a non-empty transform patch.
-- Maps to `UPDATE_TRANSFORM`.
+- Validates generic command arrays with `CommandSchema.array()`.
+- Maps to `applyCommandBatch()` / `dryRunCommandBatch()`.
 - Supports dry-run.
-- Mutates scene transform state only.
-
-### `duplicate_node`
-
-- Validates source node id, optional target parent id, subtree choice, and
-  deterministic `idMap`.
-- Maps to `DUPLICATE_NODE`.
-- Supports dry-run.
-- Mutates scene.
-- Future MCP usage must require deterministic `idMap`; generated ids are a UI
-  convenience, not a replay-safe agent contract.
-
-### `set_parent`
-
-- Validates source node id, target parent id, and hierarchy constraints.
-- Maps to `SET_PARENT`.
-- Supports dry-run.
-- Mutates scene hierarchy.
-- May expose `preserveWorldTransform` once the runtime contract documents the
-  option for external tools.
-
-### `arrange_nodes`
-
-- Validates node ids, layout, and layout options.
-- Maps to `ARRANGE_NODES`.
-- Supports dry-run.
-- Mutates scene transforms for the provided node set.
+- Commits atomically only when all commands pass.
+- Replay-safe duplicate commands must provide deterministic `idMap`.
 
 ### `export_r3f`
 
@@ -124,6 +141,7 @@ arbitrary JavaScript execution.
 - Maps to `loadScene()`.
 - Mutates scene as a session boundary.
 - Must reset any runtime state that is scoped to the prior scene.
+- Future MCP must provide dry-run validation before committing a load.
 
 ## Safety Requirements
 
@@ -138,23 +156,27 @@ arbitrary JavaScript execution.
 - Mutating tools must support dry-run before apply.
 - Narrow schemas should be used for common tools; generic `apply_command` remains
   available for advanced cases.
+- MCP tools wrap `@diorama/agent-interface` only.
 
 ## Go/No-Go For Real MCP
 
 Real MCP implementation can begin only when:
 
+- schema is complete;
+- R3F bridge is complete;
 - command validation is complete;
 - dry-run behavior is complete for every mutating tool;
-- action logging is complete or explicitly scoped;
+- batch API is complete;
+- action logging is complete or explicitly deferred with a replacement scope;
 - replay tests pass;
 - export snapshots pass;
-- the local runtime adapter decision is made;
-- the live canvas bridge architecture is chosen;
+- the runtime adapter decision is complete;
 - security review is complete.
 
 Current recommendation: do not begin real MCP transport yet. Milestone 7 proves
-the contract shape, but the live canvas bridge architecture and security review
-still need explicit decisions before transport work starts.
+the contract shape and MCP-lite proves the runtime facade, but the runtime
+adapter decision and security review still need explicit decisions before
+transport work starts.
 
 ## Consequences
 

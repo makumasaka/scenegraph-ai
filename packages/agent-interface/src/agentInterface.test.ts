@@ -120,7 +120,14 @@ describe('createAgentSession', () => {
     const log = session.getCommandLog();
     expect(log.ok).toBe(true);
     if (!log.ok) return;
-    expect(log.data.entries).toEqual([]);
+    expect(log.data.entries).toEqual([
+      expect.objectContaining({
+        type: 'command',
+        source: 'agent',
+        dryRun: true,
+        changed: true,
+      }),
+    ]);
   });
 
   it('applyCommand logs committed commands with source and cloned payloads', () => {
@@ -134,7 +141,7 @@ describe('createAgentSession', () => {
         parentId: root.data.scene.rootId,
         node: createNode({ id: 'logged-box', name: 'Logged Box' }),
       },
-      { source: 'ui' },
+      { source: 'user' },
     );
     expect(r.ok).toBe(true);
     const log = session.getCommandLog();
@@ -143,8 +150,8 @@ describe('createAgentSession', () => {
     expect(log.data.entries).toHaveLength(1);
     expect(log.data.entries[0]).toMatchObject({
       sequence: 1,
-      source: 'ui',
-      operation: 'command',
+      source: 'user',
+      type: 'command',
       dryRun: false,
       changed: true,
     });
@@ -271,11 +278,13 @@ describe('createAgentSession', () => {
     expect(log.data.entries[0]).toMatchObject({
       sequence: 1,
       source: 'system',
-      operation: 'command_batch',
+      type: 'command_batch',
       dryRun: false,
       changed: true,
     });
-    expect(log.data.entries[0]!.results).toHaveLength(2);
+    expect(log.data.entries[0]!.summary).toMatchObject({
+      results: expect.any(Array),
+    });
   });
 
   it('batch dry-run reports duplicate warnings without committing', () => {
@@ -301,7 +310,12 @@ describe('createAgentSession', () => {
     const log = session.getCommandLog();
     expect(log.ok).toBe(true);
     if (!log.ok) return;
-    expect(log.data.entries).toHaveLength(1);
+    expect(log.data.entries).toHaveLength(2);
+    expect(log.data.entries.at(-1)).toMatchObject({
+      type: 'command_batch',
+      dryRun: true,
+      warnings: ['DUPLICATE_NODE without idMap uses generated ids'],
+    });
   });
 
   it('getSelection tracks SET_SELECTION', () => {

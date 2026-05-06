@@ -1,4 +1,4 @@
-import type { Scene, SceneNode } from '@diorama/schema';
+import { stableStringify, type Scene, type SceneNode } from '@diorama/schema';
 import { emitLight, escapeAttr, escapeComment, fmtVec, indent, placeholderMesh } from './jsxWriter';
 import type { R3fExportOptions } from './types';
 
@@ -8,11 +8,15 @@ const emitSemanticComment = (node: SceneNode, baseIndent: string): string => {
   const groupId = node.semantics?.groupId ?? node.semanticGroupId;
   if (role) parts.push(`role=${role}`);
   if (groupId) parts.push(`group=${groupId}`);
+  if (node.semantics?.traits && node.semantics.traits.length > 0) {
+    parts.push(`traits=${[...node.semantics.traits].sort((a, b) => a.localeCompare(b)).join(',')}`);
+  }
   if (node.semantics?.label) parts.push(`label=${escapeComment(node.semantics.label)}`);
   if (node.behaviors) {
     const enabled = Object.entries(node.behaviors)
       .filter(([key, value]) => key !== 'info' && value === true)
-      .map(([key]) => key);
+      .map(([key]) => key)
+      .sort((a, b) => a.localeCompare(b));
     if (enabled.length > 0) parts.push(`behavior=${enabled.join('+')}`);
     if (node.behaviors.info?.title) {
       parts.push(`info=${escapeComment(node.behaviors.info.title)}`);
@@ -28,9 +32,10 @@ const emitUserDataAttr = (node: SceneNode): string => {
   if (node.semanticRole) userData.semanticRole = node.semanticRole;
   if (node.semanticGroupId) userData.semanticGroupId = node.semanticGroupId;
   if (node.behaviors) userData.behaviors = node.behaviors;
-  return Object.keys(userData).length > 0
-    ? ` userData={${JSON.stringify(userData)}}`
-    : '';
+  if (Object.keys(userData).length === 0) return '';
+  /** Stable keys at every object depth for deterministic JSX props. */
+  const payload = stableStringify(userData, 0);
+  return ` userData={${payload}}`;
 };
 
 /**
@@ -93,23 +98,25 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
  *   redo stacks, camera UI state, gizmo mode, and filesystem paths are
  *   ignored even when present on the input.
  */
+const semanticGroupHeader = (scene: Scene): string => {
+  if (!scene.semanticGroups || Object.keys(scene.semanticGroups).length === 0) return '';
+  const groups = Object.values(scene.semanticGroups).sort((a, b) => a.id.localeCompare(b.id));
+  return `/* Semantic groups: ${groups.map((g) => `${g.id}=${g.role}(${g.nodeIds.length})`).join(', ')} */\n`;
+};
+
+const behaviorHeader = (scene: Scene): string => {
+  if (!scene.behaviors || Object.keys(scene.behaviors).length === 0) return '';
+  const defs = Object.values(scene.behaviors).sort((a, b) => a.id.localeCompare(b.id));
+  return `/* Behaviors: ${defs.map((b) => `${b.id}:${b.type}(${b.nodeIds.length})`).join(', ')} */\n`;
+};
+
 export const exportSceneToR3fJsx = (
   scene: Scene,
   options: R3fExportOptions = {},
 ): string => {
   const tree = emitNode(scene, scene.rootId, 2);
-  const semanticGroups =
-    scene.semanticGroups && Object.keys(scene.semanticGroups).length > 0
-      ? `/* Semantic groups: ${Object.values(scene.semanticGroups)
-          .map((group) => `${group.id}=${group.role}(${group.nodeIds.length})`)
-          .join(', ')} */\n`
-      : '';
-  const behaviors =
-    scene.behaviors && Object.keys(scene.behaviors).length > 0
-      ? `/* Behaviors: ${Object.values(scene.behaviors)
-          .map((behavior) => `${behavior.id}:${behavior.type}(${behavior.nodeIds.length})`)
-          .join(', ')} */\n`
-      : '';
+  const semanticGroups = semanticGroupHeader(scene);
+  const behaviors = behaviorHeader(scene);
   const studioWanted =
     options.includeStudioLights === true || options.includeLights === true;
   const studio = studioWanted

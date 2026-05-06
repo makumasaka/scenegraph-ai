@@ -19,10 +19,10 @@ import {
   type ExportMediaType,
   type ExportSceneParams,
 } from './exportParams';
-import { err, issuesFromZod, ok, type AgentResult } from './errors';
+import { err, issuesFromZod, ok, type AgentError, type AgentResult } from './errors';
 import { LoadSceneInputSchema } from './loadSceneInput';
 
-export type ActionSource = 'agent' | 'ui' | 'system' | 'import';
+export type ActionSource = 'agent' | 'system' | 'user';
 
 export type ApplyCommandOptions = {
   /** When true, computes the next scene but does not update session state. */
@@ -69,17 +69,21 @@ export type CommandBatchResult = {
   failedCommandIndex?: number;
 };
 
+export type CommandBatchLogSummary = {
+  commandCount: number;
+  appliedCommandCount: number;
+  failedCommandIndex?: number;
+  results: CommandBatchItemResult[];
+};
+
 export type ActionLogEntry = {
   sequence: number;
+  type: 'command' | 'command_batch' | 'load_scene';
   source: ActionSource;
-  operation: 'command' | 'command_batch' | 'load_scene';
   dryRun: boolean;
   changed: boolean;
-  command?: Command;
-  commands?: Command[];
-  summary?: CommandSummary;
-  results?: CommandBatchItemResult[];
-  error?: string;
+  summary?: CommandSummary | CommandBatchLogSummary;
+  error?: AgentError;
   warnings?: string[];
 };
 
@@ -100,6 +104,7 @@ export type DioramaSceneRuntime = {
     input: unknown,
     options?: ApplyCommandOptions,
   ): AgentResult<CommandBatchResult>;
+  getActionLog(): AgentResult<{ entries: ActionLogEntry[] }>;
   getCommandLog(): AgentResult<{ entries: ActionLogEntry[] }>;
   loadScene(input: unknown): AgentResult<{ scene: Scene }>;
   exportScene(input: unknown): AgentResult<ExportSceneResult>;
@@ -117,10 +122,6 @@ const validationError = (message: string, issues?: ReturnType<typeof issuesFromZ
   });
 
 const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
-
-const cloneCommand = (command: Command): Command => cloneJson(command);
-
-const cloneCommands = (commands: Command[]): Command[] => commands.map(cloneCommand);
 
 const cloneActionLogEntry = (entry: ActionLogEntry): ActionLogEntry => cloneJson(entry);
 
@@ -140,6 +141,23 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
     nextLogSequence += 1;
   };
 
+  const appendErrorLog = (
+    type: ActionLogEntry['type'],
+    source: ActionSource,
+    dryRun: boolean,
+    error: AgentError,
+    summary?: ActionLogEntry['summary'],
+  ) => {
+    appendLog({
+      type,
+      source,
+      dryRun,
+      changed: false,
+      ...(summary !== undefined ? { summary } : {}),
+      error: cloneJson(error),
+    });
+  };
+
   const runCommand = (
     command: Command,
     dryRun: boolean,
@@ -147,10 +165,12 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
   ): AgentResult<ApplyCommandResult> => {
     const result = applyCommandWithResult(scene, command);
     if (result.error !== undefined) {
-      return err({
+      const error: AgentError = {
         code: 'COMMAND_REJECTED',
         message: result.error,
-      });
+      };
+      appendErrorLog('command', source, dryRun, error, result.summary);
+      return err(error);
     }
     const next = result.scene;
     const changed = result.changed;
@@ -161,17 +181,16 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
       summary: result.summary,
     };
     if (result.warnings !== undefined) payload.warnings = result.warnings;
+    appendLog({
+      type: 'command',
+      source,
+      dryRun,
+      changed,
+      summary: result.summary,
+      ...(result.warnings !== undefined ? { warnings: result.warnings } : {}),
+    });
     if (!dryRun) {
       scene = next;
-      appendLog({
-        source,
-        operation: 'command',
-        dryRun: false,
-        changed,
-        command: cloneCommand(command),
-        summary: result.summary,
-        ...(result.warnings !== undefined ? { warnings: result.warnings } : {}),
-      });
     }
     return ok(payload);
   };
@@ -198,18 +217,35 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
       const result = applyCommandWithResult(workingScene, command);
       if (result.error !== undefined) {
         const warnings = flattenWarnings(results);
+        const error: CommandBatchError = {
+          index,
+          code: 'COMMAND_REJECTED',
+          message: result.error,
+        };
+        const summary: CommandBatchLogSummary = {
+          commandCount: commands.length,
+          appliedCommandCount: 0,
+          failedCommandIndex: index,
+          results,
+        };
+        appendLog({
+          type: 'command_batch',
+          source,
+          dryRun,
+          changed: false,
+          summary,
+          error: {
+            code: 'COMMAND_REJECTED',
+            message: result.error,
+          },
+          ...(warnings.length > 0 ? { warnings } : {}),
+        });
         return ok({
           scene: cloneSceneFromJson(scene),
           changed: false,
           dryRun,
           results,
-          errors: [
-            {
-              index,
-              code: 'COMMAND_REJECTED',
-              message: result.error,
-            },
-          ],
+          errors: [error],
           warnings,
           appliedCommandCount: 0,
           failedCommandIndex: index,
@@ -236,17 +272,20 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
       warnings,
       appliedCommandCount: dryRun ? 0 : commands.length,
     };
+    appendLog({
+      type: 'command_batch',
+      source,
+      dryRun,
+      changed,
+      summary: {
+        commandCount: commands.length,
+        appliedCommandCount: dryRun ? 0 : commands.length,
+        results: cloneJson(results),
+      },
+      ...(warnings.length > 0 ? { warnings } : {}),
+    });
     if (!dryRun) {
       scene = workingScene;
-      appendLog({
-        source,
-        operation: 'command_batch',
-        dryRun: false,
-        changed,
-        commands: cloneCommands(commands),
-        results: cloneJson(results),
-        ...(warnings.length > 0 ? { warnings } : {}),
-      });
     }
     return ok(payload);
   };
@@ -263,31 +302,56 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
     dryRunCommand(input: unknown) {
       const parsed = CommandSchema.safeParse(input);
       if (!parsed.success) {
-        return validationError('Invalid command payload', issuesFromZod(parsed.error));
+        const error: AgentError = {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid command payload',
+          issues: issuesFromZod(parsed.error),
+        };
+        appendErrorLog('command', 'agent', true, error);
+        return err(error);
       }
       return runCommand(parsed.data, true, 'agent');
     },
 
     applyCommand(input: unknown, options?: ApplyCommandOptions) {
       const parsed = CommandSchema.safeParse(input);
+      const dryRun = options?.dryRun === true;
+      const source = options?.source ?? 'agent';
       if (!parsed.success) {
-        return validationError('Invalid command payload', issuesFromZod(parsed.error));
+        const error: AgentError = {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid command payload',
+          issues: issuesFromZod(parsed.error),
+        };
+        appendErrorLog('command', source, dryRun, error);
+        return err(error);
       }
       const command: Command = parsed.data;
-      const dryRun = options?.dryRun === true;
-      return runCommand(command, dryRun, options?.source ?? 'agent');
+      return runCommand(command, dryRun, source);
     },
 
     dryRunCommandBatch(input: unknown) {
       const parsed = parseCommandBatch(input);
-      if (!parsed.ok) return parsed;
+      if (!parsed.ok) {
+        appendErrorLog('command_batch', 'agent', true, parsed.error);
+        return parsed;
+      }
       return runCommandBatch(parsed.data, true, 'agent');
     },
 
     applyCommandBatch(input: unknown, options?: ApplyCommandOptions) {
       const parsed = parseCommandBatch(input);
-      if (!parsed.ok) return parsed;
-      return runCommandBatch(parsed.data, options?.dryRun === true, options?.source ?? 'agent');
+      const dryRun = options?.dryRun === true;
+      const source = options?.source ?? 'agent';
+      if (!parsed.ok) {
+        appendErrorLog('command_batch', source, dryRun, parsed.error);
+        return parsed;
+      }
+      return runCommandBatch(parsed.data, dryRun, source);
+    },
+
+    getActionLog() {
+      return ok({ entries: actionLog.map(cloneActionLogEntry) });
     },
 
     getCommandLog() {
@@ -297,30 +361,40 @@ export const createAgentSession = (initialScene?: Scene): AgentSession => {
     loadScene(input: unknown) {
       const parsed = LoadSceneInputSchema.safeParse(input);
       if (!parsed.success) {
-        return validationError('Invalid loadScene payload', issuesFromZod(parsed.error));
+        const error: AgentError = {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid loadScene payload',
+          issues: issuesFromZod(parsed.error),
+        };
+        appendErrorLog('load_scene', 'system', false, error);
+        return err(error);
       }
       let next: Scene | null = null;
       if (parsed.data.kind === 'json') {
         next = parseSceneJson(parsed.data.json);
         if (next === null) {
-          return err({
+          const error: AgentError = {
             code: 'PARSE_ERROR',
             message: 'Scene JSON could not be parsed',
-          });
+          };
+          appendErrorLog('load_scene', 'system', false, error);
+          return err(error);
         }
       } else {
         next = cloneSceneFromJson(parsed.data.scene);
       }
       if (!validateScene(next)) {
-        return err({
+        const error: AgentError = {
           code: 'SCENE_INVALID',
           message: 'Scene graph failed validation',
-        });
+        };
+        appendErrorLog('load_scene', 'system', false, error);
+        return err(error);
       }
       scene = cloneSceneFromJson(next);
       appendLog({
-        source: 'import',
-        operation: 'load_scene',
+        type: 'load_scene',
+        source: 'system',
         dryRun: false,
         changed: true,
       });
