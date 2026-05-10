@@ -75,6 +75,11 @@ export const summarizeCommand = (command: Command): CommandSummary => {
         title: `Arrange (${command.layout})`,
         detail: `${command.nodeIds.length} node(s): ${command.nodeIds.slice(0, 4).map(shortId).join(', ')}${command.nodeIds.length > 4 ? '...' : ''}`,
       };
+    case 'REGISTER_ASSET':
+      return {
+        title: 'Register asset',
+        detail: `${command.asset.kind} ${shortId(command.asset.id)}${command.asset.uri ? ` -> ${command.asset.uri}` : ''}`,
+      };
     case 'REPLACE_SCENE':
       return {
         title: 'Replace scene',

@@ -1,0 +1,171 @@
+{
+  "data": {
+    "assets": {
+      "asset-037qwuv": {
+        "generator": {
+          "prompt": "Deterministic local GLB test",
+          "provider": "mock"
+        },
+        "id": "asset-037qwuv",
+        "kind": "glb",
+        "metadata": {
+          "localPath": "/Users/mkumasaka/Documents/WebProjects/diorama/apps/demo-export/public/assets/generated/Meshy_AI_Tiny_Village.glb",
+          "prompt": "Deterministic local GLB test",
+          "provider": "mock",
+          "source": "generator"
+        },
+        "name": "Meshy_AI_Tiny_Village",
+        "source": "generator",
+        "uri": "/assets/generated/Meshy_AI_Tiny_Village.glb"
+      }
+    },
+    "behaviors": {
+      "product_click_select": {
+        "description": "Click Select behavior inferred from product traits.",
+        "id": "product_click_select",
+        "label": "Click Select",
+        "nodeIds": [
+          "asset-037qwuv-node"
+        ],
+        "type": "click_select"
+      },
+      "product_focus_camera": {
+        "description": "Focus Camera behavior inferred from product traits.",
+        "id": "product_focus_camera",
+        "label": "Focus Camera",
+        "nodeIds": [
+          "asset-037qwuv-node"
+        ],
+        "type": "focus_camera"
+      },
+      "product_hover_highlight": {
+        "description": "Hover Highlight behavior inferred from product traits.",
+        "id": "product_hover_highlight",
+        "label": "Hover Highlight",
+        "nodeIds": [
+          "asset-037qwuv-node"
+        ],
+        "type": "hover_highlight"
+      },
+      "product_show_info": {
+        "description": "Show Info behavior inferred from product traits.",
+        "id": "product_show_info",
+        "label": "Show Info",
+        "nodeIds": [
+          "asset-037qwuv-node"
+        ],
+        "params": {
+          "description": "Interactive showroom item generated from structured scene metadata.",
+          "title": "Product information"
+        },
+        "type": "show_info"
+      }
+    },
+    "nodes": {
+      "acc4f2a9-2d1e-49a2-84f5-ad8b3e8c3e27": {
+        "children": [
+          "asset-037qwuv-node"
+        ],
+        "id": "acc4f2a9-2d1e-49a2-84f5-ad8b3e8c3e27",
+        "metadata": {},
+        "name": "Root",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "root",
+        "visible": true
+      },
+      "asset-037qwuv-node": {
+        "assetRef": {
+          "kind": "uri",
+          "uri": "/assets/generated/Meshy_AI_Tiny_Village.glb"
+        },
+        "behaviorRefs": [
+          "product_click_select",
+          "product_hover_highlight",
+          "product_show_info",
+          "product_focus_camera"
+        ],
+        "behaviors": {
+          "clickSelect": true,
+          "focusOnClick": true,
+          "hoverHighlight": true,
+          "info": {
+            "description": "Interactive showroom item generated from structured scene metadata.",
+            "title": "Product information"
+          }
+        },
+        "children": [],
+        "id": "asset-037qwuv-node",
+        "metadata": {
+          "assetId": "asset-037qwuv",
+          "localPath": "/Users/mkumasaka/Documents/WebProjects/diorama/apps/demo-export/public/assets/generated/Meshy_AI_Tiny_Village.glb",
+          "prompt": "Deterministic local GLB test",
+          "provider": "mock",
+          "source": "generator"
+        },
+        "name": "Generated Product",
+        "semanticGroupId": "display_area",
+        "semanticRole": "product",
+        "semantics": {
+          "groupId": "display_area",
+          "role": "product",
+          "source": "rule",
+          "traits": [
+            "clickable",
+            "hoverable",
+            "displayable",
+            "focusable"
+          ]
+        },
+        "transform": {
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      }
+    },
+    "rootId": "acc4f2a9-2d1e-49a2-84f5-ad8b3e8c3e27",
+    "selection": null,
+    "semanticGroups": {
+      "display_area": {
+        "id": "display_area",
+        "name": "Display Area",
+        "nodeIds": [
+          "asset-037qwuv-node"
+        ],
+        "role": "display"
+      }
+    }
+  },
+  "format": "diorama-scene",
+  "version": 2
+}

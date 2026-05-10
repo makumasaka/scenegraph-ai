@@ -497,6 +497,38 @@ describe('Milestone 3 command contract', () => {
     });
   });
 
+  describe('REGISTER_ASSET', () => {
+    it('registers and updates asset metadata by id', () => {
+      const scene = baseScene();
+      const registered = applyCommand(scene, {
+        type: 'REGISTER_ASSET',
+        asset: {
+          id: 'asset-b',
+          name: 'Asset B',
+          kind: 'glb',
+          uri: '/assets/generated/b.glb',
+          source: 'generator',
+        },
+      });
+      const updated = applyCommand(registered, {
+        type: 'REGISTER_ASSET',
+        asset: {
+          id: 'asset-b',
+          name: 'Asset B v2',
+          kind: 'glb',
+          uri: '/assets/generated/b-v2.glb',
+          source: 'generator',
+          metadata: { prompt: 'modern chair' },
+        },
+      });
+
+      expect(registered.assets?.['asset-b']?.uri).toBe('/assets/generated/b.glb');
+      expect(updated.assets?.['asset-b']?.name).toBe('Asset B v2');
+      expect(updated.assets?.['asset-b']?.metadata).toEqual({ prompt: 'modern chair' });
+      expectValid(updated);
+    });
+  });
+
   describe('command replay and invariant preservation', () => {
     it('replays deterministic duplicate commands to the same scene', () => {
       const commands: Command[] = [
@@ -536,6 +568,16 @@ describe('Milestone 3 command contract', () => {
         { type: 'ARRANGE_NODES', nodeIds: ['one', 'two', 'one-copy'], layout: 'grid' },
         { type: 'SET_SELECTION', nodeId: 'two' },
         { type: 'DELETE_NODE', nodeId: 'one' },
+        {
+          type: 'REGISTER_ASSET',
+          asset: {
+            id: 'asset-seq',
+            name: 'Sequence Asset',
+            kind: 'glb',
+            uri: '/assets/generated/seq.glb',
+            source: 'generator',
+          },
+        },
         { type: 'REPLACE_SCENE', scene: baseScene() },
       ];
 

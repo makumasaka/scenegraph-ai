@@ -73,6 +73,9 @@ export interface R3fResolvedNode {
   behaviorRequirements: R3fBehaviorRequirement[];
   children: R3fResolvedNode[];
   hasLight: boolean;
+  assetUri?: string;
+  assetKind?: 'gltf' | 'glb';
+  showAssetModel: boolean;
   showPlaceholderMesh: boolean;
 }
 

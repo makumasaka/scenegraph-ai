@@ -87,6 +87,17 @@ const validPayloads: Record<Command['type'], unknown> = {
     layout: 'grid',
     options: { spacing: 2, cols: 2 },
   },
+  REGISTER_ASSET: {
+    type: 'REGISTER_ASSET',
+    asset: {
+      id: 'asset-chair-glb',
+      name: 'Chair',
+      kind: 'glb',
+      uri: '/assets/generated/chair.glb',
+      source: 'generator',
+      metadata: { provider: 'mock', prompt: 'Modern chair' },
+    },
+  },
   SET_SELECTION: {
     type: 'SET_SELECTION',
     nodeId: null,
@@ -162,6 +173,14 @@ const invalidPayloads: Record<Command['type'], unknown> = {
     nodeIds: ['a'],
     layout: 'spiral',
   },
+  REGISTER_ASSET: {
+    type: 'REGISTER_ASSET',
+    asset: {
+      id: 'asset-chair-glb',
+      name: 'Chair',
+      kind: 'invalid-kind',
+    },
+  },
   SET_SELECTION: {
     type: 'SET_SELECTION',
     nodeId: 3,
@@ -188,6 +207,7 @@ describe('CommandSchema', () => {
       'DUPLICATE_NODE',
       'SET_PARENT',
       'ARRANGE_NODES',
+      'REGISTER_ASSET',
       'SET_SELECTION',
       'REPLACE_SCENE',
     ]);

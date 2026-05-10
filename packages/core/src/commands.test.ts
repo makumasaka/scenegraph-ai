@@ -181,6 +181,41 @@ describe('applyCommand', () => {
     expect(next).toBe(scene);
   });
 
+  it('REGISTER_ASSET adds and updates scene assets deterministically', () => {
+    const scene = createEmptyScene();
+    const added = applyCommand(scene, {
+      type: 'REGISTER_ASSET',
+      asset: {
+        id: 'asset-chair-glb',
+        name: 'Chair',
+        kind: 'glb',
+        uri: '/assets/generated/chair.glb',
+        source: 'generator',
+      },
+    });
+    const updated = applyCommand(added, {
+      type: 'REGISTER_ASSET',
+      asset: {
+        id: 'asset-chair-glb',
+        name: 'Chair Model',
+        kind: 'glb',
+        uri: '/assets/generated/chair-v2.glb',
+        source: 'generator',
+        metadata: { prompt: 'Modern chair product display' },
+      },
+    });
+
+    expect(added.assets?.['asset-chair-glb']).toMatchObject({
+      id: 'asset-chair-glb',
+      uri: '/assets/generated/chair.glb',
+    });
+    expect(updated.assets?.['asset-chair-glb']).toMatchObject({
+      name: 'Chair Model',
+      uri: '/assets/generated/chair-v2.glb',
+    });
+    assertValid(updated);
+  });
+
   it('CREATE_SEMANTIC_GROUP records a scene-level semantic group', () => {
     let scene = createEmptyScene();
     scene = applyCommand(scene, {
@@ -464,6 +499,13 @@ describe('applyCommandWithResult', () => {
       [
         { type: 'SET_SELECTION', nodeId: 'missing' },
         'SET_SELECTION nodeId does not exist',
+      ],
+      [
+        {
+          type: 'REGISTER_ASSET',
+          asset: { id: 'bad-asset', name: 'Bad', kind: 'nope' },
+        } as unknown as Command,
+        'REGISTER_ASSET would violate scene invariants',
       ],
     ];
 

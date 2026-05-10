@@ -1,0 +1,25 @@
+{
+  "name": "@diorama/ingestion",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@diorama/core": "*",
+    "@diorama/generation": "*"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

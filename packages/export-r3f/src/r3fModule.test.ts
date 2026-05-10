@@ -129,11 +129,50 @@ describe('exportSceneToR3fModule', () => {
         },
       },
     } as Scene & { commandLog: unknown[] };
-    const out = moduleCode(scene);
+    const result = exportSceneToR3fModule(scene);
+    const out = result.code;
     expect(out).toContain('TODO: open_url is scaffolded');
     expect(out).not.toContain('https://example.com/private');
     expect(out).not.toContain('/Users/');
     expect(out).not.toContain('file:///');
     expect(out).not.toContain('SET_SELECTION');
+    expect(result.diagnostics.some((d) => d.code === 'unsafe_asset_uri')).toBe(true);
+  });
+
+  it('emits useGLTF scaffold for safe generated asset refs', () => {
+    const product = createNode({
+      id: 'product',
+      name: 'Product',
+      semantics: { role: 'product' },
+      assetRef: { kind: 'uri', uri: '/assets/generated/chair.glb' },
+    });
+    const root = createNode({
+      id: 'root',
+      name: 'Root',
+      type: 'root',
+      children: [product.id],
+    });
+    const scene: Scene = {
+      rootId: root.id,
+      selection: null,
+      nodes: {
+        [root.id]: root,
+        [product.id]: product,
+      },
+      assets: {
+        asset_chair: {
+          id: 'asset_chair',
+          name: 'Chair',
+          kind: 'glb',
+          uri: '/assets/generated/chair.glb',
+          source: 'generator',
+        },
+      },
+    };
+    const result = exportSceneToR3fModule(scene);
+    expect(result.code).toContain("import { useGLTF } from '@react-three/drei';");
+    expect(result.code).toContain('function AssetModel');
+    expect(result.code).toContain('assetUri="/assets/generated/chair.glb"');
+    expect(result.diagnostics.some((d) => d.code === 'unsafe_asset_uri')).toBe(false);
   });
 });

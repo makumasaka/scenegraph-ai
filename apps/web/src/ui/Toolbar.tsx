@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSceneStore } from '../store/sceneStore';
 import { createNode, getParent, type Scene, type Vec3 } from '@diorama/core';
 import { SceneLoader } from './SceneLoader';
@@ -32,6 +33,29 @@ const showroomTargets = (scene: Scene): string[] =>
     })
     .map((node) => node.id);
 
+const showroomStructureCandidates = (scene: Scene): string[] =>
+  Object.values(scene.nodes)
+    .filter((node) => {
+      if (node.id === scene.rootId) return false;
+      const label = `${node.id} ${node.name}`.toLowerCase();
+      return (
+        label.includes('product') ||
+        label.includes('display') ||
+        label.includes('plinth') ||
+        label.includes('table') ||
+        label.includes('bench') ||
+        label.includes('chair') ||
+        label.includes('seat') ||
+        label.includes('light') ||
+        label.includes('wall') ||
+        label.includes('floor') ||
+        label.includes('backdrop') ||
+        node.type === 'light' ||
+        node.light !== undefined
+      );
+    })
+    .map((node) => node.id);
+
 export function Toolbar() {
   const scene = useSceneStore((s) => s.scene);
   const selectedId = scene.selection;
@@ -41,6 +65,7 @@ export function Toolbar() {
   const redo = useSceneStore((s) => s.redo);
   const pastCount = useSceneStore((s) => s.past.length);
   const futureCount = useSceneStore((s) => s.future.length);
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   const selectedNode = selectedId ? scene.nodes[selectedId] : null;
   const isRootSelected = selectedId === scene.rootId;
@@ -85,6 +110,12 @@ export function Toolbar() {
   };
 
   const handleStructureShowroom = () => {
+    const candidates = showroomStructureCandidates(scene);
+    if (candidates.length === 0) {
+      setStatusNotice('No showroom-eligible nodes in current scene.');
+      window.setTimeout(() => setStatusNotice(null), 2500);
+      return;
+    }
     dispatch({ type: 'STRUCTURE_SCENE', preset: 'showroom' });
   };
 
@@ -207,7 +238,9 @@ export function Toolbar() {
         </div>
 
         <div className="toolbar__status">
-          {selectedNode ? (
+          {statusNotice ? (
+            <span className="toolbar__status--muted">{statusNotice}</span>
+          ) : selectedNode ? (
             <>
               Selected: <strong>{selectedNode.name}</strong>
             </>

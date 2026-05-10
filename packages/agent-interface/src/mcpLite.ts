@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type {
+  DioramaAsset,
   BehaviorDefinition,
   Scene,
   SemanticGroup,
@@ -7,6 +8,8 @@ import type {
 } from '@diorama/schema';
 import { SemanticRoleSchema } from '@diorama/schema';
 import type { Command } from '@diorama/core';
+import { createGeneratorAdapter, type GeneratedAsset, type GenerationConfig } from '@diorama/generation';
+import { ingestAsset as planIngestAsset } from '@diorama/ingestion';
 import {
   type ArrangeLayout,
   type ArrangeOptions,
@@ -95,6 +98,64 @@ export const ExportR3FInputSchema = z
 
 export type ExportR3FInput = z.infer<typeof ExportR3FInputSchema>;
 
+export const GenerateAssetInputSchema = z
+  .object({
+    prompt: z.string().min(1),
+    provider: z.enum(['meshy', 'tripo', 'luma', 'mock']).optional(),
+    mode: z.enum(['mock', 'live']).optional(),
+  })
+  .strict();
+
+export type GenerateAssetInput = z.infer<typeof GenerateAssetInputSchema>;
+
+const GeneratedAssetSchema: z.ZodType<GeneratedAsset> = z
+  .object({
+    id: z.string().min(1),
+    provider: z.enum(['meshy', 'tripo', 'luma', 'mock']),
+    prompt: z.string().min(1),
+    format: z.enum(['glb', 'gltf']),
+    uri: z.string().min(1).optional(),
+    localPath: z.string().min(1).optional(),
+    metadata: z.record(z.unknown()).optional(),
+  })
+  .strict();
+
+export const IngestAssetInputSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('generated'),
+      asset: GeneratedAssetSchema,
+      parentId: z.string().min(1).optional(),
+      nodeId: z.string().min(1).optional(),
+      nodeName: z.string().min(1).optional(),
+      dryRun: z.boolean().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('local'),
+      localPath: z.string().min(1),
+      format: z.enum(['glb', 'gltf']),
+      id: z.string().min(1).optional(),
+      uri: z.string().min(1).optional(),
+      prompt: z.string().min(1).optional(),
+      provider: z.enum(['meshy', 'tripo', 'luma', 'mock']).optional(),
+      metadata: z.record(z.unknown()).optional(),
+      parentId: z.string().min(1).optional(),
+      nodeId: z.string().min(1).optional(),
+      nodeName: z.string().min(1).optional(),
+      dryRun: z.boolean().optional(),
+    })
+    .strict(),
+]);
+
+export type IngestAssetInput = z.infer<typeof IngestAssetInputSchema>;
+
+export type IngestAssetResult = CommandBatchResult & {
+  warnings: string[];
+  assets?: DioramaAsset[];
+};
+
 export const McpLiteExportSceneInputSchema = z
   .object({
     format: z.enum(['json', 'r3f']),
@@ -103,6 +164,12 @@ export const McpLiteExportSceneInputSchema = z
   .strict();
 
 export type McpLiteExportSceneInput = z.infer<typeof McpLiteExportSceneInputSchema>;
+
+export interface McpLiteRuntimeOptions {
+  generation?: GenerationConfig;
+}
+
+export type AgentRuntimeOptions = McpLiteRuntimeOptions;
 
 export type McpLiteRuntime = {
   getScene(): AgentResult<{ scene: Scene }>;
@@ -114,6 +181,8 @@ export type McpLiteRuntime = {
   applyCommand(input: unknown, options?: unknown): AgentResult<ApplyCommandResult>;
   dryRunCommandBatch(input: unknown): AgentResult<CommandBatchResult>;
   applyCommandBatch(input: unknown, options?: unknown): AgentResult<CommandBatchResult>;
+  generateAsset(input: unknown): Promise<AgentResult<{ asset: GeneratedAsset }>>;
+  ingestAsset(input: unknown): AgentResult<IngestAssetResult>;
   structureScene(input?: unknown): AgentResult<ApplyCommandResult>;
   makeInteractive(input?: unknown): AgentResult<ApplyCommandResult>;
   arrangeNodes(input: unknown): AgentResult<ApplyCommandResult>;
@@ -121,6 +190,8 @@ export type McpLiteRuntime = {
   exportR3F(input?: unknown): AgentResult<ExportSceneResult>;
   exportJSON(): AgentResult<ExportSceneResult>;
 };
+
+export type AgentRuntime = McpLiteRuntime;
 
 const commandResult = (
   runtime: AgentSession,
@@ -130,6 +201,15 @@ const commandResult = (
   dryRun === true
     ? runtime.dryRunCommand(command)
     : runtime.applyCommand(command, { source: 'agent' });
+
+const commandBatchResult = (
+  runtime: AgentSession,
+  commands: Command[],
+  dryRun: boolean | undefined,
+): AgentResult<CommandBatchResult> =>
+  dryRun === true
+    ? runtime.dryRunCommandBatch(commands)
+    : runtime.applyCommandBatch(commands, { source: 'agent' });
 
 const nodeIdsForRole = (scene: Scene, role: SemanticRole): string[] =>
   Object.values(scene.nodes)
@@ -147,8 +227,12 @@ const parseCommandOptions = (
   return ok(parsed.data);
 };
 
-export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
+export const createMcpLiteRuntime = (
+  initialScene?: Scene,
+  options: McpLiteRuntimeOptions = {},
+): McpLiteRuntime => {
   const runtime = createAgentSession(initialScene);
+  const generator = createGeneratorAdapter(options.generation);
 
   return {
     getScene() {
@@ -202,6 +286,63 @@ export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
       return runtime.applyCommandBatch(input, {
         source: parsedOptions.data.source ?? 'agent',
         dryRun: parsedOptions.data.dryRun,
+      });
+    },
+
+    async generateAsset(input: unknown) {
+      const parsed = GenerateAssetInputSchema.safeParse(input ?? {});
+      if (!parsed.success) {
+        return validationError('Invalid generateAsset payload', parsed.error);
+      }
+      try {
+        const asset = await generator.generateAsset(parsed.data);
+        return ok({ asset });
+      } catch (error) {
+        return err({
+          code: 'COMMAND_REJECTED',
+          message: error instanceof Error ? error.message : 'generateAsset failed',
+        });
+      }
+    },
+
+    ingestAsset(input: unknown) {
+      const parsed = IngestAssetInputSchema.safeParse(input);
+      if (!parsed.success) {
+        return validationError('Invalid ingestAsset payload', parsed.error);
+      }
+
+      const sceneResult = runtime.getScene();
+      if (!sceneResult.ok) return sceneResult;
+      const parentId = parsed.data.parentId ?? sceneResult.data.scene.rootId;
+      const ingestion = parsed.data.kind === 'generated'
+        ? planIngestAsset(parsed.data.asset, {
+          parentId,
+          nodeId: parsed.data.nodeId,
+          nodeName: parsed.data.nodeName,
+        })
+        : planIngestAsset(
+          {
+            localPath: parsed.data.localPath,
+            format: parsed.data.format,
+            ...(parsed.data.id !== undefined ? { id: parsed.data.id } : {}),
+            ...(parsed.data.uri !== undefined ? { uri: parsed.data.uri } : {}),
+            ...(parsed.data.prompt !== undefined ? { prompt: parsed.data.prompt } : {}),
+            ...(parsed.data.provider !== undefined ? { provider: parsed.data.provider } : {}),
+            ...(parsed.data.metadata !== undefined ? { metadata: parsed.data.metadata } : {}),
+          },
+          {
+            parentId,
+            nodeId: parsed.data.nodeId,
+            nodeName: parsed.data.nodeName,
+          },
+        );
+
+      const batch = commandBatchResult(runtime, ingestion.commands, parsed.data.dryRun);
+      if (!batch.ok) return batch;
+      return ok({
+        ...batch.data,
+        warnings: ingestion.warnings,
+        ...(ingestion.assets !== undefined ? { assets: ingestion.assets } : {}),
       });
     },
 
@@ -281,3 +422,8 @@ export const createMcpLiteRuntime = (initialScene?: Scene): McpLiteRuntime => {
     },
   };
 };
+
+export const createAgentRuntime = (
+  initialScene?: Scene,
+  options: AgentRuntimeOptions = {},
+): AgentRuntime => createMcpLiteRuntime(initialScene, options);

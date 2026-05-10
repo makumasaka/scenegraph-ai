@@ -2,6 +2,25 @@ import { stableStringify, type Scene, type SceneNode } from '@diorama/schema';
 import { emitLight, escapeAttr, escapeComment, fmtVec, indent, placeholderMesh } from './jsxWriter';
 import type { R3fExportOptions } from './types';
 
+const sanitizeAssetUri = (uri: string | undefined): string | undefined => {
+  if (uri === undefined) return undefined;
+  const value = uri.trim();
+  if (value.length === 0) return undefined;
+  if (value.startsWith('file://')) return undefined;
+  if (value.startsWith('http://') || value.startsWith('https://')) return undefined;
+  if (value.includes('/Users/') || value.includes('\\Users\\')) return undefined;
+  if (/^[a-zA-Z]:\\/.test(value)) return undefined;
+  if (
+    value.startsWith('/assets/') ||
+    value.startsWith('assets/') ||
+    value.startsWith('./') ||
+    value.startsWith('../')
+  ) {
+    return value;
+  }
+  return undefined;
+};
+
 const emitSemanticComment = (node: SceneNode, baseIndent: string): string => {
   const parts: string[] = [];
   const role = node.semantics?.role ?? node.semanticRole;
@@ -21,6 +40,10 @@ const emitSemanticComment = (node: SceneNode, baseIndent: string): string => {
     if (node.behaviors.info?.title) {
       parts.push(`info=${escapeComment(node.behaviors.info.title)}`);
     }
+  }
+  const safeAssetUri = sanitizeAssetUri(node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined);
+  if (safeAssetUri) {
+    parts.push(`assetRef=${escapeComment(safeAssetUri)}`);
   }
   return parts.length > 0 ? `${baseIndent}{/* semantics: ${parts.join(' | ')} */}\n` : '';
 };
@@ -57,7 +80,9 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
 
   const isRoot = id === scene.rootId;
   const hasLight = node.light !== undefined || node.type === 'light';
-  const showPlaceholderMesh = !isRoot && node.type === 'mesh' && !hasLight;
+  const assetUri = sanitizeAssetUri(node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined);
+  const showAssetModel = assetUri !== undefined && /\.(glb|gltf)(\?|#|$)/i.test(assetUri);
+  const showPlaceholderMesh = !isRoot && node.type === 'mesh' && !hasLight && !showAssetModel;
 
   const open =
     `${ind}{/* ${escapeComment(node.id)} - ${escapeComment(node.name)} */}\n` +
@@ -66,6 +91,10 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
 
   let body = '';
   if (hasLight && node.light) body += emitLight(node.light, inner);
+  if (showAssetModel && assetUri) {
+    body += `${inner}{/* TODO: load GLTF asset with useGLTF('${escapeComment(assetUri)}') in module export mode. */}\n`;
+    body += placeholderMesh(inner);
+  }
   if (showPlaceholderMesh) body += placeholderMesh(inner);
 
   const childBlocks = node.children.map((childId) => emitNode(scene, childId, depth + 1)).join('');

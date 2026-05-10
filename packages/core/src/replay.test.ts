@@ -8,6 +8,16 @@ describe('replayCommands', () => {
     const root = base.rootId;
     const commands: Command[] = [
       {
+        type: 'REGISTER_ASSET',
+        asset: {
+          id: 'asset-cube-glb',
+          name: 'Cube',
+          kind: 'glb',
+          uri: '/assets/generated/cube.glb',
+          source: 'generator',
+        },
+      },
+      {
         type: 'ADD_NODE',
         parentId: root,
         node: createNode({ id: 'cube-a', name: 'Cube A' }),

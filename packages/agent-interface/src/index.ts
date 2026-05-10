@@ -32,17 +32,26 @@ export {
   mediaTypeForFormat,
 } from './exportParams';
 export type {
+  AgentRuntime,
+  AgentRuntimeOptions,
   ArrangeNodesInput,
   ExportR3FInput,
+  GenerateAssetInput,
+  IngestAssetInput,
+  IngestAssetResult,
   MakeInteractiveInput,
   McpLiteExportSceneInput,
+  McpLiteRuntimeOptions,
   McpLiteRuntime,
   StructureSceneInput,
 } from './mcpLite';
 export {
   ArrangeNodesInputSchema,
+  createAgentRuntime,
   createMcpLiteRuntime,
   ExportR3FInputSchema,
+  GenerateAssetInputSchema,
+  IngestAssetInputSchema,
   MakeInteractiveInputSchema,
   McpLiteExportSceneInputSchema,
   StructureSceneInputSchema,

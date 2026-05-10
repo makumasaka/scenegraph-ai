@@ -71,6 +71,16 @@ const sampleCommands = (): Command[] => {
       nodeIds: ['a', 'b'],
       layout: 'grid',
     } as const,
+    {
+      type: 'REGISTER_ASSET',
+      asset: {
+        id: 'asset-chair-glb',
+        name: 'Chair',
+        kind: 'glb',
+        uri: '/assets/generated/chair.glb',
+        source: 'generator',
+      },
+    } as const,
     { type: 'REPLACE_SCENE', scene } as const,
     { type: 'SET_SELECTION', nodeId: null } as const,
     { type: 'SET_SELECTION', nodeId: root } as const,

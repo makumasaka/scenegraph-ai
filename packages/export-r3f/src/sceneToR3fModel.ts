@@ -32,6 +32,36 @@ const parentMapForScene = (scene: Scene): Map<string, string> => {
   return out;
 };
 
+const uriLooksLikeGltf = (uri: string): boolean => /\.(glb|gltf)(\?|#|$)/i.test(uri);
+
+type AssetUriAnalysis =
+  | { kind: 'none' }
+  | { kind: 'safe'; uri: string }
+  | { kind: 'unsafe'; reason: string };
+
+const analyzeAssetUri = (uri: string | undefined): AssetUriAnalysis => {
+  if (uri === undefined) return { kind: 'none' };
+  const value = uri.trim();
+  if (value.length === 0) return { kind: 'none' };
+  if (value.startsWith('file://')) return { kind: 'unsafe', reason: 'file_uri' };
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return { kind: 'unsafe', reason: 'remote_uri' };
+  }
+  if (value.includes('/Users/') || value.includes('\\Users\\')) {
+    return { kind: 'unsafe', reason: 'local_user_path' };
+  }
+  if (/^[a-zA-Z]:\\/.test(value)) return { kind: 'unsafe', reason: 'absolute_windows_path' };
+  if (
+    value.startsWith('/assets/') ||
+    value.startsWith('assets/') ||
+    value.startsWith('./') ||
+    value.startsWith('../')
+  ) {
+    return { kind: 'safe', uri: value };
+  }
+  return { kind: 'unsafe', reason: 'unapproved_uri_scheme' };
+};
+
 const diagnoseGroups = (scene: Scene): R3fExportDiagnostic[] => {
   const parentOf = parentMapForScene(scene);
   const diagnostics: R3fExportDiagnostic[] = [];
@@ -50,6 +80,12 @@ const diagnoseGroups = (scene: Scene): R3fExportDiagnostic[] => {
 
 export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
   const nodesInOrder: R3fResolvedNode[] = [];
+  const diagnostics = diagnoseGroups(scene);
+  const assetByUri = new Map(
+    Object.values(scene.assets ?? {})
+      .filter((asset) => typeof asset.uri === 'string' && asset.uri.length > 0)
+      .map((asset) => [asset.uri as string, asset]),
+  );
 
   const visit = (id: string, parentId: string | null, depth: number): R3fResolvedNode | null => {
     const node = scene.nodes[id];
@@ -57,6 +93,23 @@ export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
     const role = resolveRole(node);
     const groupId = resolveGroupId(node);
     const hasLight = node.light !== undefined || node.type === 'light';
+    const rawAssetUri = node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined;
+    const uriAnalysis = analyzeAssetUri(rawAssetUri);
+    const assetUri = uriAnalysis.kind === 'safe' ? uriAnalysis.uri : undefined;
+    if (uriAnalysis.kind === 'unsafe') {
+      diagnostics.push({
+        level: 'warning',
+        code: 'unsafe_asset_uri',
+        message: `Node ${id} has an unsafe asset URI (${uriAnalysis.reason}); exporter will emit placeholder mesh instead of useGLTF.`,
+      });
+    }
+    const asset = assetUri !== undefined ? assetByUri.get(assetUri) : undefined;
+    const assetKind = asset?.kind === 'glb' || asset?.kind === 'gltf'
+      ? asset.kind
+      : assetUri && uriLooksLikeGltf(assetUri)
+        ? (assetUri.toLowerCase().includes('.gltf') ? 'gltf' : 'glb')
+        : undefined;
+    const showAssetModel = assetUri !== undefined && assetKind !== undefined;
     const resolved: R3fResolvedNode = {
       id,
       parentId,
@@ -70,7 +123,10 @@ export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
       behaviorRequirements: resolveBehaviorRequirements(scene, node),
       children: [],
       hasLight,
-      showPlaceholderMesh: id !== scene.rootId && node.type === 'mesh' && !hasLight,
+      ...(assetUri !== undefined ? { assetUri } : {}),
+      ...(assetKind !== undefined ? { assetKind } : {}),
+      showAssetModel,
+      showPlaceholderMesh: id !== scene.rootId && node.type === 'mesh' && !hasLight && !showAssetModel,
     };
     nodesInOrder.push(resolved);
     resolved.children = node.children
@@ -85,6 +141,6 @@ export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
     nodesInOrder,
     semanticGroups: collectSemanticGroups(scene),
     behaviorDefinitions: collectBehaviors(scene),
-    diagnostics: diagnoseGroups(scene),
+    diagnostics,
   };
 };

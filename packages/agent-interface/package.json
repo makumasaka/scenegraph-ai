@@ -18,6 +18,8 @@
   "dependencies": {
     "@diorama/core": "*",
     "@diorama/export-r3f": "*",
+    "@diorama/generation": "*",
+    "@diorama/ingestion": "*",
     "@diorama/schema": "*",
     "zod": "^3.25.76"
   },

@@ -106,8 +106,25 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
 
   dispatch: (command) => {
     const state = get();
+    if (command.type === 'ARRANGE_NODES') {
+      // #region agent log
+      fetch('http://127.0.0.1:7738/ingest/f29e6973-be64-455d-947b-8b725bd018a5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9671d2'},body:JSON.stringify({sessionId:'9671d2',runId:'web-arrange-debug',hypothesisId:'A1_A2',location:'sceneStore.ts:dispatch:arrange:entry',message:'web dispatch ARRANGE_NODES',data:{nodeCount:Object.keys(state.scene.nodes).length,semanticGroupCount:Object.keys(state.scene.semanticGroups??{}).length,command},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    }
     const nextScene = applyCommand(state.scene, command);
-    if (nextScene === state.scene) return;
+    if (nextScene === state.scene) {
+      if (command.type === 'ARRANGE_NODES') {
+        // #region agent log
+        fetch('http://127.0.0.1:7738/ingest/f29e6973-be64-455d-947b-8b725bd018a5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9671d2'},body:JSON.stringify({sessionId:'9671d2',runId:'web-arrange-debug',hypothesisId:'A2_A3',location:'sceneStore.ts:dispatch:arrange:noop',message:'web ARRANGE_NODES produced no state change',data:{selection:state.scene.selection,command},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+      }
+      return;
+    }
+    if (command.type === 'ARRANGE_NODES') {
+      // #region agent log
+      fetch('http://127.0.0.1:7738/ingest/f29e6973-be64-455d-947b-8b725bd018a5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9671d2'},body:JSON.stringify({sessionId:'9671d2',runId:'web-arrange-debug',hypothesisId:'A1_A4',location:'sceneStore.ts:dispatch:arrange:changed',message:'web ARRANGE_NODES changed scene',data:{command,selectionBefore:state.scene.selection,selectionAfter:nextScene.selection},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    }
 
     if (command.type === 'REPLACE_SCENE') {
       set({

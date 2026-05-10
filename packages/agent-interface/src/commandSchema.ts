@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Command } from '@diorama/core';
 import {
   BehaviorDefinitionSchema,
+  DioramaAssetSchema,
   SceneGraphSchema,
   SceneNodeSchema,
   SemanticGroupSchema,
@@ -24,6 +25,7 @@ export const COMMAND_TYPES = [
   'DUPLICATE_NODE',
   'SET_PARENT',
   'ARRANGE_NODES',
+  'REGISTER_ASSET',
   'SET_SELECTION',
   'REPLACE_SCENE',
 ] as const satisfies readonly Command['type'][];
@@ -44,6 +46,7 @@ export const COMMAND_SCHEMA_PARITY: CommandTypeParity = {
   DUPLICATE_NODE: true,
   SET_PARENT: true,
   ARRANGE_NODES: true,
+  REGISTER_ASSET: true,
   SET_SELECTION: true,
   REPLACE_SCENE: true,
 };
@@ -171,6 +174,12 @@ export const CommandSchema = z.discriminatedUnion('type', [
       nodeIds: z.array(z.string().min(1)),
       layout: ArrangeLayoutSchema,
       options: ArrangeOptionsSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('REGISTER_ASSET'),
+      asset: DioramaAssetSchema,
     })
     .strict(),
   z

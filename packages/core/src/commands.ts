@@ -2,6 +2,7 @@ import {
   cloneSceneFromJson,
   validateScene,
   type BehaviorDefinition,
+  type DioramaAsset,
   type InteractionBehavior,
   type NodeSemantics,
   type Scene,
@@ -68,6 +69,10 @@ export type Command =
       nodeIds: string[];
       layout: ArrangeLayout;
       options?: ArrangeOptions;
+    }
+  | {
+      type: 'REGISTER_ASSET';
+      asset: DioramaAsset;
     }
   | { type: 'REPLACE_SCENE'; scene: Scene }
   | { type: 'SET_SELECTION'; nodeId: string | null };
@@ -690,6 +695,24 @@ const applyArrangeNodes = (
   return { ...scene, nodes: nextNodes };
 };
 
+const applyRegisterAsset = (
+  scene: Scene,
+  asset: DioramaAsset,
+): Scene => {
+  const prev = scene.assets?.[asset.id];
+  if (JSON.stringify(prev) === JSON.stringify(asset)) return scene;
+
+  const nextScene: Scene = {
+    ...scene,
+    assets: {
+      ...(scene.assets ?? {}),
+      [asset.id]: asset,
+    },
+  };
+  if (!validateScene(nextScene)) return scene;
+  return nextScene;
+};
+
 const applySetSelection = (scene: Scene, nodeId: string | null): Scene => {
   if (nodeId !== null && !scene.nodes[nodeId]) return scene;
   if (scene.selection === nodeId) return scene;
@@ -735,6 +758,8 @@ export const applyCommand = (scene: Scene, command: Command): Scene => {
         command.layout,
         command.options,
       );
+    case 'REGISTER_ASSET':
+      return applyRegisterAsset(scene, command.asset);
     case 'REPLACE_SCENE':
       return applyReplaceScene(scene, command.scene);
     case 'SET_SELECTION':
@@ -892,6 +917,23 @@ const commandError = (scene: Scene, command: Command): string | undefined => {
       );
       return hasTarget ? undefined : 'ARRANGE_NODES has no valid non-root targets';
     }
+    case 'REGISTER_ASSET':
+      if (command.asset.id.length === 0) return 'REGISTER_ASSET asset id cannot be empty';
+      if (JSON.stringify(scene.assets?.[command.asset.id]) === JSON.stringify(command.asset)) {
+        return undefined;
+      }
+      if (
+        !validateScene({
+          ...scene,
+          assets: {
+            ...(scene.assets ?? {}),
+            [command.asset.id]: command.asset,
+          },
+        })
+      ) {
+        return 'REGISTER_ASSET would violate scene invariants';
+      }
+      return undefined;
     case 'REPLACE_SCENE':
       return validateScene(command.scene)
         ? undefined

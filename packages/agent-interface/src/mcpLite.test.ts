@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { parseSceneJson, type Scene } from '@diorama/schema';
 import { showroomScene } from '@diorama/core';
-import { createMcpLiteRuntime } from './mcpLite';
+import { createAgentRuntime, createMcpLiteRuntime } from './mcpLite';
 
 const expectOk = <T>(result: { ok: true; data: T } | { ok: false; error: unknown }): T => {
   expect(result.ok).toBe(true);
@@ -25,6 +28,12 @@ const sceneWithUnsafeMetadata = (): Scene => ({
 });
 
 describe('createMcpLiteRuntime', () => {
+  it('exposes canonical Agent Runtime naming as alias', () => {
+    const legacy = createMcpLiteRuntime(showroomScene);
+    const canonical = createAgentRuntime(showroomScene);
+    expect(Object.keys(canonical).sort()).toEqual(Object.keys(legacy).sort());
+  });
+
   it('reads cloned scene state, semantic groups, and behaviors', () => {
     const runtime = createMcpLiteRuntime(showroomScene);
 
@@ -107,6 +116,48 @@ describe('createMcpLiteRuntime', () => {
 
     expect(arranged.changed).toBe(true);
     expect(expectOk(runtime.getScene()).scene.nodes.product_01!.transform.position).not.toEqual(before);
+  });
+
+  it('generateAsset and ingestAsset support mock-first workflow via Agent Runtime', async () => {
+    const assetOutputDir = await mkdtemp(join(tmpdir(), 'diorama-agent-runtime-'));
+    try {
+      const runtime = createMcpLiteRuntime(undefined, {
+        generation: {
+          assetOutputDir,
+          publicUrlBase: '/assets/generated',
+        },
+      });
+      const generated = await runtime.generateAsset({
+        prompt: 'Generate a modern chair product display scene',
+        provider: 'meshy',
+        mode: 'live',
+      });
+      expect(generated.ok).toBe(true);
+      if (!generated.ok) return;
+      expect(generated.data.asset.provider).toBe('mock');
+
+      const ingested = runtime.ingestAsset({
+        kind: 'generated',
+        asset: generated.data.asset,
+      });
+      expect(ingested.ok).toBe(true);
+      if (!ingested.ok) return;
+      expect(ingested.data.appliedCommandCount).toBe(2);
+
+      const scene = expectOk(runtime.getScene()).scene;
+      const addedNode = Object.values(scene.nodes).find(
+        (node) => node.id !== scene.rootId && node.semantics?.role === 'product',
+      );
+      expect(addedNode).toBeDefined();
+      expect(addedNode?.semantics?.source).toBe('import');
+      expect(addedNode?.metadata.source).toBe('generator');
+      expect(addedNode?.metadata.provider).toBe('mock');
+      expect(typeof addedNode?.metadata.prompt).toBe('string');
+      expect(scene.assets).toBeDefined();
+      expect(Object.values(scene.assets ?? {}).length).toBe(1);
+    } finally {
+      await rm(assetOutputDir, { recursive: true, force: true });
+    }
   });
 
   it('getSelection and generic exportScene expose the lite API shape', () => {
@@ -196,8 +247,8 @@ describe('createMcpLiteRuntime', () => {
     const invalidStructure = runtime.structureScene({ preset: 'gallery' });
     const invalidArrange = runtime.arrangeNodes({ nodeIds: [], layout: 'spiral' });
     const invalidExport = runtime.exportR3F({ mode: 'server' });
-
-    for (const result of [invalidStructure, invalidArrange, invalidExport]) {
+    const invalidIngest = runtime.ingestAsset({ kind: 'local', format: 'glb' });
+    for (const result of [invalidStructure, invalidArrange, invalidExport, invalidIngest]) {
       expect(result.ok).toBe(false);
       if (result.ok) continue;
       expect(result.error.code).toBe('VALIDATION_ERROR');

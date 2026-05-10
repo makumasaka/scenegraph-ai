@@ -11,6 +11,7 @@ type SemanticNodeProps = Omit<ThreeElements['group'], 'children'> & {
   sourceId: string;
   semanticRole: string;
   renderMesh?: boolean;
+  assetUri?: string;
   children?: ReactNode;
   onSelect?: () => void;
   onHoverStart?: () => void;
@@ -18,7 +19,7 @@ type SemanticNodeProps = Omit<ThreeElements['group'], 'children'> & {
 };
 
 function SemanticNode(props: SemanticNodeProps) {
-  const { sourceId, semanticRole, renderMesh, children, onSelect, onHoverStart, onHoverEnd, ...groupProps } = props;
+  const { sourceId, semanticRole, renderMesh, assetUri, children, onSelect, onHoverStart, onHoverEnd, ...groupProps } = props;
   return (
     <group
       {...groupProps}
@@ -27,7 +28,9 @@ function SemanticNode(props: SemanticNodeProps) {
       onPointerOut={onHoverEnd}
       onClick={onSelect}
     >
-      {renderMesh ? (
+      {assetUri ? (
+        <AssetModel uri={assetUri} />
+      ) : renderMesh ? (
         <mesh castShadow receiveShadow>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#9ca3af" />
