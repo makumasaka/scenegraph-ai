@@ -175,4 +175,54 @@ describe('exportSceneToR3fModule', () => {
     expect(result.code).toContain('assetUri="/assets/generated/chair.glb"');
     expect(result.diagnostics.some((d) => d.code === 'unsafe_asset_uri')).toBe(false);
   });
+
+  it('emits inspect-only glTF hierarchy nodes without duplicate placeholder meshes', () => {
+    const gltfChild = createNode({
+      id: 'gltf-child',
+      name: 'Ring',
+      type: 'mesh',
+      metadata: {
+        source: 'gltf',
+        renderMode: 'gltf-inspect-only',
+        gltfNodeIndex: 1,
+      },
+    });
+    const product = createNode({
+      id: 'product',
+      name: 'Product',
+      semantics: { role: 'product' },
+      assetRef: { kind: 'uri', uri: '/assets/imports/planets.glb' },
+      children: [gltfChild.id],
+    });
+    const root = createNode({
+      id: 'root',
+      name: 'Root',
+      type: 'root',
+      children: [product.id],
+    });
+    const scene: Scene = {
+      rootId: root.id,
+      selection: null,
+      nodes: {
+        [root.id]: root,
+        [product.id]: product,
+        [gltfChild.id]: gltfChild,
+      },
+      assets: {
+        planets: {
+          id: 'planets',
+          name: 'Planets',
+          kind: 'glb',
+          uri: '/assets/imports/planets.glb',
+          source: 'generator',
+        },
+      },
+    };
+
+    const out = moduleCode(scene);
+    const childStart = out.indexOf('sourceId="gltf-child"');
+    const childEnd = out.indexOf('/>', childStart);
+    expect(childStart).toBeGreaterThan(-1);
+    expect(out.slice(childStart, childEnd)).not.toContain('renderMesh');
+  });
 });

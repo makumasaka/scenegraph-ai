@@ -17,6 +17,8 @@ export type IngestionOptions = {
   parentId?: string;
   nodeId?: string;
   nodeName?: string;
+  includeHierarchy?: boolean;
+  maxHierarchyNodes?: number;
 };
 
 export type IngestionResult = {

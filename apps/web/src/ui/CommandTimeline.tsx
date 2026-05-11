@@ -36,6 +36,8 @@ const commandTouchedNodes = (scene: Scene, command: Command): string[] => {
       return [label(command.nodeId), label(command.parentId)];
     case 'ARRANGE_NODES':
       return command.nodeIds.slice(0, 4).map(label);
+    case 'REGISTER_ASSET':
+      return [command.asset.name, command.asset.uri ?? command.asset.id];
     case 'ADD_NODE':
       return [command.node.name, label(command.parentId)];
     case 'SET_SELECTION':

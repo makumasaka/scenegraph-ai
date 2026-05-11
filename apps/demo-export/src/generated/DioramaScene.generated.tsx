@@ -50,6 +50,10 @@ function Product(props: SemanticComponentProps) {
   return <SemanticNode {...props} semanticRole="product" />;
 }
 
+function SceneMesh(props: SemanticComponentProps) {
+  return <SemanticNode {...props} semanticRole="unknown" />;
+}
+
 function DisplayArea({ children }: { children: ReactNode }) {
   return <group name="DisplayArea">{children}</group>;
 }
@@ -78,27 +82,96 @@ export function DioramaScene() {
 
   return (
     <>
-      {/* Semantic group: display_area | role=display | nodes=asset-037qwuv-node */}
-      {/* acc4f2a9-2d1e-49a2-84f5-ad8b3e8c3e27 - Root */}
-      <group name="Root" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
-        {/* Semantic group: display_area | role=display | nodes=asset-037qwuv-node */}
+      {/* Studio fill - not from scene graph */}
+      <ambientLight intensity={0.4} />
+      <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+      {/* Semantic group: display_area | role=display | nodes=asset-planets_1-node */}
+      {/* root - Imported GLB Scene */}
+      <group name="Imported GLB Scene" position={[0, 0, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}>
+        {/* Semantic group: display_area | role=display | nodes=asset-planets_1-node */}
         <DisplayArea>
-          {/* asset-037qwuv-node - Generated Product | role=product | group=display_area | traits=clickable,hoverable,displayable,focusable | asset=uri | behavior=click_select,hover_highlight,show_info,focus_camera */}
+          {/* asset-planets_1-node - planets_1 Product | role=product | group=display_area | traits=clickable,hoverable,displayable,focusable | asset=uri | behavior=click_select,hover_highlight,show_info,focus_camera */}
           <Product
-            sourceId="asset-037qwuv-node"
-            name="Generated Product"
-            position={[0, 0.5, 0]}
+            sourceId="asset-planets_1-node"
+            name="planets_1 Product"
+            position={[0, 0, 0]}
             rotation={[0, 0, 0]}
             scale={[1, 1, 1]}
-            assetUri="/assets/generated/Meshy_AI_Tiny_Village.glb"
-            onHoverStart={() => handleHoverStart('asset-037qwuv-node')}
-            onHoverEnd={() => handleHoverEnd('asset-037qwuv-node')}
+            assetUri="/assets/imports/Planets_1.glb"
+            onHoverStart={() => handleHoverStart('asset-planets_1-node')}
+            onHoverEnd={() => handleHoverEnd('asset-planets_1-node')}
             onSelect={() => {
-              handleSelect('asset-037qwuv-node');
-              handleFocusCamera('asset-037qwuv-node');
+              handleSelect('asset-planets_1-node');
+              handleFocusCamera('asset-planets_1-node');
             }}
-          />
-          {selectedId === 'asset-037qwuv-node' ? (
+          >
+            {/* asset-planets_1-node-gltf-6-ring - Ring */}
+            <SceneMesh
+              sourceId="asset-planets_1-node-gltf-6-ring"
+              name="Ring"
+              position={[0, 0, 0]}
+              rotation={[0.5235987756554354, 0, 0]}
+              scale={[1.9072980880737305, 0.6288180947303772, 1.9072980880737305]}
+            >
+              {/* asset-planets_1-node-gltf-0-moon1 - Moon1 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-0-moon1"
+                name="Moon1"
+                position={[2.0090487003326416, 0, 0]}
+                rotation={[0, 0, 0]}
+                scale={[0.08696652203798294, 0.2637823224067688, 0.08696653693914413]}
+              />
+              {/* asset-planets_1-node-gltf-1-moon2 - Moon2 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-1-moon2"
+                name="Moon2"
+                position={[-2.2495670318603516, 0, 0]}
+                rotation={[0, 0, 0]}
+                scale={[0.17585061490535736, 0.533380925655365, 0.17585064470767975]}
+              />
+              {/* asset-planets_1-node-gltf-2-moon4 - Moon4 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-2-moon4"
+                name="Moon4"
+                position={[0, 0, -1.7812094688415527]}
+                rotation={[0, 0, 0]}
+                scale={[0.2371458262205124, 0.7192983627319336, 0.23714587092399597]}
+              />
+              {/* asset-planets_1-node-gltf-3-moon5 - Moon5 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-3-moon5"
+                name="Moon5"
+                position={[-1.3311115503311157, 0, -1.0702019929885864]}
+                rotation={[3.141592653589793, -0.8936265573599504, 3.141592653589793]}
+                scale={[0.09273392707109451, 0.2812756896018982, 0.09273392707109451]}
+              />
+              {/* asset-planets_1-node-gltf-4-moon6 - Moon6 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-4-moon6"
+                name="Moon6"
+                position={[1.0963397026062012, 0, 1.0105923414230347]}
+                rotation={[0, 0.8260733274068807, 0]}
+                scale={[0.0665082335472107, 0.20172931253910065, 0.0665082335472107]}
+              />
+              {/* asset-planets_1-node-gltf-5-moon3 - Moon3 */}
+              <SceneMesh
+                sourceId="asset-planets_1-node-gltf-5-moon3"
+                name="Moon3"
+                position={[0, 0, 1.70797860622406]}
+                rotation={[0, 0, 0]}
+                scale={[0.09273392707109451, 0.2812756896018982, 0.09273393452167511]}
+              />
+            </SceneMesh>
+            {/* asset-planets_1-node-gltf-7-planet - Planet */}
+            <SceneMesh
+              sourceId="asset-planets_1-node-gltf-7-planet"
+              name="Planet"
+              position={[0, 0, 0]}
+              rotation={[0, 0, 0]}
+              scale={[0.7713892459869385, 0.7713892459869385, 0.7713892459869385]}
+            />
+          </Product>
+          {selectedId === 'asset-planets_1-node' ? (
             <>{/* TODO: render info panel for Product information: Interactive showroom item generated from structured scene metadata.. */}</>
           ) : null}
         </DisplayArea>

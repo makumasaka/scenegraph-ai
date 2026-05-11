@@ -65,6 +65,8 @@ export function Toolbar() {
   const redo = useSceneStore((s) => s.redo);
   const pastCount = useSceneStore((s) => s.past.length);
   const futureCount = useSceneStore((s) => s.future.length);
+  const bridgeConnected = useSceneStore((s) => s.bridgeConnected);
+  const bridgeLastError = useSceneStore((s) => s.bridgeLastError);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   const selectedNode = selectedId ? scene.nodes[selectedId] : null;
@@ -240,6 +242,10 @@ export function Toolbar() {
         <div className="toolbar__status">
           {statusNotice ? (
             <span className="toolbar__status--muted">{statusNotice}</span>
+          ) : bridgeConnected ? (
+            <span className="toolbar__status--muted">Bridge connected</span>
+          ) : bridgeLastError ? (
+            <span className="toolbar__status--muted" title={bridgeLastError}>Bridge offline</span>
           ) : selectedNode ? (
             <>
               Selected: <strong>{selectedNode.name}</strong>

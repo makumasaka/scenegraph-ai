@@ -1,4 +1,5 @@
 import {
+  Suspense,
   useState,
   useLayoutEffect,
   useCallback,
@@ -8,7 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { TransformControls } from '@react-three/drei';
+import { TransformControls, useGLTF } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
 import type { Group, Object3D } from 'three';
@@ -19,6 +20,54 @@ import { transformPatchFromObject3D } from './object3dTransform';
 interface NodeMeshProps {
   nodeId: string;
   children?: ReactNode;
+}
+
+const uriLooksLikeGltf = (uri: string): boolean => /\.(glb|gltf)(\?|#|$)/i.test(uri);
+
+const resolveRenderableAssetUri = (uri: string | undefined): string | undefined => {
+  if (uri === undefined) return undefined;
+  const value = uri.trim();
+  if (value.length === 0 || !uriLooksLikeGltf(value)) return undefined;
+  if (value.startsWith('file://')) return undefined;
+  if (value.startsWith('http://') || value.startsWith('https://')) return undefined;
+  if (value.includes('/Users/') || value.includes('\\Users\\')) return undefined;
+  if (/^[a-zA-Z]:\\/.test(value)) return undefined;
+  if (
+    value.startsWith('/assets/') ||
+    value.startsWith('assets/') ||
+    value.startsWith('./') ||
+    value.startsWith('../')
+  ) {
+    return value;
+  }
+  return undefined;
+};
+
+function AssetModel({ uri }: { uri: string }) {
+  const gltf = useGLTF(uri);
+  const object = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  return <primitive object={object} />;
+}
+
+function ProxyMesh({
+  color,
+  isHovered,
+  isSelected,
+}: {
+  color: string;
+  isHovered: boolean;
+  isSelected: boolean;
+}) {
+  return (
+    <mesh castShadow receiveShadow>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={isSelected ? '#f59e0b' : isHovered ? '#0284c7' : '#000000'}
+        emissiveIntensity={isSelected ? 0.35 : isHovered ? 0.28 : 0}
+      />
+    </mesh>
+  );
 }
 
 function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
@@ -78,6 +127,11 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
     return `hsl(${hue}, 65%, 55%)`;
   }, [hasHoverHighlight, isHovered, isSelected, nodeId]);
 
+  const assetUri = useMemo(
+    () => resolveRenderableAssetUri(node?.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined),
+    [node?.assetRef],
+  );
+
   if (!node || node.visible === false) return null;
 
   const handleClick = (e: ThreeEvent<MouseEvent>): void => {
@@ -96,7 +150,10 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
   };
 
   const showLight = node.light !== undefined || node.type === 'light';
-  const showMesh = node.type === 'mesh' && !showLight;
+  const isInspectOnly = node.metadata.renderMode === 'gltf-inspect-only';
+  const showMesh = node.type === 'mesh' && !showLight && !isInspectOnly;
+  const showAsset = showMesh && assetUri !== undefined;
+  const showProxy = showMesh && !showAsset;
 
   return (
     <>
@@ -118,15 +175,15 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
             intensity={node.light.intensity ?? 1}
           />
         ) : null}
-        {showMesh ? (
-          <mesh castShadow receiveShadow>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={isSelected ? '#f59e0b' : isHovered ? '#0284c7' : '#000000'}
-              emissiveIntensity={isSelected ? 0.35 : isHovered ? 0.28 : 0}
-            />
-          </mesh>
+        {showAsset ? (
+          <Suspense
+            fallback={<ProxyMesh color={color} isHovered={isHovered} isSelected={isSelected} />}
+          >
+            <AssetModel uri={assetUri} />
+          </Suspense>
+        ) : null}
+        {showProxy ? (
+          <ProxyMesh color={color} isHovered={isHovered} isSelected={isSelected} />
         ) : null}
         {children}
       </group>

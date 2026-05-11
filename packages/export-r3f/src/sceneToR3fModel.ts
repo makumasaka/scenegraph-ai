@@ -93,6 +93,7 @@ export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
     const role = resolveRole(node);
     const groupId = resolveGroupId(node);
     const hasLight = node.light !== undefined || node.type === 'light';
+    const isInspectOnly = node.metadata.renderMode === 'gltf-inspect-only';
     const rawAssetUri = node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined;
     const uriAnalysis = analyzeAssetUri(rawAssetUri);
     const assetUri = uriAnalysis.kind === 'safe' ? uriAnalysis.uri : undefined;
@@ -126,7 +127,8 @@ export const buildR3fExportModel = (scene: Scene): R3fExportModel => {
       ...(assetUri !== undefined ? { assetUri } : {}),
       ...(assetKind !== undefined ? { assetKind } : {}),
       showAssetModel,
-      showPlaceholderMesh: id !== scene.rootId && node.type === 'mesh' && !hasLight && !showAssetModel,
+      showPlaceholderMesh:
+        id !== scene.rootId && node.type === 'mesh' && !hasLight && !showAssetModel && !isInspectOnly,
     };
     nodesInOrder.push(resolved);
     resolved.children = node.children

@@ -9,6 +9,7 @@ import {
   type Command,
   type Scene,
 } from '@diorama/core';
+import { postBridgeCommand, postBridgeLoadScene } from '../bridge/bridgeClient';
 
 const HISTORY_LIMIT = 100;
 const LOG_LIMIT = 200;
@@ -78,7 +79,11 @@ export interface SceneState {
   commandLog: CommandLogEntry[];
   timelineCommands: Command[];
   timelineError: string | null;
+  bridgeConnected: boolean;
+  bridgeLastError: string | null;
   dispatch: (command: Command) => void;
+  applyBridgeScene: (scene: Scene, command?: Command) => void;
+  setBridgeStatus: (connected: boolean, error: string | null) => void;
   setTimelineCommandAt: (index: number, command: Command) => void;
   recomputeFromTimeline: () => boolean;
   clearTimelineError: () => void;
@@ -103,9 +108,24 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   commandLog: [],
   timelineCommands: [],
   timelineError: null,
+  bridgeConnected: false,
+  bridgeLastError: null,
 
   dispatch: (command) => {
     const state = get();
+    if (state.bridgeConnected && command.type !== 'SET_SELECTION') {
+      void postBridgeCommand(command)
+        .then((result) => {
+          if (result.ok) return;
+          get().setBridgeStatus(false, result.error.message);
+          get().dispatch(command);
+        })
+        .catch((error) => {
+          get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+          get().dispatch(command);
+        });
+      return;
+    }
     if (command.type === 'ARRANGE_NODES') {
       // #region agent log
       fetch('http://127.0.0.1:7738/ingest/f29e6973-be64-455d-947b-8b725bd018a5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9671d2'},body:JSON.stringify({sessionId:'9671d2',runId:'web-arrange-debug',hypothesisId:'A1_A2',location:'sceneStore.ts:dispatch:arrange:entry',message:'web dispatch ARRANGE_NODES',data:{nodeCount:Object.keys(state.scene.nodes).length,semanticGroupCount:Object.keys(state.scene.semanticGroups??{}).length,command},timestamp:Date.now()})}).catch(()=>{});
@@ -164,6 +184,54 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
           : [...state.timelineCommands, command],
     });
   },
+
+  applyBridgeScene: (incomingScene, command) => {
+    const scene = cloneScene(incomingScene);
+    set((state) => {
+      if (command === undefined || command.type === 'REPLACE_SCENE') {
+        return {
+          scene,
+          baseScene: cloneScene(scene),
+          gizmoMode: 'translate',
+          past: [],
+          future: [],
+          lastTag: null,
+          bridgeConnected: true,
+          bridgeLastError: null,
+          ...(command === undefined
+            ? {}
+            : {
+                commandLog: [],
+                timelineCommands: [],
+                timelineError: null,
+              }),
+        };
+      }
+
+      const tag = getCoalesceTag(command);
+      const shouldCoalesce = sameTag(state.lastTag, tag) && state.past.length > 0;
+      return {
+        scene,
+        past: shouldCoalesce ? state.past : pushPast(state.past, state.scene),
+        future: [],
+        lastTag: tag,
+        bridgeConnected: true,
+        bridgeLastError: null,
+        timelineError: null,
+        commandLog:
+          command.type === 'SET_SELECTION'
+            ? state.commandLog
+            : pushLog(state.commandLog, command),
+        timelineCommands:
+          command.type === 'SET_SELECTION'
+            ? state.timelineCommands
+            : [...state.timelineCommands, command],
+      };
+    });
+  },
+
+  setBridgeStatus: (bridgeConnected, bridgeLastError) =>
+    set({ bridgeConnected, bridgeLastError }),
 
   setTimelineCommandAt: (index, command) =>
     set((state) => {
@@ -239,6 +307,19 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   importSceneJson: (text) => {
     const parsed = parseSceneJson(text);
     if (!parsed) return false;
+    if (get().bridgeConnected) {
+      void postBridgeLoadScene(text)
+        .then((result) => {
+          if (result.ok) return;
+          get().setBridgeStatus(false, result.error.message);
+          get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
+        })
+        .catch((error) => {
+          get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+          get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
+        });
+      return true;
+    }
     get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
     return true;
   },

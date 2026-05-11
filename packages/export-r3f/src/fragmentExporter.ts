@@ -80,9 +80,10 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
 
   const isRoot = id === scene.rootId;
   const hasLight = node.light !== undefined || node.type === 'light';
+  const isInspectOnly = node.metadata.renderMode === 'gltf-inspect-only';
   const assetUri = sanitizeAssetUri(node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined);
   const showAssetModel = assetUri !== undefined && /\.(glb|gltf)(\?|#|$)/i.test(assetUri);
-  const showPlaceholderMesh = !isRoot && node.type === 'mesh' && !hasLight && !showAssetModel;
+  const showPlaceholderMesh = !isRoot && node.type === 'mesh' && !hasLight && !showAssetModel && !isInspectOnly;
 
   const open =
     `${ind}{/* ${escapeComment(node.id)} - ${escapeComment(node.name)} */}\n` +

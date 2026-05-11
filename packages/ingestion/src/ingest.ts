@@ -1,6 +1,7 @@
 import { createNode, type Command, type DioramaAsset } from '@diorama/core';
 import type { GeneratedAsset } from '@diorama/generation';
 import type { IngestAssetInput, IngestionOptions, IngestionResult } from './types';
+import { planGltfHierarchyFromFile } from './gltfHierarchy';
 
 const hashText = (value: string): string => {
   let hash = 2166136261;
@@ -119,4 +120,47 @@ export const ingestAsset = (
     warnings,
     assets: [asset],
   };
+};
+
+export const ingestAssetWithHierarchy = async (
+  input: IngestAssetInput,
+  options: IngestionOptions = {},
+): Promise<IngestionResult> => {
+  const result = ingestAsset(input, options);
+  if (options.includeHierarchy !== true || result.commands.length === 0) return result;
+
+  const asset = result.assets?.[0];
+  const localPath = localPathFromInput(input);
+  const assetNode = result.commands.find((command) => command.type === 'ADD_NODE');
+  if (asset === undefined || assetNode?.type !== 'ADD_NODE') {
+    return {
+      ...result,
+      warnings: [
+        ...result.warnings,
+        'GLB hierarchy introspection skipped because ingestAsset did not create an asset node.',
+      ],
+    };
+  }
+
+  try {
+    const hierarchy = await planGltfHierarchyFromFile(localPath, {
+      assetId: asset.id,
+      ...(asset.uri !== undefined ? { assetUri: asset.uri } : {}),
+      parentNodeId: assetNode.node.id,
+      ...(options.maxHierarchyNodes !== undefined ? { maxNodes: options.maxHierarchyNodes } : {}),
+    });
+    return {
+      ...result,
+      commands: [...result.commands, ...hierarchy.commands],
+      warnings: [...result.warnings, ...hierarchy.warnings],
+    };
+  } catch (error) {
+    return {
+      ...result,
+      warnings: [
+        ...result.warnings,
+        `GLB hierarchy introspection failed: ${error instanceof Error ? error.message : String(error)}`,
+      ],
+    };
+  }
 };

@@ -47,6 +47,11 @@ vi.mock('@react-three/drei', async () => {
         </button>
       );
     }),
+    useGLTF: () => ({
+      scene: {
+        clone: () => ({ type: 'mock-gltf-scene' }),
+      },
+    }),
   };
 });
 
@@ -70,7 +75,14 @@ describe('NodeMesh command adapter', () => {
         return;
       }
       if (
-        ['castShadow', 'receiveShadow', 'emissiveIntensity'].some((prop) =>
+        ['primitive'].some((tag) =>
+          message.includes(tag),
+        )
+      ) {
+        return;
+      }
+      if (
+        ['castShadow', 'receiveShadow', 'emissiveIntensity', 'object'].some((prop) =>
           message.includes(prop),
         )
       ) {
@@ -152,5 +164,81 @@ describe('NodeMesh command adapter', () => {
 
     expect(container.querySelector('group')).toBeNull();
     expect(screen.queryByTestId('nested-child')).not.toBeInTheDocument();
+  });
+
+  it('renders safe GLB asset refs instead of the proxy mesh', () => {
+    const scene = getStarterScene('default');
+    const childId = scene.nodes[scene.rootId]!.children[0]!;
+    const child = scene.nodes[childId]!;
+    useSceneStore.getState().dispatch({
+      type: 'REPLACE_SCENE',
+      scene: {
+        ...scene,
+        nodes: {
+          ...scene.nodes,
+          [childId]: {
+            ...child,
+            assetRef: { kind: 'uri', uri: '/assets/imports/chair.glb' },
+          },
+        },
+      },
+    });
+
+    const { container } = render(<NodeMesh nodeId={childId} />);
+
+    expect(container.querySelector('primitive')).not.toBeNull();
+    expect(container.querySelector('boxGeometry')).toBeNull();
+  });
+
+  it('keeps the proxy mesh for unsafe asset refs', () => {
+    const scene = getStarterScene('default');
+    const childId = scene.nodes[scene.rootId]!.children[0]!;
+    const child = scene.nodes[childId]!;
+    useSceneStore.getState().dispatch({
+      type: 'REPLACE_SCENE',
+      scene: {
+        ...scene,
+        nodes: {
+          ...scene.nodes,
+          [childId]: {
+            ...child,
+            assetRef: { kind: 'uri', uri: 'file:///Users/example/private.glb' },
+          },
+        },
+      },
+    });
+
+    const { container } = render(<NodeMesh nodeId={childId} />);
+
+    expect(container.querySelector('primitive')).toBeNull();
+    expect(container.querySelector('boxGeometry')).not.toBeNull();
+  });
+
+  it('does not render proxy geometry for inspect-only glTF hierarchy nodes', () => {
+    const scene = getStarterScene('default');
+    const childId = scene.nodes[scene.rootId]!.children[0]!;
+    const child = scene.nodes[childId]!;
+    useSceneStore.getState().dispatch({
+      type: 'REPLACE_SCENE',
+      scene: {
+        ...scene,
+        nodes: {
+          ...scene.nodes,
+          [childId]: {
+            ...child,
+            metadata: {
+              ...child.metadata,
+              renderMode: 'gltf-inspect-only',
+            },
+          },
+        },
+      },
+    });
+
+    const { container } = render(<NodeMesh nodeId={childId} />);
+
+    expect(container.querySelector('group')).not.toBeNull();
+    expect(container.querySelector('primitive')).toBeNull();
+    expect(container.querySelector('boxGeometry')).toBeNull();
   });
 });

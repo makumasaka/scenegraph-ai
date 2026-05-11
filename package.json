@@ -12,7 +12,10 @@
     "build": "npm run typecheck && npm run build -w web",
     "lint": "npm run lint -w web",
     "preview": "npm run preview -w web",
-    "demo:v1": "tsx scripts/demo-v1.ts"
+    "demo:v1": "tsx scripts/demo-v1.ts",
+    "ingest:glb": "tsx scripts/ingest-glb.ts",
+    "bridge:dev": "tsx scripts/diorama-bridge.ts",
+    "mcp:stdio": "tsx scripts/diorama-mcp.ts"
   },
   "devDependencies": {
     "tsx": "^4.21.0"

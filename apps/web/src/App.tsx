@@ -1,4 +1,5 @@
 import './App.css';
+import { BridgeSession } from './bridge/BridgeSession';
 import { CommandTimeline } from './ui/CommandTimeline';
 import { Inspector } from './ui/Inspector';
 import { Toolbar } from './ui/Toolbar';
@@ -11,6 +12,7 @@ function App() {
 
   return (
     <div className="app">
+      <BridgeSession />
       <Toolbar />
       <div className="editor-body">
         <main className="main">
