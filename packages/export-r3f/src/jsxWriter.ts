@@ -1,4 +1,14 @@
-import type { SceneLight, Vec3 } from '@diorama/schema';
+import type { Metadata, SceneLight, Vec3 } from '@diorama/schema';
+
+const DEFAULT_TORUS_ARGS = [0.45, 0.035, 16, 48] as const;
+
+export const torusArgsFromMetadata = (metadata: Metadata | undefined): [number, number, number, number] => {
+  const raw = metadata?.dioramaTorusArgs;
+  if (!Array.isArray(raw) || raw.length < 4) return [...DEFAULT_TORUS_ARGS];
+  const nums = raw.slice(0, 4).map((v) => (typeof v === 'number' && Number.isFinite(v) ? v : null));
+  if (nums.some((n) => n === null)) return [...DEFAULT_TORUS_ARGS];
+  return nums as [number, number, number, number];
+};
 
 /**
  * Stable numeric formatting. Integers render without a decimal point; finite
@@ -27,6 +37,22 @@ export const placeholderMesh = (baseIndent: string): string =>
   `${baseIndent}  <boxGeometry args={[1, 1, 1]} />\n` +
   `${baseIndent}  <meshStandardMaterial color="#9ca3af" />\n` +
   `${baseIndent}</mesh>\n`;
+
+/**
+ * R3F placeholder mesh driven by optional `metadata.dioramaProxyMesh` /
+ * `dioramaTorusArgs` so lightweight authored geometry (e.g. Saturn-style rings)
+ * round-trips through fragment export.
+ */
+export const proxyPlaceholderMesh = (baseIndent: string, metadata: Metadata | undefined): string => {
+  if (metadata?.dioramaProxyMesh !== 'torus') return placeholderMesh(baseIndent);
+  const [r, tube, radialSegments, tubularSegments] = torusArgsFromMetadata(metadata);
+  return (
+    `${baseIndent}<mesh castShadow receiveShadow>\n` +
+    `${baseIndent}  <torusGeometry args={[${fmtNum(r)}, ${fmtNum(tube)}, ${radialSegments}, ${tubularSegments}]} />\n` +
+    `${baseIndent}  <meshStandardMaterial color="#c4b5fd" />\n` +
+    `${baseIndent}</mesh>\n`
+  );
+};
 
 export const emitLight = (light: SceneLight, baseIndent: string): string => {
   if (light.kind === 'ambient') {

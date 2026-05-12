@@ -1,6 +1,23 @@
 {
   "data": {
     "assets": {
+      "asset-meshy_ai_formula_1": {
+        "generator": {
+          "provider": "mock"
+        },
+        "id": "asset-meshy_ai_formula_1",
+        "kind": "glb",
+        "metadata": {
+          "importSource": "uploadedFile",
+          "importedFrom": "apps/web/public/assets/imports/Meshy_AI_Formula_1.glb",
+          "localPath": "apps/web/public/assets/imports/Meshy_AI_Formula_1.glb",
+          "provider": "mock",
+          "source": "generator"
+        },
+        "name": "Meshy_AI_Formula_1",
+        "source": "generator",
+        "uri": "/assets/imports/Meshy_AI_Formula_1.glb"
+      },
       "asset-planets_1": {
         "generator": {
           "provider": "mock"
@@ -61,6 +78,88 @@
       }
     },
     "nodes": {
+      "asset-meshy_ai_formula_1-node": {
+        "assetRef": {
+          "kind": "uri",
+          "uri": "/assets/imports/Meshy_AI_Formula_1.glb"
+        },
+        "children": [
+          "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0"
+        ],
+        "id": "asset-meshy_ai_formula_1-node",
+        "metadata": {
+          "assetId": "asset-meshy_ai_formula_1",
+          "localPath": "apps/web/public/assets/imports/Meshy_AI_Formula_1.glb",
+          "provider": "mock",
+          "source": "generator"
+        },
+        "name": "meshy_ai_formula_1 Product",
+        "semanticRole": "product",
+        "semantics": {
+          "role": "product",
+          "source": "import"
+        },
+        "transform": {
+          "position": [
+            6.768143321853275,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0": {
+        "children": [],
+        "id": "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0",
+        "metadata": {
+          "assetId": "asset-meshy_ai_formula_1",
+          "assetUri": "/assets/imports/Meshy_AI_Formula_1.glb",
+          "gltfMeshIndex": 0,
+          "gltfNodeIndex": 0,
+          "gltfNodeName": "glTF Node 0",
+          "gltfPath": "scene:0/0",
+          "renderMode": "gltf-inspect-only",
+          "source": "gltf",
+          "transformSource": "matrix"
+        },
+        "name": "glTF Node 0",
+        "semantics": {
+          "source": "import",
+          "tags": [
+            "gltf-mesh"
+          ]
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
       "asset-planets_1-node": {
         "assetRef": {
           "kind": "uri",
@@ -127,7 +226,9 @@
         "visible": true
       },
       "asset-planets_1-node-gltf-0-moon1": {
-        "children": [],
+        "children": [
+          "asset-planets_1-node-gltf-0-moon1-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-0-moon1",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -167,8 +268,44 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node-gltf-1-moon2": {
+      "asset-planets_1-node-gltf-0-moon1-orbit-ring": {
         "children": [],
+        "id": "asset-planets_1-node-gltf-0-moon1-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon1 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-1-moon2": {
+        "children": [
+          "asset-planets_1-node-gltf-1-moon2-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-1-moon2",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -208,8 +345,44 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node-gltf-2-moon4": {
+      "asset-planets_1-node-gltf-1-moon2-orbit-ring": {
         "children": [],
+        "id": "asset-planets_1-node-gltf-1-moon2-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon2 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-2-moon4": {
+        "children": [
+          "asset-planets_1-node-gltf-2-moon4-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-2-moon4",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -249,8 +422,44 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node-gltf-3-moon5": {
+      "asset-planets_1-node-gltf-2-moon4-orbit-ring": {
         "children": [],
+        "id": "asset-planets_1-node-gltf-2-moon4-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon4 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-3-moon5": {
+        "children": [
+          "asset-planets_1-node-gltf-3-moon5-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-3-moon5",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -290,8 +499,44 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node-gltf-4-moon6": {
+      "asset-planets_1-node-gltf-3-moon5-orbit-ring": {
         "children": [],
+        "id": "asset-planets_1-node-gltf-3-moon5-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon5 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-4-moon6": {
+        "children": [
+          "asset-planets_1-node-gltf-4-moon6-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-4-moon6",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -331,8 +576,44 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node-gltf-5-moon3": {
+      "asset-planets_1-node-gltf-4-moon6-orbit-ring": {
         "children": [],
+        "id": "asset-planets_1-node-gltf-4-moon6-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon6 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-5-moon3": {
+        "children": [
+          "asset-planets_1-node-gltf-5-moon3-orbit-ring"
+        ],
         "id": "asset-planets_1-node-gltf-5-moon3",
         "metadata": {
           "assetId": "asset-planets_1",
@@ -367,6 +648,40 @@
             0.09273392707109451,
             0.2812756896018982,
             0.09273393452167511
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
+      "asset-planets_1-node-gltf-5-moon3-orbit-ring": {
+        "children": [],
+        "id": "asset-planets_1-node-gltf-5-moon3-orbit-ring",
+        "metadata": {
+          "dioramaProxyMesh": "torus",
+          "dioramaTorusArgs": [
+            0.45,
+            0.035,
+            16,
+            48
+          ],
+          "source": "authoring"
+        },
+        "name": "Moon3 ring",
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            1.5707963267948966,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
           ]
         },
         "type": "mesh",
@@ -463,16 +778,17 @@
       },
       "root": {
         "children": [
-          "asset-planets_1-node"
+          "asset-planets_1-node",
+          "asset-meshy_ai_formula_1-node"
         ],
         "id": "root",
         "metadata": {},
         "name": "Imported GLB Scene",
         "transform": {
           "position": [
+            -2.2732947893362994,
             0,
-            0,
-            0
+            2.6715768221024305
           ],
           "rotation": [
             0,

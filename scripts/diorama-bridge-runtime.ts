@@ -1,8 +1,9 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, extname, resolve } from 'node:path';
+import { basename, dirname, extname, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createAgentRuntime, type AgentRuntime } from '@diorama/agent-interface';
-import { getStarterScene, type Command, type Scene } from '@diorama/core';
+import { getStarterScene, type Command, type Scene, type SemanticRole } from '@diorama/core';
 import { ingestAssetWithHierarchy, type IngestAssetInput, type IngestionResult } from '@diorama/ingestion';
 import { parseSceneJson, serializeScene } from '@diorama/schema';
 
@@ -26,13 +27,62 @@ type SceneEvent = {
   source: 'bridge' | 'mcp' | 'web';
 };
 
-const repoPath = (...parts: string[]): string => resolve(process.cwd(), ...parts);
+export type ImportAssetSource =
+  | { kind: 'workspacePath'; path: string }
+  | { kind: 'uploadedFile'; name: string; data: Buffer };
+
+export type ImportAssetInput = {
+  source: ImportAssetSource;
+  importMode?: 'single' | 'shallow';
+  semanticRole?: SemanticRole;
+  parentId?: string;
+  dryRun?: boolean;
+};
+
+export type ImportAssetResult = {
+  assetId: string;
+  commands: Command[];
+  warnings: string[];
+  sceneSummary: {
+    nodeCount: number;
+    assetCount: number;
+    rootChildCount: number;
+  };
+  importedNodeIds: string[];
+  hierarchySummary?: {
+    nodeCount: number;
+    rootNodeIds: string[];
+  };
+  scene: Scene;
+  changed: boolean;
+  dryRun: boolean;
+  errors: unknown[];
+  appliedCommandCount: number;
+};
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(SCRIPT_DIR, '..');
+
+const repoPath = (...parts: string[]): string => resolve(REPO_ROOT, ...parts);
 
 const SESSION_PATH = repoPath('.diorama/session.scene.json');
 const WEB_IMPORTED_SCENE_PATH = repoPath('apps/web/public/scenes/imported-glb.scene.json');
 const WEB_LIVE_SCENE_PATH = repoPath('apps/web/public/scenes/bridge-session.scene.json');
 const DEMO_SCENE_PATH = repoPath('apps/demo-export/public/scene.generated.json');
 const GENERATED_R3F_PATH = repoPath('apps/demo-export/src/generated/DioramaScene.generated.tsx');
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+const SEMANTIC_ROLES = new Set<SemanticRole>([
+  'product',
+  'display',
+  'seating',
+  'lighting',
+  'light',
+  'environment',
+  'navigation',
+  'decor',
+  'container',
+  'unknown',
+]);
 
 const ok = <T>(data: T): BridgeResult<T> => ({ ok: true, data });
 
@@ -71,12 +121,50 @@ const assetFormatFromValue = (value: unknown): 'glb' | 'gltf' | undefined =>
 const finiteNumberFromValue = (value: unknown): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 
-const readJson = async (req: IncomingMessage): Promise<unknown> => {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+const semanticRoleFromValue = (value: unknown): SemanticRole | undefined =>
+  typeof value === 'string' && SEMANTIC_ROLES.has(value as SemanticRole)
+    ? value as SemanticRole
+    : undefined;
+
+const importModeFromValue = (value: unknown): ImportAssetInput['importMode'] | undefined =>
+  value === 'single' || value === 'shallow' ? value : undefined;
+
+const isPathInside = (targetPath: string, rootPath: string): boolean => {
+  const rel = relative(rootPath, targetPath);
+  return rel === '' || (!rel.startsWith('..') && !resolve(rel).startsWith('..'));
+};
+
+export const resolveWorkspaceRelativePath = (workspaceRelativePath: string): BridgeResult<string> => {
+  if (workspaceRelativePath.trim().length === 0 || workspaceRelativePath.includes('\0')) {
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be a non-empty workspace-relative path.');
   }
-  const raw = Buffer.concat(chunks).toString('utf8').trim();
+  if (/^[a-zA-Z]:[\\/]/.test(workspaceRelativePath) || workspaceRelativePath.startsWith('/') || workspaceRelativePath.startsWith('\\')) {
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be relative to the Diorama workspace.');
+  }
+  const absolutePath = resolve(REPO_ROOT, workspaceRelativePath);
+  if (!isPathInside(absolutePath, REPO_ROOT)) {
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must stay inside the Diorama workspace.');
+  }
+  return ok(absolutePath);
+};
+
+const readRequestBuffer = async (
+  req: IncomingMessage,
+  maxBytes = MAX_UPLOAD_BYTES,
+): Promise<Buffer> => {
+  const chunks: Buffer[] = [];
+  let totalBytes = 0;
+  for await (const chunk of req) {
+    const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+    totalBytes += buffer.byteLength;
+    if (totalBytes > maxBytes) throw new Error(`Request body exceeds ${maxBytes} bytes.`);
+    chunks.push(buffer);
+  }
+  return Buffer.concat(chunks);
+};
+
+const readJson = async (req: IncomingMessage): Promise<unknown> => {
+  const raw = (await readRequestBuffer(req)).toString('utf8').trim();
   if (raw.length === 0) return {};
   return JSON.parse(raw) as unknown;
 };
@@ -122,6 +210,41 @@ const copyFileIfDifferent = async (sourcePath: string, targetPath: string): Prom
   await mkdir(dirname(targetPath), { recursive: true });
   await copyFile(sourcePath, targetPath);
 };
+
+const writeFileIfDifferent = async (targetPath: string, data: Buffer): Promise<void> => {
+  await mkdir(dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, data);
+};
+
+const uniqueRecordId = <T>(
+  baseId: string,
+  record: Record<string, T> | undefined,
+): string => {
+  if (record?.[baseId] === undefined) return baseId;
+  let suffix = 2;
+  let candidate = `${baseId}-${suffix}`;
+  while (record[candidate] !== undefined) {
+    suffix += 1;
+    candidate = `${baseId}-${suffix}`;
+  }
+  return candidate;
+};
+
+const commandNodeIds = (commands: Command[]): string[] =>
+  commands
+    .filter((command): command is Extract<Command, { type: 'ADD_NODE' }> => command.type === 'ADD_NODE')
+    .map((command) => command.node.id);
+
+const commandAssetId = (commands: Command[]): string | undefined =>
+  commands.find((command): command is Extract<Command, { type: 'REGISTER_ASSET' }> =>
+    command.type === 'REGISTER_ASSET',
+  )?.asset.id;
+
+const sceneSummary = (scene: Scene): ImportAssetResult['sceneSummary'] => ({
+  nodeCount: Object.keys(scene.nodes).length,
+  assetCount: Object.keys(scene.assets ?? {}).length,
+  rootChildCount: scene.nodes[scene.rootId]?.children.length ?? 0,
+});
 
 const loadSceneFromFile = async (path: string): Promise<Scene | null> => {
   try {
@@ -219,6 +342,8 @@ export class DioramaBridgeRuntime {
           return this.generateAsset(input);
         case 'generate_and_ingest_asset':
           return this.generateAndIngestAsset(input, source);
+        case 'import_glb_asset':
+          return this.importGlbAssetTool(input, source);
         case 'ingest_asset':
           return this.ingestAsset(input, source);
         case 'ingest_local_asset':
@@ -334,9 +459,157 @@ export class DioramaBridgeRuntime {
     const generated = await this.generateAsset(input);
     if (!generated.ok) return generated;
     const asset = (generated.data as { asset: unknown }).asset;
-    const ingested = await this.ingestAsset({ kind: 'generated', asset }, source);
+    const ingested = await this.ingestAsset({ kind: 'generated', asset, includeHierarchy: true }, source);
     if (!ingested.ok) return ingested;
     return ok({ generated: generated.data, ingestion: ingested.data });
+  }
+
+  async importAsset(
+    input: ImportAssetInput,
+    source: SceneEvent['source'] = 'mcp',
+  ): Promise<BridgeResult<ImportAssetResult>> {
+    const scene = this.getSceneResult();
+    if (!scene.ok) return scene;
+
+    const mode = input.importMode ?? 'shallow';
+    const sourcePath = await this.prepareImportAssetFile(input.source);
+    if (!sourcePath.ok) return sourcePath;
+
+    const { fileName, slug, format } = safeFileNameFor(sourcePath.data.localPath);
+    const publicUri = `/assets/imports/${fileName}`;
+    const assetId = uniqueRecordId(`asset-${slug}`, scene.data.scene.assets);
+    const nodeId = uniqueRecordId(`${assetId}-node`, scene.data.scene.nodes);
+    const semanticRole = input.semanticRole;
+
+    const ingestion = await ingestAssetWithHierarchy({
+      localPath: sourcePath.data.workspaceRelativePath,
+      format,
+      id: assetId,
+      uri: publicUri,
+      provider: 'mock',
+      metadata: {
+        importedFrom: sourcePath.data.workspaceRelativePath,
+        importSource: input.source.kind,
+      },
+    }, {
+      parentId: input.parentId ?? scene.data.scene.rootId,
+      nodeId,
+      nodeName: `${sanitizeStem(slug)} Product`,
+      includeHierarchy: mode === 'shallow',
+    });
+
+    const importedNodeIds = commandNodeIds(ingestion.commands);
+    if (semanticRole !== undefined && importedNodeIds[0] !== undefined) {
+      ingestion.commands.push({
+        type: 'SET_NODE_SEMANTICS',
+        nodeIds: [importedNodeIds[0]],
+        semantics: {
+          role: semanticRole,
+          source: 'agent',
+        },
+      });
+    }
+
+    return this.applyImportPlan(ingestion, input, source, {
+      assetId,
+      importedNodeIds,
+      hierarchyRootNodeIds: importedNodeIds.slice(1).filter((id) =>
+        ingestion.commands.some((command) =>
+          command.type === 'ADD_NODE' && command.parentId === importedNodeIds[0] && command.node.id === id,
+        ),
+      ),
+    });
+  }
+
+  private async importGlbAssetTool(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
+    if (!isRecord(input) || typeof input.workspaceRelativePath !== 'string') {
+      return fail('VALIDATION_ERROR', 'import_glb_asset requires { workspaceRelativePath }.');
+    }
+    if (input.importMode !== undefined && importModeFromValue(input.importMode) === undefined) {
+      return fail('VALIDATION_ERROR', 'importMode must be "single" or "shallow".');
+    }
+    if (input.semanticRole !== undefined && semanticRoleFromValue(input.semanticRole) === undefined) {
+      return fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.');
+    }
+    const resolved = resolveWorkspaceRelativePath(input.workspaceRelativePath);
+    if (!resolved.ok) return resolved;
+    const sourceStat = await stat(resolved.data);
+    if (!sourceStat.isFile()) {
+      return fail('VALIDATION_ERROR', `Not a file: ${input.workspaceRelativePath}`);
+    }
+    return this.importAsset({
+      source: { kind: 'workspacePath', path: input.workspaceRelativePath },
+      importMode: importModeFromValue(input.importMode) ?? 'shallow',
+      ...(semanticRoleFromValue(input.semanticRole) !== undefined
+        ? { semanticRole: semanticRoleFromValue(input.semanticRole) }
+        : {}),
+      ...(typeof input.parentId === 'string' ? { parentId: input.parentId } : {}),
+      ...(input.dryRun === true ? { dryRun: true } : {}),
+    }, source);
+  }
+
+  private async prepareImportAssetFile(source: ImportAssetSource): Promise<BridgeResult<{
+    localPath: string;
+    workspaceRelativePath: string;
+  }>> {
+    const sourceInfo = source.kind === 'workspacePath'
+      ? safeFileNameFor(source.path)
+      : safeFileNameFor(source.name);
+    const publicFileName = sourceInfo.fileName;
+    const webAssetPath = repoPath('apps/web/public/assets/imports', publicFileName);
+    const demoAssetPath = repoPath('apps/demo-export/public/assets/imports', publicFileName);
+    const workspaceRelativePath = `apps/web/public/assets/imports/${publicFileName}`;
+
+    if (source.kind === 'workspacePath') {
+      const resolved = resolveWorkspaceRelativePath(source.path);
+      if (!resolved.ok) return resolved;
+      const sourceStat = await stat(resolved.data);
+      if (!sourceStat.isFile()) return fail('VALIDATION_ERROR', `Not a file: ${source.path}`);
+      await copyFileIfDifferent(resolved.data, webAssetPath);
+      await copyFileIfDifferent(resolved.data, demoAssetPath);
+      return ok({ localPath: resolved.data, workspaceRelativePath });
+    }
+
+    if (source.data.byteLength === 0) {
+      return fail('VALIDATION_ERROR', 'Uploaded GLB file is empty.');
+    }
+    if (source.data.byteLength > MAX_UPLOAD_BYTES) {
+      return fail('VALIDATION_ERROR', `Uploaded GLB file exceeds ${MAX_UPLOAD_BYTES} bytes.`);
+    }
+    await writeFileIfDifferent(webAssetPath, source.data);
+    await writeFileIfDifferent(demoAssetPath, source.data);
+    return ok({ localPath: webAssetPath, workspaceRelativePath });
+  }
+
+  private async applyImportPlan(
+    ingestion: IngestionResult,
+    input: ImportAssetInput,
+    source: SceneEvent['source'],
+    summary: {
+      assetId: string;
+      importedNodeIds: string[];
+      hierarchyRootNodeIds: string[];
+    },
+  ): Promise<BridgeResult<ImportAssetResult>> {
+    const result = unwrap(
+      this.runtime.applyCommandBatch(ingestion.commands, { dryRun: input.dryRun === true, source: source === 'web' ? 'user' : 'agent' }),
+      'import_glb_asset',
+    );
+    if (!result.ok) return result;
+    if (input.dryRun !== true && result.data.changed) await this.publishScene(source);
+    const warnings = [...result.data.warnings, ...ingestion.warnings];
+    return ok({
+      ...result.data,
+      assetId: commandAssetId(ingestion.commands) ?? summary.assetId,
+      commands: ingestion.commands,
+      warnings,
+      sceneSummary: sceneSummary(result.data.scene),
+      importedNodeIds: summary.importedNodeIds,
+      hierarchySummary: {
+        nodeCount: Math.max(0, summary.importedNodeIds.length - 1),
+        rootNodeIds: summary.hierarchyRootNodeIds,
+      },
+    });
   }
 
   private async ingestAsset(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
@@ -514,6 +787,31 @@ export const startDioramaBridgeServer = async (
         writeJson(res, 404, fail('NOT_FOUND', `No route for ${req.method ?? 'GET'} ${url.pathname}`));
         return;
       }
+      if (url.pathname === '/import-glb-asset') {
+        const fileName = url.searchParams.get('fileName') ?? '';
+        const data = await readRequestBuffer(req);
+        const rawImportMode = url.searchParams.get('importMode');
+        const semanticRole = url.searchParams.get('semanticRole');
+        if (rawImportMode !== null && importModeFromValue(rawImportMode) === undefined) {
+          writeJson(res, 400, fail('VALIDATION_ERROR', 'importMode must be "single" or "shallow".'));
+          return;
+        }
+        if (semanticRole !== null && semanticRoleFromValue(semanticRole) === undefined) {
+          writeJson(res, 400, fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.'));
+          return;
+        }
+        const result = await runtime.importAsset({
+          source: { kind: 'uploadedFile', name: fileName, data },
+          importMode: importModeFromValue(rawImportMode) ?? 'shallow',
+          ...(semanticRoleFromValue(semanticRole) !== undefined
+            ? { semanticRole: semanticRoleFromValue(semanticRole) }
+            : {}),
+          ...(url.searchParams.get('parentId') ? { parentId: url.searchParams.get('parentId') as string } : {}),
+          ...(url.searchParams.get('dryRun') === 'true' ? { dryRun: true } : {}),
+        }, 'web');
+        writeJson(res, result.ok ? 200 : 400, result);
+        return;
+      }
       const body = await readJson(req);
       const routeToTool: Record<string, string> = {
         '/command/apply': 'apply_command',
@@ -522,6 +820,7 @@ export const startDioramaBridgeServer = async (
         '/structure-scene': 'structure_scene',
         '/make-interactive': 'make_interactive',
         '/arrange-nodes': 'arrange_nodes',
+        '/import-glb-asset-json': 'import_glb_asset',
         '/ingest-asset': 'ingest_asset',
         '/ingest-local-asset': 'ingest_local_asset',
         '/export-json': 'export_json',

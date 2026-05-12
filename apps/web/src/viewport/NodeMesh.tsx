@@ -15,6 +15,7 @@ import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
 import type { Group, Object3D } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
+import { torusArgsFromMetadata } from '@diorama/export-r3f';
 import { transformPatchFromObject3D } from './object3dTransform';
 
 interface NodeMeshProps {
@@ -53,11 +54,26 @@ function ProxyMesh({
   color,
   isHovered,
   isSelected,
+  torusArgs,
 }: {
   color: string;
   isHovered: boolean;
   isSelected: boolean;
+  torusArgs?: readonly [number, number, number, number];
 }) {
+  if (torusArgs !== undefined) {
+    const [r, tube, radialSegments, tubularSegments] = torusArgs;
+    return (
+      <mesh castShadow receiveShadow>
+        <torusGeometry args={[r, tube, radialSegments, tubularSegments]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={isSelected ? '#f59e0b' : isHovered ? '#0284c7' : '#000000'}
+          emissiveIntensity={isSelected ? 0.35 : isHovered ? 0.28 : 0}
+        />
+      </mesh>
+    );
+  }
   return (
     <mesh castShadow receiveShadow>
       <boxGeometry args={[1, 1, 1]} />
@@ -132,6 +148,11 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
     [node?.assetRef],
   );
 
+  const torusProxyArgs = useMemo((): [number, number, number, number] | undefined => {
+    if (!node || node.metadata.dioramaProxyMesh !== 'torus') return undefined;
+    return torusArgsFromMetadata(node.metadata);
+  }, [node]);
+
   if (!node || node.visible === false) return null;
 
   const handleClick = (e: ThreeEvent<MouseEvent>): void => {
@@ -183,7 +204,12 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
           </Suspense>
         ) : null}
         {showProxy ? (
-          <ProxyMesh color={color} isHovered={isHovered} isSelected={isSelected} />
+          <ProxyMesh
+            color={color}
+            isHovered={isHovered}
+            isSelected={isSelected}
+            torusArgs={torusProxyArgs}
+          />
         ) : null}
         {children}
       </group>

@@ -85,6 +85,27 @@ describe('Milestone 3 command contract', () => {
       expectValid(next);
     });
 
+    it('adds mesh nodes with diorama torus proxy metadata', () => {
+      const scene = createEmptyScene();
+      const ring = createNode({
+        id: 'saturn-ring',
+        name: 'Orbit ring',
+        metadata: {
+          dioramaProxyMesh: 'torus',
+          dioramaTorusArgs: [0.5, 0.04, 8, 32],
+          source: 'authoring',
+        },
+        transform: {
+          position: [0, 0, 0],
+          rotation: [Math.PI / 2, 0, 0],
+          scale: [1, 1, 1],
+        },
+      });
+      const next = applyCommand(scene, { type: 'ADD_NODE', parentId: scene.rootId, node: ring });
+      expect(next.nodes['saturn-ring']?.metadata.dioramaProxyMesh).toBe('torus');
+      expectValid(next);
+    });
+
     it('adds nested nodes', () => {
       const scene = baseScene();
       const next = applyCommand(scene, {

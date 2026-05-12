@@ -1,3 +1,4 @@
+export { torusArgsFromMetadata } from './jsxWriter';
 export { exportSceneToR3fJsx, exportSceneToR3fModule } from './r3f';
 export type {
   R3fExportDiagnostic,

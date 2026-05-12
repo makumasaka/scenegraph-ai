@@ -84,6 +84,20 @@ const tools: ToolDefinition[] = [
     }),
   },
   {
+    name: 'import_glb_asset',
+    description: 'Import a workspace-relative GLB/GLTF into the active Diorama scene, register it, and introspect shallow hierarchy nodes.',
+    inputSchema: objectSchema({
+      workspaceRelativePath: { type: 'string' },
+      importMode: { type: 'string', enum: ['single', 'shallow'] },
+      semanticRole: {
+        type: 'string',
+        enum: ['product', 'display', 'seating', 'lighting', 'light', 'environment', 'navigation', 'decor', 'container', 'unknown'],
+      },
+      parentId: { type: 'string' },
+      dryRun: { type: 'boolean' },
+    }, ['workspaceRelativePath']),
+  },
+  {
     name: 'ingest_local_asset',
     description: 'Copy a local GLB/GLTF into Diorama public asset folders and register it as an asset-backed scene node.',
     inputSchema: objectSchema({

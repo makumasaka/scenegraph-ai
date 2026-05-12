@@ -1,5 +1,13 @@
 import { stableStringify, type Scene, type SceneNode } from '@diorama/schema';
-import { emitLight, escapeAttr, escapeComment, fmtVec, indent, placeholderMesh } from './jsxWriter';
+import {
+  emitLight,
+  escapeAttr,
+  escapeComment,
+  fmtVec,
+  indent,
+  placeholderMesh,
+  proxyPlaceholderMesh,
+} from './jsxWriter';
 import type { R3fExportOptions } from './types';
 
 const sanitizeAssetUri = (uri: string | undefined): string | undefined => {
@@ -96,7 +104,7 @@ const emitNode = (scene: Scene, id: string, depth: number): string => {
     body += `${inner}{/* TODO: load GLTF asset with useGLTF('${escapeComment(assetUri)}') in module export mode. */}\n`;
     body += placeholderMesh(inner);
   }
-  if (showPlaceholderMesh) body += placeholderMesh(inner);
+  if (showPlaceholderMesh) body += proxyPlaceholderMesh(inner, node.metadata);
 
   const childBlocks = node.children.map((childId) => emitNode(scene, childId, depth + 1)).join('');
 

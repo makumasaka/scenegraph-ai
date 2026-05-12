@@ -2,15 +2,19 @@ import { useRef, useState } from 'react';
 import { getStarterScene, type StarterKitId } from '@diorama/core';
 import { exportSceneToR3fJsx } from '@diorama/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
+import { postBridgeImportGlbAsset } from '../bridge/bridgeClient';
 
 export function SceneLoader() {
   const dispatch = useSceneStore((s) => s.dispatch);
   const exportSceneJson = useSceneStore((s) => s.exportSceneJson);
   const importSceneJson = useSceneStore((s) => s.importSceneJson);
   const scene = useSceneStore((s) => s.scene);
+  const applyBridgeScene = useSceneStore((s) => s.applyBridgeScene);
+  const setBridgeStatus = useSceneStore((s) => s.setBridgeStatus);
 
   const [kit, setKit] = useState<StarterKitId>('default');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const sceneFileRef = useRef<HTMLInputElement>(null);
+  const glbFileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const loadKit = () => {
@@ -36,9 +40,11 @@ export function SceneLoader() {
     window.setTimeout(() => setStatus(null), 2000);
   };
 
-  const handleImportClick = () => fileRef.current?.click();
+  const handleImportClick = () => sceneFileRef.current?.click();
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportGlbClick = () => glbFileRef.current?.click();
+
+  const handleSceneFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
@@ -50,6 +56,29 @@ export function SceneLoader() {
       window.setTimeout(() => setStatus(null), 2500);
     };
     reader.readAsText(file);
+  };
+
+  const handleGlbFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setStatus('Importing GLB');
+    void postBridgeImportGlbAsset(file, { importMode: 'shallow' })
+      .then((result) => {
+        if (result.ok) {
+          applyBridgeScene(result.data.scene);
+          setBridgeStatus(true, null);
+          setStatus(`Imported ${file.name}`);
+          return;
+        }
+        setBridgeStatus(false, result.error.message);
+        setStatus('Import GLB failed');
+      })
+      .catch((error) => {
+        setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+        setStatus('Import GLB failed');
+      })
+      .finally(() => window.setTimeout(() => setStatus(null), 2500));
   };
 
   const handleCopyR3f = async () => {
@@ -88,11 +117,21 @@ export function SceneLoader() {
         Import
       </button>
       <input
-        ref={fileRef}
+        ref={sceneFileRef}
         type="file"
         accept="application/json,.json"
         hidden
-        onChange={handleFile}
+        onChange={handleSceneFile}
+      />
+      <button type="button" onClick={handleImportGlbClick}>
+        Import GLB
+      </button>
+      <input
+        ref={glbFileRef}
+        type="file"
+        accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+        hidden
+        onChange={handleGlbFile}
       />
       <button type="button" onClick={handleCopyR3f} title="Copy JSX for React Three Fiber">
         R3F
