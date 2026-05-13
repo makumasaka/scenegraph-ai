@@ -1,27 +1,20 @@
 import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
 import { useShallow } from 'zustand/react/shallow';
+import { RuntimeScene, createRuntimeNodeRegistry } from '@diorama/r3f-bridge';
+import { useMemo } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { NodeMesh } from './NodeMesh';
-import type { Scene } from '@diorama/core';
-
-function SceneNodeTree({ scene, nodeId }: { scene: Scene; nodeId: string }) {
-  const node = scene.nodes[nodeId];
-  if (!node) return null;
-  return (
-    <NodeMesh nodeId={nodeId}>
-      {node.children.map((childId) => (
-        <SceneNodeTree key={childId} scene={scene} nodeId={childId} />
-      ))}
-    </NodeMesh>
-  );
-}
 
 export function Viewport() {
-  const scene = useSceneStore(
-    useShallow((s) => s.scene),
+  const { scene, gizmoMode, dispatch, select } = useSceneStore(
+    useShallow((s) => ({
+      scene: s.scene,
+      gizmoMode: s.gizmoMode,
+      dispatch: s.dispatch,
+      select: s.select,
+    })),
   );
-  const select = useSceneStore((s) => s.select);
+  const registry = useMemo(() => createRuntimeNodeRegistry(), []);
   const root = scene.nodes[scene.rootId];
 
   return (
@@ -54,7 +47,16 @@ export function Viewport() {
           infiniteGrid
         />
 
-        {root ? <SceneNodeTree scene={scene} nodeId={scene.rootId} /> : null}
+        {root ? (
+          <RuntimeScene
+            scene={scene}
+            selectedId={scene.selection}
+            gizmoMode={gizmoMode}
+            registry={registry}
+            onCommand={dispatch}
+            onSelect={select}
+          />
+        ) : null}
 
         <OrbitControls makeDefault enableDamping />
       </Canvas>

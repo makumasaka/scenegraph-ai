@@ -1,603 +1,146 @@
-# Future MCP Tool Contract
+# Diorama MVP MCP Tool Contract
 
-This document defines Diorama's future MCP tool contract after MCP-lite. It is a
-target contract only. Do not implement MCP transport from this document alone.
-
-Target architecture:
+Diorama's MVP MCP surface is a narrow developer control plane for repo-first
+runtime synchronization. It is not a generator middleware layer and it must not
+expose shell, arbitrary file browsing, JavaScript evaluation, Zustand access, or
+R3F/Three object references.
 
 ```text
-Cursor/Claude/Codex
-  -> local Diorama MCP server
-  -> Diorama agent runtime
-  -> validated commands
-  -> structured scene
-  -> R3F export
+Cursor / Claude / Codex
+  -> local Diorama MCP stdio server
+  -> project-scoped Diorama bridge runtime
+  -> validated commands or scene replacement
+  -> canonical Diorama scene
+  -> deterministic R3F sync module
 ```
 
-The local MCP server must be a thin adapter over `@diorama/agent-interface`.
-Tools must not connect directly to Zustand, React Three Fiber objects, Three.js
-objects, source files, shells, or arbitrary JavaScript execution.
-
-## Shared Result Shape
-
-All tools return an `AgentResult<T>` style envelope:
-
-```ts
-type AgentResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: AgentError };
-
-type AgentError = {
-  code: 'VALIDATION_ERROR' | 'COMMAND_REJECTED' | 'PARSE_ERROR' | 'SCENE_INVALID';
-  message: string;
-  issues?: Array<{ path: Array<string | number>; message: string }>;
-};
-```
-
-Mutation tools return command results compatible with the agent runtime:
-
-```ts
-type ApplyCommandResult = {
-  scene: Scene;
-  changed: boolean;
-  dryRun: boolean;
-  summary: CommandSummary;
-  warnings?: string[];
-};
-```
-
-Batch mutation tools return:
-
-```ts
-type CommandBatchResult = {
-  scene: Scene;
-  changed: boolean;
-  dryRun: boolean;
-  results: CommandBatchItemResult[];
-  errors: CommandBatchError[];
-  warnings: string[];
-  appliedCommandCount: number;
-  failedCommandIndex?: number;
-};
-```
-
-## Shared Safety Rules
-
-- No filesystem browsing.
-- No shell execution.
-- No arbitrary JavaScript execution.
-- No direct Zustand access.
-- No direct R3F or Three object access.
-- No direct scene mutation outside commands or validated scene loads.
-- Every mutating tool validates payloads before reducer execution.
-- Every mutating tool supports `dryRun`.
-- Every MCP tool action is logged by the agent runtime action log or an
-  explicitly scoped successor before real transport ships.
-- MCP tools wrap `@diorama/agent-interface` only.
-
-## Read Tools
+## Tools
 
 ### `get_scene`
 
-Purpose: return the current cloned canonical scene.
+Returns the current cloned canonical scene.
 
-Input schema:
+Input:
 
-```ts
-type GetSceneInput = {};
+```json
+{}
 ```
-
-Output schema:
-
-```ts
-type GetSceneOutput = {
-  scene: Scene;
-};
-```
-
-Mutation behavior: none.
-
-Dry-run support: not applicable.
-
-Underlying agent-interface API: `DioramaSceneRuntime.getScene()`.
-
-Safety notes: returns a detached clone. Callers cannot mutate runtime state by
-editing returned objects.
-
-### `get_semantic_groups`
-
-Purpose: return semantic group definitions from the current scene.
-
-Input schema:
-
-```ts
-type GetSemanticGroupsInput = {};
-```
-
-Output schema:
-
-```ts
-type GetSemanticGroupsOutput = {
-  semanticGroups: Record<string, SemanticGroup>;
-};
-```
-
-Mutation behavior: none.
-
-Dry-run support: not applicable.
-
-Underlying agent-interface API: MCP-lite facade over `getScene()`.
-
-Safety notes: returns cloned records from `scene.semanticGroups ?? {}`.
-
-### `get_behaviors`
-
-Purpose: return behavior definitions from the current scene.
-
-Input schema:
-
-```ts
-type GetBehaviorsInput = {};
-```
-
-Output schema:
-
-```ts
-type GetBehaviorsOutput = {
-  behaviors: Record<string, BehaviorDefinition>;
-};
-```
-
-Mutation behavior: none.
-
-Dry-run support: not applicable.
-
-Underlying agent-interface API: MCP-lite facade over `getScene()`.
-
-Safety notes: returns cloned records from `scene.behaviors ?? {}`. Behavior
-metadata is data only; tools must not execute metadata as code.
-
-### `get_selected_nodes`
-
-Purpose: return the current selection and selected node summaries.
-
-Input schema:
-
-```ts
-type GetSelectedNodesInput = {
-  includeNodes?: boolean;
-};
-```
-
-Output schema:
-
-```ts
-type GetSelectedNodesOutput = {
-  selection: string | null;
-  nodes?: SceneNode[];
-};
-```
-
-Mutation behavior: none.
-
-Dry-run support: not applicable.
-
-Underlying agent-interface API: `getSelection()` plus `getScene()` when
-`includeNodes` is true.
-
-Safety notes: selection is read from canonical scene state. Returned nodes are
-cloned scene data, not R3F objects.
-
-## Mutation Tools
-
-All mutation tools accept `dryRun?: boolean`. When `dryRun` is true, the tool
-returns a preview result and must not mutate scene state. Current MCP-lite
-dry-runs do not write the runtime action log; real MCP must either audit dry-run
-tool calls in a scoped successor log or explicitly decide that dry-runs remain
-unlogged.
-
-### `structure_scene`
-
-Purpose: infer MVP scene structure, semantic groups, node roles, and traits.
-
-Input schema:
-
-```ts
-type StructureSceneInput = {
-  preset?: 'showroom';
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `STRUCTURE_SCENE` and mutates scene semantics on
-apply.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `createMcpLiteRuntime().structureScene()` or
-`applyCommand({ type: 'STRUCTURE_SCENE', preset })`.
-
-Safety notes: no direct scene patching. Future presets require command schema,
-core reducer, docs, and tests to move together.
-
-### `set_node_semantics`
-
-Purpose: set semantic roles, group ids, traits, labels, descriptions, tags, or
-confidence on one or more nodes.
-
-Input schema:
-
-```ts
-type SetNodeSemanticsInput = {
-  nodeIds: string[];
-  semantics: Partial<NodeSemantics>;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `SET_NODE_SEMANTICS`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` / `applyCommand()` with
-`CommandSchema`.
-
-Safety notes: semantics metadata remains JSON data. No metadata value may be
-executed or emitted as executable JavaScript.
-
-### `create_semantic_group`
-
-Purpose: create or replace a semantic group definition.
-
-Input schema:
-
-```ts
-type CreateSemanticGroupInput = {
-  group: SemanticGroup;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `CREATE_SEMANTIC_GROUP`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` / `applyCommand()` with
-`CommandSchema`.
-
-Safety notes: validates the group with `SemanticGroupSchema` through
-`CommandSchema`.
-
-### `assign_to_semantic_group`
-
-Purpose: assign nodes to an existing semantic group and update matching node
-semantics.
-
-Input schema:
-
-```ts
-type AssignToSemanticGroupInput = {
-  groupId: string;
-  nodeIds: string[];
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `ASSIGN_TO_SEMANTIC_GROUP`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` / `applyCommand()` with
-`CommandSchema`.
-
-Safety notes: command reducer validates target ids and graph invariants.
-
-### `add_behavior`
-
-Purpose: add a behavior definition and attach behavior refs to target nodes.
-
-Input schema:
-
-```ts
-type AddBehaviorInput = {
-  behavior: BehaviorDefinition;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `ADD_BEHAVIOR`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` / `applyCommand()` with
-`CommandSchema`.
-
-Safety notes: behavior params are JSON data only. `open_url` and other advanced
-behaviors are scaffolding hints, not permission to browse files or execute code.
-
-### `remove_behavior`
-
-Purpose: remove a behavior definition and detach refs from nodes.
-
-Input schema:
-
-```ts
-type RemoveBehaviorInput = {
-  behaviorId: string;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `REMOVE_BEHAVIOR`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` / `applyCommand()` with
-`CommandSchema`.
-
-Safety notes: removal is command-driven and preserves scene validation.
-
-### `make_interactive`
-
-Purpose: infer behavior definitions for nodes matching a semantic role.
-
-Input schema:
-
-```ts
-type MakeInteractiveInput = {
-  targetRole?: SemanticRole;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `MAKE_INTERACTIVE`.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `createMcpLiteRuntime().makeInteractive()` or
-`applyCommand({ type: 'MAKE_INTERACTIVE', targetRole })`.
-
-Safety notes: creates structured behavior data only. Runtime UI behavior and R3F
-handler scaffolds remain derived outputs.
-
-### `arrange_nodes`
-
-Purpose: arrange specific nodes or nodes matching a role using deterministic
-layout options.
-
-Input schema:
-
-```ts
-type ArrangeNodesInput = {
-  nodeIds?: string[];
-  role?: SemanticRole;
-  layout: 'line' | 'grid' | 'circle';
-  options?: {
-    spacing?: number;
-    cols?: number;
-    radius?: number;
-    axis?: 'x' | 'y' | 'z';
-  };
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: compiles to `ARRANGE_NODES` and mutates local transforms.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `createMcpLiteRuntime().arrangeNodes()` or
-`applyCommand({ type: 'ARRANGE_NODES', ... })`.
-
-Safety notes: stores local transforms only. World transforms remain derived from
-hierarchy.
-
-### `apply_command`
-
-Purpose: validate and execute one generic command payload.
-
-Input schema:
-
-```ts
-type ApplyCommandInput = {
-  command: Command;
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<ApplyCommandResult>`.
-
-Mutation behavior: mutates according to command type when `dryRun` is false.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommand()` or `applyCommand()`.
-
-Safety notes: payload must pass `CommandSchema`. This is the escape hatch for
-advanced commands, not a way around validation.
-
-### `apply_command_batch`
-
-Purpose: validate and execute a command batch atomically.
-
-Input schema:
-
-```ts
-type ApplyCommandBatchInput = {
-  commands: Command[];
-  dryRun?: boolean;
-};
-```
-
-Output schema: `AgentResult<CommandBatchResult>`.
-
-Mutation behavior: applies all valid commands atomically when `dryRun` is false.
-If any command is semantically rejected, no command is committed.
-
-Dry-run support: yes.
-
-Underlying agent-interface API: `dryRunCommandBatch()` or `applyCommandBatch()`.
-
-Safety notes: replay-safe duplicate commands must provide deterministic `idMap`
-values.
 
 ### `load_scene`
 
-Purpose: load a validated scene document or parsed scene as a session boundary.
+Loads a validated scene document or JSON scene text. This is the only
+non-command mutation boundary and must validate through the Diorama schema.
 
-Input schema:
+Input:
 
-```ts
-type LoadSceneInput =
-  | { kind: 'json'; json: string; dryRun?: boolean }
-  | { kind: 'scene'; scene: Scene; dryRun?: boolean };
+```json
+{ "kind": "json", "json": "{...}", "dryRun": false }
 ```
 
-Output schema:
+or:
 
-```ts
-type LoadSceneOutput = {
-  scene: Scene;
-  dryRun: boolean;
-  changed: boolean;
-};
+```json
+{ "kind": "scene", "scene": { "...": "..." }, "dryRun": false }
 ```
 
-Mutation behavior: replaces the runtime scene on apply.
+### `register_asset`
 
-Dry-run support: required for future MCP, even though current
-`DioramaSceneRuntime.loadScene()` applies directly. A transport adapter may
-validate and return the normalized scene without committing when `dryRun` is
-true.
+Registers a GLB/GLTF asset that already exists inside the allowed project root
+and creates a scene node that references it by project-safe public URI.
 
-Underlying agent-interface API: `loadScene()` plus validation through
-`LoadSceneInputSchema` and `parseSceneJson`.
+Input:
 
-Safety notes: load is the only non-command mutation path and must remain a
-validated scene replacement boundary. It must not read files; callers provide
-JSON text or a parsed scene payload.
-
-## Export Tools
-
-### `export_json`
-
-Purpose: export the current canonical scene document.
-
-Input schema:
-
-```ts
-type ExportJsonInput = {};
+```json
+{
+  "workspaceRelativePath": "public/assets/diorama/chair.glb",
+  "importMode": "shallow",
+  "semanticRole": "product",
+  "dryRun": false
+}
 ```
 
-Output schema:
+### `update_transform`
 
-```ts
-type ExportSceneResult = {
-  format: 'json';
-  content: string;
-  mediaType: 'application/json';
-};
+Applies an `UPDATE_TRANSFORM` command for a stable node id. Runtime gizmos use
+this tool shape internally; runtime object refs are never canonical state.
+
+Input:
+
+```json
+{
+  "nodeId": "chair_01",
+  "transform": {
+    "position": [1, 0, 0],
+    "rotation": [0, 0.5, 0],
+    "scale": [1, 1, 1]
+  },
+  "dryRun": false
+}
 ```
-
-Mutation behavior: none.
-
-Dry-run support: not applicable.
-
-Underlying agent-interface API: `exportScene({ format: 'json' })` or
-`createMcpLiteRuntime().exportJSON()`.
-
-Safety notes: output is serialized scene state only. It must not include action
-logs, command logs, source labels, dry-run flags, or editor UI state.
 
 ### `export_r3f`
 
-Purpose: export the current scene as deterministic R3F JSX or a structured React
-module.
+Writes or previews the generated R3F sync module for the current scene. The
+default file is `src/diorama/DioramaScene.generated.tsx` inside the configured
+project root.
 
-Input schema:
+Input:
 
-```ts
-type ExportR3FInput = {
-  includeStudioLights?: boolean;
-  includeLights?: boolean;
-  mode?: 'fragment' | 'module';
-  componentName?: string;
-  semanticComponents?: boolean;
-  behaviorScaffold?: 'none' | 'comments' | 'handlers';
-  includeUserData?: boolean;
-};
+```json
+{
+  "mode": "sync-module",
+  "componentName": "DioramaScene",
+  "write": true
+}
 ```
 
-Output schema:
+### `sync_code`
 
-```ts
-type ExportSceneResult = {
-  format: 'r3f';
-  content: string;
-  mediaType: 'text/jsx';
-};
+Synchronizes the canonical scene and generated file.
+
+Input:
+
+```json
+{ "direction": "toCode" }
 ```
 
-Mutation behavior: none.
+or:
 
-Dry-run support: not applicable.
+```json
+{ "direction": "fromCode" }
+```
 
-Underlying agent-interface API: `exportScene({ format: 'r3f', r3f })` or
-`createMcpLiteRuntime().exportR3F()`.
+`toCode` regenerates the Diorama-owned module from canonical scene state.
+`fromCode` parses the embedded `dioramaScene` block from the generated module,
+validates it, and replaces canonical scene state.
 
-Safety notes: exporter reads validated scene state and must not emit action
-logs, command logs, local filesystem paths, raw file URLs, arbitrary executable
-metadata, editor UI state, Zustand state, or R3F runtime object references.
+## Forbidden MVP Tools
 
-## Real MCP Go/No-Go Checklist
+The MVP MCP server must not expose:
 
-Real MCP transport can begin only when all are true:
+- `generate_asset`
+- `generate_and_ingest_asset`
+- arbitrary `apply_command`
+- arbitrary `apply_command_batch`
+- shell execution
+- file read/write tools
+- raw R3F or Three object access
+- Zustand state access
+- arbitrary JSX/JavaScript interpretation
 
-- Schema complete.
-- R3F bridge complete.
-- Command validation complete.
-- Dry-run complete for all mutating tools.
-- Batch API complete.
-- Action log complete or explicitly deferred with replacement scope.
-- Replay tests pass.
-- Export snapshots pass.
-- Runtime adapter decision complete.
-- Security review complete.
+Generation integrations may remain in the repository as deferred experiments,
+but they are not part of the runtime sync MVP contract.
 
-No-go if any tool needs filesystem browsing, shell execution, arbitrary
-JavaScript, Zustand access, direct R3F access, hidden scene mutation, or
-unstructured string-only results.
+## Project Boundary
 
-## Remaining Risks
+The bridge is started with `DIORAMA_PROJECT_ROOT` or `--projectRoot`. All asset
+paths, session paths, and generated module paths must resolve inside that root.
+The MCP server must not browse outside the project root and must not provide a
+general-purpose filesystem API.
 
-- `load_scene` dry-run needs an explicit adapter contract because the current
-  runtime load method commits directly.
-- MCP transport session lifetime is undecided: per-agent in-memory session,
-  live canvas session, or explicit project-scoped session.
-- Action log visibility for external agents needs a product decision: expose it
-  as a read tool, keep it internal, or provide summarized audit events.
-- Security review must cover URL-like behavior params and exported code
-  scaffolds, even when no network or filesystem capability is exposed.
+## Generated File Contract
 
-## Recommendation
-
-Start real MCP implementation after the MCP-lite eval loop, command replay
-tests, R3F export snapshots, runtime adapter decision, and security review are
-complete. Until then, keep improving the agent-interface facade and evals
-without adding transport.
+The generated file starts with `// @diorama-generated`, includes an embedded
+JSON-compatible `dioramaScene` object, and renders R3F from that scene. MVP
+code-to-runtime sync reads only this scene block. Custom app code should import
+and wrap `DioramaScene` instead of editing generated JSX.

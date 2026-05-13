@@ -1,17 +1,18 @@
 import type { Command, DioramaAsset } from '@diorama/core';
-import type { GeneratedAsset } from '@diorama/generation';
+
+export type AssetProvider = 'manual' | 'upload' | 'mock' | 'meshy' | 'tripo' | 'luma';
 
 export type IngestAssetInput =
-  | GeneratedAsset
-  | {
-      localPath: string;
-      format: 'glb' | 'gltf';
-      id?: string;
-      uri?: string;
-      prompt?: string;
-      provider?: GeneratedAsset['provider'];
-      metadata?: Record<string, unknown>;
-    };
+  {
+    localPath: string;
+    format: 'glb' | 'gltf';
+    id?: string;
+    uri?: string;
+    prompt?: string;
+    provider?: AssetProvider;
+    source?: 'manual' | 'upload' | 'generator';
+    metadata?: Record<string, unknown>;
+  };
 
 export type IngestionOptions = {
   parentId?: string;
@@ -19,6 +20,7 @@ export type IngestionOptions = {
   nodeName?: string;
   includeHierarchy?: boolean;
   maxHierarchyNodes?: number;
+  sourceFilePath?: string;
 };
 
 export type IngestionResult = {

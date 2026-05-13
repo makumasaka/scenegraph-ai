@@ -1,155 +1,121 @@
 # Diorama
 
-Diorama is an open spatial middleware layer that turns generated or imported 3D
-assets into structured, interactive, deployable web experiences.
+Diorama is a visual runtime orchestration layer for AI-native React Three Fiber
+applications.
 
-Generative 3D tools create assets. Diorama turns those assets into usable
-products: raw 3D -> structured scene -> interactive app -> code.
+It is repo-first, runtime-first, and code-first. Diorama runs inside or
+alongside an existing developer project, keeps a validated canonical scene graph
+as source of truth, projects that scene into an R3F viewport, and synchronizes
+deterministic visual edits back into generated R3F code.
 
-The current MVP proves this locally with a built-in messy showroom scene. There
-is no generator integration, MCP transport, Blender adapter, or broad import
-pipeline in this slice.
+The closest product analogy is Paper.design for interactive 3D web apps: a live
+visual layer that helps developers and AI coding agents keep runtime spatial
+composition, semantic scene identity, and app-ready R3F modules aligned.
 
-## How it works
+## MVP Focus
 
-- **Scene graph**: Zod-validated nodes, hierarchy, transforms, visibility,
-  optional assets/materials/lights, semantic groups, behavior definitions, and
-  JSON-safe metadata.
-- **Command system**: every persistent change is a typed command applied to the
-  scene graph.
-- **Semantic and behavior layer**: commands can structure raw scenes into
-  product concepts and attach inspectable interaction metadata.
-- **Deterministic updates**: the same starting scene plus the same command
-  sequence produces the same result.
-- **Serialization and export**: scenes export as stable `diorama-scene` JSON and
-  readable React Three Fiber JSX.
+The MVP is live code <-> runtime synchronization.
 
-## Dual Interface
+1. Open an R3F project with Diorama running beside it.
+2. Register GLB assets that already live in the project.
+3. Select and transform scene nodes in the Diorama viewport.
+4. Diorama applies commands to the canonical scene.
+5. Diorama regenerates a deterministic R3F scene module in the project.
+6. The app hot reloads from that module.
+7. Editing the embedded `dioramaScene` block in the generated module reloads the
+   canonical scene and updates the runtime again.
 
-Diorama exposes two equal interfaces over the same scene graph + commands:
+Diorama does not host or publish projects. Deployment stays in the developer
+repo through Cursor, Codex, Claude, Vercel, or the project's normal deploy
+workflow.
 
-- **Canvas for humans**: the web canvas visualizes the scene and turns user
-  actions into commands.
-- **API for agents**: the agent interface and future MCP layer let tools read
-  scenes and submit validated commands.
+## Canonical Model
 
-Neither interface owns scene state. Both use the same schemas, reducers, and
-export paths.
+The Diorama scene schema is the source of truth.
 
-## Product Loop
+Not canonical:
 
-1. Load a raw/generated asset or starter scene.
-2. Diorama adds semantic structure.
-3. Diorama adds behavior metadata.
-4. The canvas previews the interactive scene.
-5. Export produces app-ready React Three Fiber code.
+- Three.js objects
+- React Three Fiber refs
+- viewport state
+- editor state
+- runtime object transforms
 
-## AI Workflow
+All meaningful edits flow through:
 
-1. AI reads the current scene.
-2. AI generates structured commands.
-3. Diorama validates and applies those commands deterministically.
-4. The canvas updates from the new scene graph.
-5. The user inspects, replays, exports, or continues editing.
+```text
+runtime interaction
+  -> command
+  -> canonical scene
+  -> export/code sync
+  -> runtime refresh
+```
 
-AI does not directly mutate the scene. It compiles intent into commands.
-
-## Philosophy
-
-- **Explicit over implicit**: scene state and changes are structured data.
-- **Inspectable**: commands, JSON, and exports can be reviewed by humans and CI.
-- **Replayable**: command sequences can be tested and reproduced.
-- **Agent-compatible**: humans and AI agents operate through the same system
-  boundary.
-
-## Non-goals
+## Product Boundaries
 
 Diorama is not:
 
-- Blender
-- a DCC
-- a renderer
-- a model generator
-- a generic scenegraph tool
-- a broad 3D format interchange pipeline
-- a shader graph or animation timeline
+- a general-purpose 3D editor
+- a browser game engine
+- Unity or Blender in the browser
+- a model generation platform
+- a DCC for mesh authoring, animation, rigging, UVs, or shader graphs
+- a cloud publishing system
 
-## Repository layout
+Generated assets can be created elsewhere, committed into the developer repo as
+GLB/GLTF files, and then registered with Diorama.
+
+## Repository Layout
 
 | Path | Role |
 |------|------|
-| `packages/schema` | Scene types and validation |
-| `packages/core` | Commands, reducer, fixtures, layout helpers |
-| `packages/export-r3f` | Scene to R3F JSX |
-| `packages/agent-interface` | Command/session contracts for agents |
-| `packages/mcp` | Future MCP adapter surface |
-| `packages/examples` | Shared JSON examples and fixtures |
-| `apps/web` | Vite + React + R3F canvas |
+| `packages/schema` | Zod scene schemas, validation, JSON serialization |
+| `packages/core` | Pure command reducer, scene helpers, deterministic transforms |
+| `packages/r3f-bridge` | R3F runtime projection, selection, registry, transform command translation |
+| `packages/export-r3f` | Deterministic R3F module export and generated scene metadata parsing |
+| `packages/agent-interface` | Narrow command/session surface for tools |
+| `packages/mcp` | Thin MCP-facing package over the agent surface |
+| `packages/ingestion` | Local GLB/GLTF registration helpers |
+| `apps/web` | Vite runtime debug shell for viewport, hierarchy, inspector, code sync status |
+| `apps/demo-export` | Sample generated R3F app used for local preview |
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deeper overview.
+Generation packages are retained only as deferred historical experiments and are
+not part of the runtime-sync MVP path.
 
-## Requirements
-
-- **Node.js** 20+ (LTS recommended)
-- **npm** 10+
-
-## Run locally
+## Run Locally
 
 ```bash
-git clone https://github.com/<org-or-user>/diorama.git
-cd diorama
 npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (typically `http://localhost:5173`).
-
-Other useful scripts:
+Useful scripts:
 
 | Command | Purpose |
 |---------|---------|
-| `npm run test` | Unit tests (core, export, agent-interface, web) |
-| `npm run typecheck` | Build/typecheck workspace packages |
-| `npm run lint` | ESLint (web app) |
-| `npm run build` | Production build of the web app |
-| `npm run preview` | Preview production build |
+| `npm run test` | Run MVP package and app tests |
+| `npm run typecheck` | Typecheck MVP packages |
+| `npm run build` | Build the Diorama web shell |
+| `npm run bridge:dev` | Start the local Diorama project bridge |
+| `npm run mcp:stdio` | Start the narrow local MCP adapter |
 
-## Example scenes and kits
+For project sync, start the bridge with a project root:
 
-Starter graphs ship as TypeScript fixtures in `@diorama/core` and can be loaded
-from the web canvas (**Default**, **Showroom**, **Gallery**, **Living**). You can
-also import/export versioned JSON. Details:
-[docs/EXAMPLE_SCENES.md](docs/EXAMPLE_SCENES.md).
+```bash
+DIORAMA_PROJECT_ROOT=/path/to/r3f-app npm run bridge:dev
+```
 
-## Export Loop
+Default generated output:
 
-Diorama exports reloadable `diorama-scene` JSON and deterministic React Three
-Fiber JSX. JSON is the canonical exchange format; R3F JSX is a readable code
-view with nested groups, local transforms, primitive mesh placeholders, simple
-lights, and documented limitations. Details: [docs/EXPORT.md](docs/EXPORT.md).
+- `src/diorama/DioramaScene.generated.tsx`
+- `public/assets/diorama/*`
 
-## Contributing
+## More Docs
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for workflow, testing expectations, and scope. The [Code of Conduct](CODE_OF_CONDUCT.md) applies in all project spaces.
-
-Ideas that fit early contributions: [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_ISSUES.md).
-
-## Roadmap (current direction)
-
-Priorities follow a deliberate stack: **schema -> commands -> canvas ->
-transport/export -> agent surface -> polish** (see `AGENTS.md`).
-
-Near term:
-
-- Harden **command schema** and **agent-interface** so external tools can rely on stable contracts.
-- Expand **`packages/examples`** with checked-in JSON scenes and regression fixtures.
-- Improve **export-r3f** coverage and roundtrip tests as the scene model grows.
-- Evolve **MCP** and documentation so "load scene -> plan -> apply commands" is
-  straightforward for integrators.
-
-Longer term stays bounded by product guardrails: deterministic spatial updates,
-inspectability, and code-to-canvas-to-code loops, not feature parity with
-general-purpose 3D suites.
+- [Architecture](docs/ARCHITECTURE.md)
+- [Runtime Sync MVP](docs/MVP_RUNTIME_SYNC.md)
+- [R3F Export](docs/EXPORT.md)
+- [MCP Tool Contract](docs/mcp-tools.md)
 
 ## License
 

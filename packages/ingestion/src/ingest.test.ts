@@ -21,15 +21,14 @@ const createTestGlb = (gltf: Record<string, unknown>): Buffer => {
 };
 
 describe('ingestAsset', () => {
-  it('returns replayable commands and warnings for generated assets', () => {
+  it('returns replayable commands and warnings for local assets', () => {
     const result = ingestAsset(
       {
         id: 'asset-chair',
-        provider: 'mock',
-        prompt: 'modern chair display',
         format: 'glb',
         localPath: '/tmp/chair.glb',
-        uri: '/assets/generated/chair.glb',
+        uri: '/assets/diorama/chair.glb',
+        source: 'manual',
       },
       { parentId: 'root', nodeId: 'chair-node' },
     );
@@ -45,11 +44,10 @@ describe('ingestAsset', () => {
     const initial = createEmptyScene();
     const result = ingestAsset(
       {
-        provider: 'mock',
-        prompt: 'chair',
         format: 'glb',
         localPath: '/tmp/chair.glb',
-        uri: '/assets/generated/chair.glb',
+        uri: '/assets/diorama/chair.glb',
+        source: 'manual',
       },
       { parentId: initial.rootId },
     );
@@ -61,8 +59,8 @@ describe('ingestAsset', () => {
     expect(Object.values(next.assets ?? {}).length).toBe(1);
     expect(next.nodes[addedNodeId as string]?.semantics?.role).toBe('product');
     expect(next.nodes[addedNodeId as string]?.semantics?.source).toBe('import');
-    expect(next.nodes[addedNodeId as string]?.metadata.source).toBe('generator');
-    expect(next.nodes[addedNodeId as string]?.metadata.provider).toBe('mock');
+    expect(next.nodes[addedNodeId as string]?.metadata.source).toBe('manual');
+    expect(next.nodes[addedNodeId as string]?.metadata.provider).toBe('manual');
   });
 
   it('warns and returns no commands for invalid local path input', () => {
@@ -94,11 +92,10 @@ describe('ingestAsset', () => {
       const result = await ingestAssetWithHierarchy(
         {
           id: 'asset-planets',
-          provider: 'mock',
-          prompt: 'planet display',
           format: 'glb',
           localPath: glbPath,
-          uri: '/assets/imports/planets.glb',
+          uri: '/assets/diorama/planets.glb',
+          source: 'manual',
         },
         {
           parentId: initial.rootId,

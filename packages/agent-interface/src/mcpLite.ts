@@ -314,8 +314,19 @@ export const createMcpLiteRuntime = (
       const sceneResult = runtime.getScene();
       if (!sceneResult.ok) return sceneResult;
       const parentId = parsed.data.parentId ?? sceneResult.data.scene.rootId;
+      if (parsed.data.kind === 'generated' && parsed.data.asset.localPath === undefined) {
+        return err({
+          code: 'VALIDATION_ERROR',
+          message: 'Generated asset ingestion requires localPath',
+        });
+      }
+
       const ingestion = parsed.data.kind === 'generated'
-        ? planIngestAsset(parsed.data.asset, {
+        ? planIngestAsset({
+          ...parsed.data.asset,
+          localPath: parsed.data.asset.localPath ?? '',
+          source: 'generator',
+        }, {
           parentId,
           nodeId: parsed.data.nodeId,
           nodeName: parsed.data.nodeName,

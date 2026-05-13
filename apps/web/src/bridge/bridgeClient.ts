@@ -5,7 +5,7 @@ export type BridgeSceneEvent = {
   scene: Scene;
   command?: Command;
   summary?: unknown;
-  source: 'bridge' | 'mcp' | 'web';
+  source: 'bridge' | 'mcp' | 'web' | 'code';
 };
 
 export type BridgeResult<T> =
@@ -32,6 +32,18 @@ export type ImportGlbAssetResult = {
   appliedCommandCount: number;
 };
 
+export type BridgeProjectInfo = {
+  projectRoot: string;
+  sessionPath: string;
+  generatedModulePath: string;
+  assetDirPath: string;
+  publicUrlBase: string;
+  lastSync:
+    | { ok: true; path: string; bytesChanged: boolean; ts: number }
+    | { ok: false; error: string; ts: number }
+    | null;
+};
+
 export const BRIDGE_URL =
   import.meta.env.VITE_DIORAMA_BRIDGE_URL ?? 'http://127.0.0.1:7777';
 
@@ -49,6 +61,11 @@ export const fetchBridgeScene = async (): Promise<BridgeResult<{ scene: Scene }>
   return response.json() as Promise<BridgeResult<{ scene: Scene }>>;
 };
 
+export const fetchBridgeProjectInfo = async (): Promise<BridgeResult<BridgeProjectInfo>> => {
+  const response = await fetch(`${BRIDGE_URL}/project-info`);
+  return response.json() as Promise<BridgeResult<BridgeProjectInfo>>;
+};
+
 export const postBridgeCommand = async (
   command: Command,
 ): Promise<BridgeResult<{ scene: Scene; changed: boolean }>> =>
@@ -58,6 +75,10 @@ export const postBridgeLoadScene = async (
   json: string,
 ): Promise<BridgeResult<{ scene: Scene; changed: boolean }>> =>
   postJson('/load-scene', { json });
+
+export const postBridgeSyncCode = async (
+  direction: 'toCode' | 'fromCode' = 'toCode',
+): Promise<BridgeResult<unknown>> => postJson('/sync-code', { direction });
 
 export const postBridgeImportGlbAsset = async (
   file: File,

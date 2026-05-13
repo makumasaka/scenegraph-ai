@@ -40,6 +40,10 @@ export interface R3fModuleExportOptions extends R3fExportOptions {
   includeUserData?: boolean;
 }
 
+export interface R3fSyncModuleExportOptions extends R3fExportOptions {
+  componentName?: string;
+}
+
 export interface R3fExportDiagnostic {
   level: 'info' | 'warning';
   code: string;

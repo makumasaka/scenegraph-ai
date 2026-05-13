@@ -25,12 +25,6 @@ const objectSchema = (properties: Record<string, unknown> = {}, required: string
   additionalProperties: false,
 });
 
-const commandSchema = {
-  type: 'object',
-  description: 'A validated Diorama command payload. Must include a command type.',
-  additionalProperties: true,
-};
-
 const sceneRef = {
   type: 'object',
   description: 'A Diorama scene graph object.',
@@ -44,37 +38,6 @@ const tools: ToolDefinition[] = [
     inputSchema: objectSchema(),
   },
   {
-    name: 'get_semantic_groups',
-    description: 'Return semantic groups from the active scene.',
-    inputSchema: objectSchema(),
-  },
-  {
-    name: 'get_behaviors',
-    description: 'Return behavior definitions from the active scene.',
-    inputSchema: objectSchema(),
-  },
-  {
-    name: 'get_action_log',
-    description: 'Return the bridge runtime action log.',
-    inputSchema: objectSchema(),
-  },
-  {
-    name: 'apply_command',
-    description: 'Apply one Diorama command to the shared bridge scene. Use dryRun first for risky edits.',
-    inputSchema: objectSchema({
-      command: commandSchema,
-      dryRun: { type: 'boolean' },
-    }, ['command']),
-  },
-  {
-    name: 'apply_command_batch',
-    description: 'Apply a batch of Diorama commands atomically to the shared bridge scene.',
-    inputSchema: objectSchema({
-      commands: { type: 'array', items: commandSchema },
-      dryRun: { type: 'boolean' },
-    }, ['commands']),
-  },
-  {
     name: 'load_scene',
     description: 'Replace the shared bridge scene from JSON text or a parsed scene graph.',
     inputSchema: objectSchema({
@@ -84,8 +47,8 @@ const tools: ToolDefinition[] = [
     }),
   },
   {
-    name: 'import_glb_asset',
-    description: 'Import a workspace-relative GLB/GLTF into the active Diorama scene, register it, and introspect shallow hierarchy nodes.',
+    name: 'register_asset',
+    description: 'Register a project-relative GLB/GLTF asset and add an asset-backed scene node.',
     inputSchema: objectSchema({
       workspaceRelativePath: { type: 'string' },
       importMode: { type: 'string', enum: ['single', 'shallow'] },
@@ -98,95 +61,30 @@ const tools: ToolDefinition[] = [
     }, ['workspaceRelativePath']),
   },
   {
-    name: 'ingest_local_asset',
-    description: 'Copy a local GLB/GLTF into Diorama public asset folders and register it as an asset-backed scene node.',
+    name: 'update_transform',
+    description: 'Apply a deterministic UPDATE_TRANSFORM command for one node.',
     inputSchema: objectSchema({
-      localPath: { type: 'string' },
-      id: { type: 'string' },
       nodeId: { type: 'string' },
-      nodeName: { type: 'string' },
-      parentId: { type: 'string' },
-      prompt: { type: 'string' },
-      provider: { type: 'string', enum: ['mock', 'meshy', 'tripo', 'luma'] },
-      includeHierarchy: { type: 'boolean', description: 'Default true. Introspect GLB/GLTF nodes into inspect-only Diorama child nodes.' },
-      maxHierarchyNodes: { type: 'number' },
-      dryRun: { type: 'boolean' },
-    }, ['localPath']),
-  },
-  {
-    name: 'ingest_asset',
-    description: 'Register an already-described generated or local asset through the Diorama ingest command path.',
-    inputSchema: {
-      type: 'object',
-      additionalProperties: true,
-    },
-  },
-  {
-    name: 'generate_asset',
-    description: 'Generate a GLB asset through the configured Diorama generator adapter. Defaults to mock mode unless configured otherwise.',
-    inputSchema: objectSchema({
-      prompt: { type: 'string' },
-      provider: { type: 'string', enum: ['mock', 'meshy', 'tripo', 'luma'] },
-      mode: { type: 'string', enum: ['mock', 'live'] },
-    }, ['prompt']),
-  },
-  {
-    name: 'generate_and_ingest_asset',
-    description: 'Generate a GLB asset and immediately register it in the shared Diorama scene.',
-    inputSchema: objectSchema({
-      prompt: { type: 'string' },
-      provider: { type: 'string', enum: ['mock', 'meshy', 'tripo', 'luma'] },
-      mode: { type: 'string', enum: ['mock', 'live'] },
-    }, ['prompt']),
-  },
-  {
-    name: 'structure_scene',
-    description: 'Infer MVP showroom-style semantic groups, roles, and traits.',
-    inputSchema: objectSchema({
-      preset: { type: 'string', enum: ['showroom'] },
-      dryRun: { type: 'boolean' },
-    }),
-  },
-  {
-    name: 'make_interactive',
-    description: 'Attach behavior definitions for nodes with the target semantic role.',
-    inputSchema: objectSchema({
-      targetRole: { type: 'string' },
-      dryRun: { type: 'boolean' },
-    }),
-  },
-  {
-    name: 'arrange_nodes',
-    description: 'Deterministically arrange explicit nodes or nodes matching a semantic role.',
-    inputSchema: objectSchema({
-      nodeIds: { type: 'array', items: { type: 'string' } },
-      role: { type: 'string' },
-      layout: { type: 'string', enum: ['line', 'grid', 'circle'] },
-      options: objectSchema({
-        spacing: { type: 'number' },
-        cols: { type: 'number' },
-        radius: { type: 'number' },
-        axis: { type: 'string', enum: ['x', 'y', 'z'] },
+      patch: objectSchema({
+        position: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 },
+        rotation: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 },
+        scale: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 },
       }),
       dryRun: { type: 'boolean' },
-    }, ['layout']),
-  },
-  {
-    name: 'export_json',
-    description: 'Export the shared scene as Diorama JSON. Writes apps/web/public/scenes/bridge-session.scene.json by default.',
-    inputSchema: objectSchema({
-      write: { type: 'boolean' },
-    }),
+    }, ['nodeId', 'patch']),
   },
   {
     name: 'export_r3f',
-    description: 'Export the shared scene to the demo R3F Vite app. Writes generated files by default.',
+    description: 'Export the shared scene to the project generated R3F sync module.',
     inputSchema: objectSchema({
       write: { type: 'boolean' },
-      options: {
-        type: 'object',
-        additionalProperties: true,
-      },
+    }),
+  },
+  {
+    name: 'sync_code',
+    description: 'Synchronize scene/code. Default writes code; use direction "fromCode" to reload the generated scene block.',
+    inputSchema: objectSchema({
+      direction: { type: 'string', enum: ['toCode', 'fromCode'] },
     }),
   },
 ];
@@ -217,7 +115,10 @@ const ensureBridge = async (): Promise<void> => {
   } catch {
     // Start an embedded bridge below.
   }
-  await startDioramaBridgeServer(port);
+  await startDioramaBridgeServer(port, {
+    ...(process.env.DIORAMA_PROJECT_ROOT ? { projectRoot: process.env.DIORAMA_PROJECT_ROOT } : {}),
+    watchCode: process.env.DIORAMA_WATCH_CODE !== 'false',
+  });
   process.stderr.write(`Diorama MCP started embedded bridge at ${bridgeUrl}\n`);
 };
 

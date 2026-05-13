@@ -1,5 +1,4 @@
 import { createNode, type Command, type DioramaAsset } from '@diorama/core';
-import type { GeneratedAsset } from '@diorama/generation';
 import type { IngestAssetInput, IngestionOptions, IngestionResult } from './types';
 import { planGltfHierarchyFromFile } from './gltfHierarchy';
 
@@ -31,8 +30,17 @@ const defaultIdFromInput = (input: IngestAssetInput): string => {
   return `asset-${hashText(seed)}`;
 };
 
-const providerFromInput = (input: IngestAssetInput): GeneratedAsset['provider'] =>
-  'provider' in input && input.provider !== undefined ? input.provider : 'mock';
+const providerFromInput = (input: IngestAssetInput): string =>
+  input.provider !== undefined ? input.provider : 'manual';
+
+const sourceFromInput = (input: IngestAssetInput): 'manual' | 'upload' | 'generator' =>
+  input.source ??
+  (input.prompt !== undefined ||
+  input.provider === 'meshy' ||
+  input.provider === 'tripo' ||
+  input.provider === 'luma'
+    ? 'generator'
+    : 'manual');
 
 const promptFromInput = (input: IngestAssetInput): string | undefined =>
   'prompt' in input && typeof input.prompt === 'string' ? input.prompt : undefined;
@@ -50,22 +58,27 @@ const toAsset = (input: IngestAssetInput, assetId: string): DioramaAsset => {
   const localName = basenameNoExt(localPath);
   const prompt = promptFromInput(input);
   const uri = uriFromInput(input);
+  const source = sourceFromInput(input);
   return {
     id: assetId,
     name: localName.length > 0 ? localName : 'Generated Asset',
     kind: format,
     ...(uri ? { uri } : {}),
-    source: 'generator',
-    generator: {
-      provider: providerFromInput(input),
-      ...(prompt ? { prompt } : {}),
-    },
+    source,
+    ...(source === 'generator'
+      ? {
+          generator: {
+            provider: providerFromInput(input),
+            ...(prompt ? { prompt } : {}),
+          },
+        }
+      : {}),
     metadata: {
-      source: 'generator',
+      source,
       provider: providerFromInput(input),
       ...(prompt ? { prompt } : {}),
       ...(localPath.length > 0 ? { localPath } : {}),
-      ...(('metadata' in input && input.metadata !== undefined) ? input.metadata : {}),
+      ...(input.metadata !== undefined ? input.metadata : {}),
     },
   };
 };
@@ -97,7 +110,7 @@ export const ingestAsset = (
     type: 'mesh',
     assetRef: asset.uri ? { kind: 'uri', uri: asset.uri } : { kind: 'none' },
     metadata: {
-      source: 'generator',
+      source: sourceFromInput(input),
       provider: providerFromInput(input),
       ...(promptFromInput(input) ? { prompt: promptFromInput(input) } : {}),
       assetId,
@@ -143,7 +156,7 @@ export const ingestAssetWithHierarchy = async (
   }
 
   try {
-    const hierarchy = await planGltfHierarchyFromFile(localPath, {
+    const hierarchy = await planGltfHierarchyFromFile(options.sourceFilePath ?? localPath, {
       assetId: asset.id,
       ...(asset.uri !== undefined ? { assetUri: asset.uri } : {}),
       parentNodeId: assetNode.node.id,

@@ -23,25 +23,14 @@ describe('Milestone 7 future MCP tool contract', () => {
     const session = createAgentSession();
     const runtimeKeys = Object.keys(session).sort();
 
-    expect(fixture.version).toBe(2);
+    expect(fixture.version).toBe(3);
     expect(fixture.tools.map((tool) => tool.name)).toEqual([
-      'get_scene',
-      'get_semantic_groups',
-      'get_behaviors',
-      'get_selected_nodes',
-      'structure_scene',
-      'set_node_semantics',
-      'create_semantic_group',
-      'assign_to_semantic_group',
-      'add_behavior',
-      'remove_behavior',
-      'make_interactive',
-      'arrange_nodes',
-      'apply_command',
-      'apply_command_batch',
       'load_scene',
-      'export_json',
+      'get_scene',
+      'register_asset',
+      'update_transform',
       'export_r3f',
+      'sync_code',
     ]);
 
     for (const tool of fixture.tools) {
@@ -53,30 +42,14 @@ describe('Milestone 7 future MCP tool contract', () => {
     const writeTools = fixture.tools.filter((tool) => tool.type === 'write');
 
     expect(writeTools.map((tool) => tool.name)).toEqual([
-      'structure_scene',
-      'set_node_semantics',
-      'create_semantic_group',
-      'assign_to_semantic_group',
-      'add_behavior',
-      'remove_behavior',
-      'make_interactive',
-      'arrange_nodes',
-      'apply_command',
-      'apply_command_batch',
       'load_scene',
+      'register_asset',
+      'update_transform',
     ]);
     expect(writeTools.map((tool) => tool.runtimeMethod)).toEqual([
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommand',
-      'applyCommandBatch',
       'loadScene',
+      'applyCommand',
+      'applyCommand',
     ]);
   });
 

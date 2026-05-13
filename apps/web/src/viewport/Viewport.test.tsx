@@ -31,24 +31,38 @@ vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls" />,
 }));
 
-vi.mock('./NodeMesh', async () => {
-  const { useSceneStore } = await import('../store/sceneStore');
-
+vi.mock('@diorama/r3f-bridge', () => {
   return {
-    NodeMesh: ({ nodeId, children }: { nodeId: string; children?: ReactNode }) => {
-      const node = useSceneStore((s) => s.scene.nodes[nodeId]);
+    createRuntimeNodeRegistry: () => ({
+      register: () => () => undefined,
+    }),
+    RuntimeScene: ({ scene }: {
+      scene: Scene;
+      selectedId: string | null;
+      gizmoMode: 'translate' | 'rotate' | 'scale';
+      registry?: unknown;
+      onCommand: unknown;
+      onSelect: unknown;
+    }) => {
+      const renderNode = (nodeId: string): ReactNode => {
+        const node = scene.nodes[nodeId];
+        if (!node || node.visible === false) return null;
+        return (
+          <div
+            key={nodeId}
+            data-testid="scene-node"
+            data-node-id={nodeId}
+            data-position={node.transform.position.join(',')}
+            data-rotation={node.transform.rotation.join(',')}
+            data-scale={node.transform.scale.join(',')}
+          >
+            {node.children.map(renderNode)}
+          </div>
+        );
+      };
+      const node = scene.nodes[scene.rootId];
       if (!node || node.visible === false) return null;
-      return (
-        <div
-          data-testid="scene-node"
-          data-node-id={nodeId}
-          data-position={node.transform.position.join(',')}
-          data-rotation={node.transform.rotation.join(',')}
-          data-scale={node.transform.scale.join(',')}
-        >
-          {children}
-        </div>
-      );
+      return <>{renderNode(scene.rootId)}</>;
     },
   };
 });

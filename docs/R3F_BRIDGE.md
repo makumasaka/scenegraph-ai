@@ -1,91 +1,73 @@
-# R3F Bridge
+# R3F Runtime Bridge And Sync Export
 
-Diorama's primary product output is a clean, deterministic React Three Fiber
-scene module generated from the canonical scenegraph. The bridge consumes
-validated `Scene` data only; it does not read editor state, command logs,
-filesystem paths, undo/redo stacks, or the app's Zustand store.
+Diorama has two deliberately separate R3F surfaces:
 
-## Export Modes
+- `@diorama/r3f-bridge` projects canonical scene state into a live React Three
+  Fiber runtime and translates runtime interactions into Diorama commands.
+- `@diorama/export-r3f` emits deterministic app-ready R3F code from canonical
+  scene state.
 
-`@diorama/export-r3f` exposes two output paths:
+Neither package treats R3F refs, Three objects, viewport state, or Zustand state
+as canonical.
 
-- `exportSceneToR3fJsx(scene, options)` - compatibility fragment for existing
-  paste-into-`<Canvas>` workflows.
-- `exportSceneToR3fModule(scene, options)` - structured React module output
-  with semantic component hints, behavior scaffolds, diagnostics, and a named
-  exported component.
+## Runtime Bridge
 
-## Module Options
+`@diorama/r3f-bridge` owns the live adapter layer:
 
-```ts
-exportSceneToR3fModule(scene, {
-  componentName: 'DioramaScene',
-  semanticComponents: true,
-  behaviorScaffold: 'handlers',
-  includeStudioLights: true,
-});
+- recursive scene-to-R3F projection
+- runtime object registration by stable node id
+- selection helpers
+- transform commit helpers for `UPDATE_TRANSFORM`
+- `assetRef` GLB/GLTF rendering through Drei `useGLTF`
+- inspector schema helpers
+
+Runtime transforms may draft through `TransformControls`, but commit through a
+command:
+
+```text
+TransformControls draft
+  -> UPDATE_TRANSFORM command
+  -> @diorama/core reducer
+  -> canonical scene
+  -> runtime projection refresh
 ```
 
-- `componentName`: exported React component name. Defaults to `DioramaScene`.
-- `semanticComponents`: emits role-based components like `Product` and
-  `DisplaySurface`. Defaults to `true`.
-- `behaviorScaffold`: `none`, `comments`, or `handlers`. Defaults to `handlers`.
-- `includeStudioLights`: emits non-scene preview lights.
+## Sync Module Export
 
-## Semantic Mapping
+`@diorama/export-r3f` provides `exportSceneToR3fSyncModule(scene, options)` for
+the MVP live code sync path.
 
-The bridge keeps the mapping small and deterministic:
+The generated module includes:
 
-| Role | Component |
-|------|-----------|
-| `product` | `Product` |
-| `display` | `DisplaySurface` |
-| `seating` | `SeatingElement` |
-| `environment` | `EnvironmentGroup` |
-| `lighting` / `light` | `SceneLight` |
-| `navigation` | `NavigationMarker` |
-| `decor` | `DecorElement` |
-| `container` | `SceneSection` |
-| missing / `unknown` | fallback by node type (`SceneMesh`, `SceneGroup`, `SceneLight`, `SceneEmpty`) |
+- `// @diorama-generated`
+- an embedded `dioramaScene` object
+- stable `userData={{ dioramaId, sourceId }}`
+- recursive R3F rendering derived from `dioramaScene.data`
+- safe GLB/GLTF loading for project-relative public asset URIs
 
-Semantic groups are represented as comments and, when group members are
-contiguous under the same parent, identity wrapper components such as
-`DisplayArea`. The exporter never reorders scenegraph children to satisfy a
-semantic group.
+Default generated location:
 
-## Behavior Scaffolding
+```text
+src/diorama/DioramaScene.generated.tsx
+```
 
-The bridge scaffolds obvious R3F event hooks and leaves heavier behavior as
-TODO comments:
-
-| Behavior / trait | Output |
-|------------------|--------|
-| `hover_highlight`, `hoverable` | `onHoverStart` / `onHoverEnd` handler props |
-| `click_select`, `clickable` | `onSelect` handler prop and `selectedId` state |
-| `focus_camera`, `focusable` | `handleFocusCamera` TODO stub |
-| `show_info`, `displayable` | selected-state info panel TODO placeholder |
-| `anchor_point`, `open_url`, `rotate_idle`, `scroll_reveal` | comments only; no runtime framework |
-
-The generated code intentionally avoids injecting arbitrary JavaScript or URLs
-from metadata. `open_url` stays a TODO for the developer to review.
+Code-to-runtime sync parses only the embedded `dioramaScene` block. Arbitrary JSX
+roundtripping is intentionally deferred.
 
 ## Safety Rules
 
-The bridge must not emit:
+The R3F bridge and exporter must not leak:
 
-- command log or action log entries
+- command logs or action logs
 - undo/redo history
-- editor UI state (`gizmoMode`, canvas camera state, etc.)
-- filesystem paths or `file:///` URIs
-- arbitrary JavaScript from metadata or behavior params
+- editor UI state
+- local filesystem paths or `file:///` URIs
+- arbitrary JavaScript from metadata
+- live runtime refs as persisted scene state
 
-Coverage lives in `packages/export-r3f/src/exportLoop.test.ts` and module
-snapshots under `packages/export-r3f/src/__snapshots__/`.
+## Deferred
 
-## Current Limits
-
-- Placeholder geometry is still a unit cube proxy.
-- `materialRef` appears as a readable comment; no material graph is generated.
-- `assetRef` appears only as a safe `asset=uri` hint; no glTF loader is emitted.
-- No animation runtime, physics runtime, shader graph, or full UI system is
-generated.
+Legacy fragment/module exporters remain for compatibility, but the MVP path is
+the sync module. AST patching, arbitrary JSX import, material graph export,
+animation authoring, physics, and generation-provider orchestration are outside
+the runtime sync MVP.

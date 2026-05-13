@@ -1,3 +1,4 @@
+import { watch, type FSWatcher } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, relative, resolve } from 'node:path';
@@ -5,6 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { createAgentRuntime, type AgentRuntime } from '@diorama/agent-interface';
 import { getStarterScene, type Command, type Scene, type SemanticRole } from '@diorama/core';
 import { ingestAssetWithHierarchy, type IngestAssetInput, type IngestionResult } from '@diorama/ingestion';
+import {
+  exportSceneToR3fSyncModule,
+  parseSceneFromR3fSyncModule,
+} from '@diorama/export-r3f';
 import { parseSceneJson, serializeScene } from '@diorama/schema';
 
 export const DEFAULT_BRIDGE_PORT = 7777;
@@ -24,7 +29,7 @@ type SceneEvent = {
   scene: Scene;
   command?: Command;
   summary?: unknown;
-  source: 'bridge' | 'mcp' | 'web';
+  source: 'bridge' | 'mcp' | 'web' | 'code';
 };
 
 export type ImportAssetSource =
@@ -37,6 +42,16 @@ export type ImportAssetInput = {
   semanticRole?: SemanticRole;
   parentId?: string;
   dryRun?: boolean;
+};
+
+export type DioramaBridgeRuntimeOptions = {
+  projectRoot?: string;
+  sessionRelativePath?: string;
+  generatedModuleRelativePath?: string;
+  assetDirRelativePath?: string;
+  publicUrlBase?: string;
+  watchCode?: boolean;
+  codeWatchDebounceMs?: number;
 };
 
 export type ImportAssetResult = {
@@ -63,13 +78,11 @@ export type ImportAssetResult = {
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, '..');
 
-const repoPath = (...parts: string[]): string => resolve(REPO_ROOT, ...parts);
-
-const SESSION_PATH = repoPath('.diorama/session.scene.json');
-const WEB_IMPORTED_SCENE_PATH = repoPath('apps/web/public/scenes/imported-glb.scene.json');
-const WEB_LIVE_SCENE_PATH = repoPath('apps/web/public/scenes/bridge-session.scene.json');
-const DEMO_SCENE_PATH = repoPath('apps/demo-export/public/scene.generated.json');
-const GENERATED_R3F_PATH = repoPath('apps/demo-export/src/generated/DioramaScene.generated.tsx');
+const DEFAULT_PROJECT_ROOT = resolve(process.env.DIORAMA_PROJECT_ROOT ?? REPO_ROOT);
+const DEFAULT_SESSION_RELATIVE_PATH = '.diorama/session.scene.json';
+const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/diorama/DioramaScene.generated.tsx';
+const DEFAULT_ASSET_DIR_RELATIVE_PATH = 'public/assets/diorama';
+const DEFAULT_PUBLIC_URL_BASE = '/assets/diorama';
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const SEMANTIC_ROLES = new Set<SemanticRole>([
   'product',
@@ -134,19 +147,31 @@ const isPathInside = (targetPath: string, rootPath: string): boolean => {
   return rel === '' || (!rel.startsWith('..') && !resolve(rel).startsWith('..'));
 };
 
-export const resolveWorkspaceRelativePath = (workspaceRelativePath: string): BridgeResult<string> => {
+const resolveProjectRoot = (projectRoot: string | undefined): string =>
+  resolve(projectRoot ?? DEFAULT_PROJECT_ROOT);
+
+export const resolveWorkspaceRelativePath = (
+  workspaceRelativePath: string,
+  projectRoot = DEFAULT_PROJECT_ROOT,
+): BridgeResult<string> => {
   if (workspaceRelativePath.trim().length === 0 || workspaceRelativePath.includes('\0')) {
     return fail('VALIDATION_ERROR', 'workspaceRelativePath must be a non-empty workspace-relative path.');
   }
   if (/^[a-zA-Z]:[\\/]/.test(workspaceRelativePath) || workspaceRelativePath.startsWith('/') || workspaceRelativePath.startsWith('\\')) {
-    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be relative to the Diorama workspace.');
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be relative to the Diorama project root.');
   }
-  const absolutePath = resolve(REPO_ROOT, workspaceRelativePath);
-  if (!isPathInside(absolutePath, REPO_ROOT)) {
-    return fail('VALIDATION_ERROR', 'workspaceRelativePath must stay inside the Diorama workspace.');
+  const root = resolveProjectRoot(projectRoot);
+  const absolutePath = resolve(root, workspaceRelativePath);
+  if (!isPathInside(absolutePath, root)) {
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must stay inside the Diorama project root.');
   }
   return ok(absolutePath);
 };
+
+const resolveProjectRelativePath = (
+  projectRoot: string,
+  workspaceRelativePath: string,
+): BridgeResult<string> => resolveWorkspaceRelativePath(workspaceRelativePath, projectRoot);
 
 const readRequestBuffer = async (
   req: IncomingMessage,
@@ -255,23 +280,53 @@ const loadSceneFromFile = async (path: string): Promise<Scene | null> => {
   }
 };
 
-export const loadInitialBridgeScene = async (): Promise<Scene> =>
-  (await loadSceneFromFile(SESSION_PATH)) ??
-  (await loadSceneFromFile(WEB_IMPORTED_SCENE_PATH)) ??
-  getStarterScene('default');
+export const loadInitialBridgeScene = async (
+  options: DioramaBridgeRuntimeOptions = {},
+): Promise<Scene> => {
+  const projectRoot = resolveProjectRoot(options.projectRoot);
+  const sessionRelativePath = options.sessionRelativePath ?? DEFAULT_SESSION_RELATIVE_PATH;
+  const sessionPath = resolve(projectRoot, sessionRelativePath);
+  return (await loadSceneFromFile(sessionPath)) ?? getStarterScene('default');
+};
 
 export class DioramaBridgeRuntime {
   private runtime: AgentRuntime;
   private clients = new Set<ServerResponse>();
+  private readonly projectRoot: string;
+  private readonly sessionPath: string;
+  private readonly generatedModulePath: string;
+  private readonly assetDirPath: string;
+  private readonly assetDirRelativePath: string;
+  private readonly publicUrlBase: string;
+  private readonly codeWatchDebounceMs: number;
+  private codeWatcher: FSWatcher | null = null;
+  private codeWatchTimer: ReturnType<typeof setTimeout> | null = null;
+  private suppressNextCodeWatch = false;
+  private lastSync:
+    | { ok: true; path: string; bytesChanged: boolean; ts: number }
+    | { ok: false; error: string; ts: number }
+    | null = null;
 
-  constructor(initialScene: Scene) {
-    this.runtime = createAgentRuntime(initialScene, {
-      generation: {
-        assetOutputDir: repoPath('apps/web/public/assets/generated'),
-        publicUrlBase: '/assets/generated',
-        defaultMode: 'mock',
-      },
-    });
+  constructor(initialScene: Scene, options: DioramaBridgeRuntimeOptions = {}) {
+    this.projectRoot = resolveProjectRoot(options.projectRoot);
+    const sessionRelativePath = options.sessionRelativePath ?? DEFAULT_SESSION_RELATIVE_PATH;
+    const generatedModuleRelativePath =
+      options.generatedModuleRelativePath ?? DEFAULT_GENERATED_MODULE_RELATIVE_PATH;
+    this.assetDirRelativePath = options.assetDirRelativePath ?? DEFAULT_ASSET_DIR_RELATIVE_PATH;
+    this.publicUrlBase = (options.publicUrlBase ?? DEFAULT_PUBLIC_URL_BASE).replace(/\/+$/, '');
+    this.sessionPath = resolve(this.projectRoot, sessionRelativePath);
+    this.generatedModulePath = resolve(this.projectRoot, generatedModuleRelativePath);
+    this.assetDirPath = resolve(this.projectRoot, this.assetDirRelativePath);
+    this.codeWatchDebounceMs = options.codeWatchDebounceMs ?? 100;
+
+    for (const targetPath of [this.sessionPath, this.generatedModulePath, this.assetDirPath]) {
+      if (!isPathInside(targetPath, this.projectRoot)) {
+        throw new Error('Diorama bridge paths must stay inside the project root.');
+      }
+    }
+
+    this.runtime = createAgentRuntime(initialScene);
+    if (options.watchCode === true) this.startCodeWatcher();
   }
 
   addClient(res: ServerResponse): void {
@@ -293,16 +348,20 @@ export class DioramaBridgeRuntime {
 
   private async persistScene(scene: Scene): Promise<void> {
     const json = serializeScene(scene);
-    await mkdir(dirname(SESSION_PATH), { recursive: true });
-    await mkdir(dirname(WEB_LIVE_SCENE_PATH), { recursive: true });
-    await writeFile(SESSION_PATH, json, 'utf8');
-    await writeFile(WEB_LIVE_SCENE_PATH, json, 'utf8');
+    await mkdir(dirname(this.sessionPath), { recursive: true });
+    await writeFile(this.sessionPath, json, 'utf8');
   }
 
-  private async publishScene(source: SceneEvent['source'], command?: Command, summary?: unknown): Promise<void> {
+  private async publishScene(
+    source: SceneEvent['source'],
+    command?: Command,
+    summary?: unknown,
+    syncCode = true,
+  ): Promise<void> {
     const scene = this.getSceneResult();
     if (!scene.ok) return;
     await this.persistScene(scene.data.scene);
+    if (syncCode) await this.syncCodeToProject(scene.data.scene);
     const event: SceneEvent = {
       type: 'scene',
       scene: scene.data.scene,
@@ -313,11 +372,148 @@ export class DioramaBridgeRuntime {
     for (const client of this.clients) sendSse(client, event);
   }
 
+  private async syncCodeToProject(scene: Scene): Promise<BridgeResult<{
+    path: string;
+    content: string;
+    bytesChanged: boolean;
+  }>> {
+    try {
+      const exported = exportSceneToR3fSyncModule(scene, {
+        componentName: 'DioramaScene',
+        includeStudioLights: true,
+      });
+      let previous: string | null = null;
+      try {
+        previous = await readFile(this.generatedModulePath, 'utf8');
+      } catch {
+        previous = null;
+      }
+      const bytesChanged = previous !== exported.code;
+      if (bytesChanged) {
+        this.suppressNextCodeWatch = true;
+        await mkdir(dirname(this.generatedModulePath), { recursive: true });
+        await writeFile(this.generatedModulePath, exported.code, 'utf8');
+      }
+      this.lastSync = {
+        ok: true,
+        path: this.generatedModulePath,
+        bytesChanged,
+        ts: Date.now(),
+      };
+      return ok({
+        path: this.generatedModulePath,
+        content: exported.code,
+        bytesChanged,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.lastSync = { ok: false, error: message, ts: Date.now() };
+      return fail('SYNC_ERROR', message);
+    }
+  }
+
+  private async syncCurrentSceneToProject(): Promise<BridgeResult<unknown>> {
+    const scene = this.getSceneResult();
+    if (!scene.ok) return scene;
+    return this.syncCodeToProject(scene.data.scene);
+  }
+
+  private async syncCode(input: unknown): Promise<BridgeResult<unknown>> {
+    const direction = isRecord(input) && input.direction === 'fromCode' ? 'fromCode' : 'toCode';
+    return direction === 'fromCode'
+      ? this.reloadSceneFromGeneratedModule()
+      : this.syncCurrentSceneToProject();
+  }
+
+  private startCodeWatcher(): void {
+    if (this.codeWatcher !== null) return;
+    void mkdir(dirname(this.generatedModulePath), { recursive: true }).then(() => {
+      if (this.codeWatcher !== null) return;
+      this.codeWatcher = watch(dirname(this.generatedModulePath), (eventType, fileName) => {
+        if (eventType !== 'change' && eventType !== 'rename') return;
+        if (String(fileName) !== basename(this.generatedModulePath)) return;
+        if (this.suppressNextCodeWatch) {
+          this.suppressNextCodeWatch = false;
+          return;
+        }
+        if (this.codeWatchTimer) clearTimeout(this.codeWatchTimer);
+        this.codeWatchTimer = setTimeout(() => {
+          void this.reloadSceneFromGeneratedModule();
+        }, this.codeWatchDebounceMs);
+      });
+    });
+  }
+
+  private async reloadSceneFromGeneratedModule(): Promise<BridgeResult<unknown>> {
+    try {
+      const code = await readFile(this.generatedModulePath, 'utf8');
+      const parsed = parseSceneFromR3fSyncModule(code);
+      if (!parsed.ok) {
+        this.lastSync = { ok: false, error: parsed.error.message, ts: Date.now() };
+        return fail(parsed.error.code, parsed.error.message);
+      }
+      const command: Command = { type: 'REPLACE_SCENE', scene: parsed.scene };
+      const result = unwrap(
+        this.runtime.applyCommand(command, { source: 'system' }),
+        'sync_code',
+      );
+      if (!result.ok) {
+        this.lastSync = { ok: false, error: result.error.message, ts: Date.now() };
+        return result;
+      }
+      await this.publishScene('code', command, result.data.summary, false);
+      this.lastSync = {
+        ok: true,
+        path: this.generatedModulePath,
+        bytesChanged: false,
+        ts: Date.now(),
+      };
+      return ok({
+        scene: parsed.scene,
+        path: this.generatedModulePath,
+        changed: result.data.changed,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.lastSync = { ok: false, error: message, ts: Date.now() };
+      return fail('SYNC_ERROR', message);
+    }
+  }
+
+  getProjectInfo(): {
+    projectRoot: string;
+    sessionPath: string;
+    generatedModulePath: string;
+    assetDirPath: string;
+    publicUrlBase: string;
+    lastSync: typeof this.lastSync;
+  } {
+    return {
+      projectRoot: this.projectRoot,
+      sessionPath: this.sessionPath,
+      generatedModulePath: this.generatedModulePath,
+      assetDirPath: this.assetDirPath,
+      publicUrlBase: this.publicUrlBase,
+      lastSync: this.lastSync,
+    };
+  }
+
+  close(): void {
+    if (this.codeWatchTimer) {
+      clearTimeout(this.codeWatchTimer);
+      this.codeWatchTimer = null;
+    }
+    this.codeWatcher?.close();
+    this.codeWatcher = null;
+  }
+
   async callTool(name: string, input: unknown, source: SceneEvent['source'] = 'mcp'): Promise<BridgeResult<unknown>> {
     try {
       switch (name) {
         case 'health':
           return ok({ status: 'ok' });
+        case 'project_info':
+          return ok(this.getProjectInfo());
         case 'get_scene':
           return this.getSceneResult();
         case 'get_semantic_groups':
@@ -338,12 +534,11 @@ export class DioramaBridgeRuntime {
           return this.makeInteractive(input, source);
         case 'arrange_nodes':
           return this.arrangeNodes(input, source);
-        case 'generate_asset':
-          return this.generateAsset(input);
-        case 'generate_and_ingest_asset':
-          return this.generateAndIngestAsset(input, source);
+        case 'register_asset':
         case 'import_glb_asset':
           return this.importGlbAssetTool(input, source);
+        case 'update_transform':
+          return this.updateTransform(input, source);
         case 'ingest_asset':
           return this.ingestAsset(input, source);
         case 'ingest_local_asset':
@@ -352,6 +547,8 @@ export class DioramaBridgeRuntime {
           return this.exportJson(input);
         case 'export_r3f':
           return this.exportR3f(input);
+        case 'sync_code':
+          return this.syncCode(input);
         default:
           return fail('TOOL_NOT_FOUND', `Unknown Diorama bridge tool: ${name}`);
       }
@@ -448,20 +645,18 @@ export class DioramaBridgeRuntime {
     return result;
   }
 
-  private async generateAsset(input: unknown): Promise<BridgeResult<unknown>> {
-    const result = unwrap(await this.runtime.generateAsset(input), 'generate_asset');
-    if (!result.ok) return result;
-    await this.copyAssetToDemoIfNeeded(result.data.asset.uri, result.data.asset.localPath);
-    return result;
-  }
-
-  private async generateAndIngestAsset(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
-    const generated = await this.generateAsset(input);
-    if (!generated.ok) return generated;
-    const asset = (generated.data as { asset: unknown }).asset;
-    const ingested = await this.ingestAsset({ kind: 'generated', asset, includeHierarchy: true }, source);
-    if (!ingested.ok) return ingested;
-    return ok({ generated: generated.data, ingestion: ingested.data });
+  private async updateTransform(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
+    if (!isRecord(input) || typeof input.nodeId !== 'string' || !isRecord(input.patch)) {
+      return fail('VALIDATION_ERROR', 'update_transform requires { nodeId, patch }.');
+    }
+    return this.applyCommand({
+      command: {
+        type: 'UPDATE_TRANSFORM',
+        nodeId: input.nodeId,
+        patch: input.patch,
+      },
+      ...(input.dryRun === true ? { dryRun: true } : {}),
+    }, source);
   }
 
   async importAsset(
@@ -476,7 +671,7 @@ export class DioramaBridgeRuntime {
     if (!sourcePath.ok) return sourcePath;
 
     const { fileName, slug, format } = safeFileNameFor(sourcePath.data.localPath);
-    const publicUri = `/assets/imports/${fileName}`;
+    const publicUri = `${this.publicUrlBase}/${fileName}`;
     const assetId = uniqueRecordId(`asset-${slug}`, scene.data.scene.assets);
     const nodeId = uniqueRecordId(`${assetId}-node`, scene.data.scene.nodes);
     const semanticRole = input.semanticRole;
@@ -496,6 +691,7 @@ export class DioramaBridgeRuntime {
       nodeId,
       nodeName: `${sanitizeStem(slug)} Product`,
       includeHierarchy: mode === 'shallow',
+      sourceFilePath: sourcePath.data.localPath,
     });
 
     const importedNodeIds = commandNodeIds(ingestion.commands);
@@ -531,7 +727,7 @@ export class DioramaBridgeRuntime {
     if (input.semanticRole !== undefined && semanticRoleFromValue(input.semanticRole) === undefined) {
       return fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.');
     }
-    const resolved = resolveWorkspaceRelativePath(input.workspaceRelativePath);
+    const resolved = resolveWorkspaceRelativePath(input.workspaceRelativePath, this.projectRoot);
     if (!resolved.ok) return resolved;
     const sourceStat = await stat(resolved.data);
     if (!sourceStat.isFile()) {
@@ -556,17 +752,15 @@ export class DioramaBridgeRuntime {
       ? safeFileNameFor(source.path)
       : safeFileNameFor(source.name);
     const publicFileName = sourceInfo.fileName;
-    const webAssetPath = repoPath('apps/web/public/assets/imports', publicFileName);
-    const demoAssetPath = repoPath('apps/demo-export/public/assets/imports', publicFileName);
-    const workspaceRelativePath = `apps/web/public/assets/imports/${publicFileName}`;
+    const projectAssetPath = resolve(this.assetDirPath, publicFileName);
+    const workspaceRelativePath = `${this.assetDirRelativePath.replace(/\\/g, '/')}/${publicFileName}`;
 
     if (source.kind === 'workspacePath') {
-      const resolved = resolveWorkspaceRelativePath(source.path);
+      const resolved = resolveWorkspaceRelativePath(source.path, this.projectRoot);
       if (!resolved.ok) return resolved;
       const sourceStat = await stat(resolved.data);
       if (!sourceStat.isFile()) return fail('VALIDATION_ERROR', `Not a file: ${source.path}`);
-      await copyFileIfDifferent(resolved.data, webAssetPath);
-      await copyFileIfDifferent(resolved.data, demoAssetPath);
+      await copyFileIfDifferent(resolved.data, projectAssetPath);
       return ok({ localPath: resolved.data, workspaceRelativePath });
     }
 
@@ -576,9 +770,8 @@ export class DioramaBridgeRuntime {
     if (source.data.byteLength > MAX_UPLOAD_BYTES) {
       return fail('VALIDATION_ERROR', `Uploaded GLB file exceeds ${MAX_UPLOAD_BYTES} bytes.`);
     }
-    await writeFileIfDifferent(webAssetPath, source.data);
-    await writeFileIfDifferent(demoAssetPath, source.data);
-    return ok({ localPath: webAssetPath, workspaceRelativePath });
+    await writeFileIfDifferent(projectAssetPath, source.data);
+    return ok({ localPath: projectAssetPath, workspaceRelativePath });
   }
 
   private async applyImportPlan(
@@ -639,6 +832,7 @@ export class DioramaBridgeRuntime {
           ...(typeof input.nodeId === 'string' ? { nodeId: input.nodeId } : {}),
           ...(typeof input.nodeName === 'string' ? { nodeName: input.nodeName } : {}),
           includeHierarchy: true,
+          ...(typeof sourceRecord.localPath === 'string' ? { sourceFilePath: sourceRecord.localPath } : {}),
           ...(finiteNumberFromValue(input.maxHierarchyNodes) !== undefined
             ? { maxHierarchyNodes: finiteNumberFromValue(input.maxHierarchyNodes) }
             : {}),
@@ -662,33 +856,35 @@ export class DioramaBridgeRuntime {
     if (!isRecord(input) || typeof input.localPath !== 'string') {
       return fail('VALIDATION_ERROR', 'ingest_local_asset requires { localPath }.');
     }
-    const sourcePath = resolve(input.localPath);
+    const resolved = resolveWorkspaceRelativePath(input.localPath, this.projectRoot);
+    if (!resolved.ok) return resolved;
+    const sourcePath = resolved.data;
     const sourceStat = await stat(sourcePath);
     if (!sourceStat.isFile()) return fail('VALIDATION_ERROR', `Not a file: ${sourcePath}`);
     const { fileName, slug, format } = safeFileNameFor(sourcePath);
-    const publicUri = `/assets/imports/${fileName}`;
-    const webAssetPath = repoPath('apps/web/public/assets/imports', fileName);
-    const demoAssetPath = repoPath('apps/demo-export/public/assets/imports', fileName);
-    await copyFileIfDifferent(sourcePath, webAssetPath);
-    await copyFileIfDifferent(sourcePath, demoAssetPath);
+    const publicUri = `${this.publicUrlBase}/${fileName}`;
+    const projectAssetPath = resolve(this.assetDirPath, fileName);
+    await copyFileIfDifferent(sourcePath, projectAssetPath);
     const scene = this.getSceneResult();
     if (!scene.ok) return scene;
     const provider = assetProviderFromValue(input.provider) ?? 'mock';
+    const workspaceRelativePath = `${this.assetDirRelativePath.replace(/\\/g, '/')}/${fileName}`;
     const ingestion = await ingestAssetWithHierarchy({
-      localPath: `apps/web/public/assets/imports/${fileName}`,
+      localPath: workspaceRelativePath,
       format,
       id: typeof input.id === 'string' ? input.id : `asset-${slug}`,
       uri: publicUri,
       provider,
       ...(typeof input.prompt === 'string' ? { prompt: input.prompt } : {}),
       metadata: {
-        importedFrom: `apps/web/public/assets/imports/${fileName}`,
+        importedFrom: workspaceRelativePath,
       },
     }, {
       parentId: typeof input.parentId === 'string' ? input.parentId : scene.data.scene.rootId,
       nodeId: typeof input.nodeId === 'string' ? input.nodeId : `asset-${slug}-node`,
       nodeName: typeof input.nodeName === 'string' ? input.nodeName : `${sanitizeStem(slug)} Product`,
       includeHierarchy: input.includeHierarchy !== false,
+      sourceFilePath: projectAssetPath,
       ...(finiteNumberFromValue(input.maxHierarchyNodes) !== undefined
         ? { maxHierarchyNodes: finiteNumberFromValue(input.maxHierarchyNodes) }
         : {}),
@@ -700,50 +896,39 @@ export class DioramaBridgeRuntime {
     const exported = unwrap(this.runtime.exportJSON(), 'export_json');
     if (!exported.ok) return exported;
     if (!isRecord(input) || input.write !== false) {
-      await mkdir(dirname(WEB_LIVE_SCENE_PATH), { recursive: true });
-      await writeFile(WEB_LIVE_SCENE_PATH, exported.data.content, 'utf8');
+      await mkdir(dirname(this.sessionPath), { recursive: true });
+      await writeFile(this.sessionPath, exported.data.content, 'utf8');
     }
     return ok({
       ...exported.data,
-      path: WEB_LIVE_SCENE_PATH,
+      path: this.sessionPath,
     });
   }
 
   private async exportR3f(input: unknown): Promise<BridgeResult<unknown>> {
-    const options = isRecord(input) && isRecord(input.options)
-      ? input.options
-      : isRecord(input)
-        ? Object.fromEntries(Object.entries(input).filter(([key]) => key !== 'write'))
-        : {};
-    const exported = unwrap(this.runtime.exportR3F({
-      mode: 'module',
+    const scene = this.getSceneResult();
+    if (!scene.ok) return scene;
+    const exported = exportSceneToR3fSyncModule(scene.data.scene, {
       componentName: 'DioramaScene',
-      semanticComponents: true,
-      behaviorScaffold: 'handlers',
       includeStudioLights: true,
-      ...options,
-    }), 'export_r3f');
-    if (!exported.ok) return exported;
-    if (!isRecord(input) || input.write !== false) {
-      const json = unwrap(this.runtime.exportJSON(), 'export_json');
-      if (!json.ok) return json;
-      await mkdir(dirname(GENERATED_R3F_PATH), { recursive: true });
-      await mkdir(dirname(DEMO_SCENE_PATH), { recursive: true });
-      await writeFile(GENERATED_R3F_PATH, exported.data.content, 'utf8');
-      await writeFile(DEMO_SCENE_PATH, json.data.content, 'utf8');
-    }
-    return ok({
-      ...exported.data,
-      componentPath: GENERATED_R3F_PATH,
-      scenePath: DEMO_SCENE_PATH,
     });
-  }
-
-  private async copyAssetToDemoIfNeeded(uri: string | undefined, localPath: string | undefined): Promise<void> {
-    if (!uri || !localPath || !uri.startsWith('/assets/')) return;
-    const sourcePath = resolve(localPath);
-    const targetPath = repoPath('apps/demo-export/public', uri.replace(/^\//, ''));
-    await copyFileIfDifferent(sourcePath, targetPath);
+    const shouldWrite = !isRecord(input) || input.write !== false;
+    const sync = shouldWrite
+      ? await this.syncCodeToProject(scene.data.scene)
+      : ok({
+          path: this.generatedModulePath,
+          content: exported.code,
+          bytesChanged: false,
+        });
+    if (!sync.ok) return sync;
+    return ok({
+      format: 'r3f',
+      content: exported.code,
+      mediaType: 'text/jsx',
+      diagnostics: exported.diagnostics,
+      componentPath: this.generatedModulePath,
+      bytesChanged: sync.data.bytesChanged,
+    });
   }
 }
 
@@ -756,8 +941,9 @@ export type StartedBridgeServer = {
 
 export const startDioramaBridgeServer = async (
   port = Number(process.env.DIORAMA_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT),
+  options: DioramaBridgeRuntimeOptions = {},
 ): Promise<StartedBridgeServer> => {
-  const runtime = new DioramaBridgeRuntime(await loadInitialBridgeScene());
+  const runtime = new DioramaBridgeRuntime(await loadInitialBridgeScene(options), options);
   const server = createServer(async (req, res) => {
     try {
       if (req.method === 'OPTIONS') {
@@ -771,6 +957,10 @@ export const startDioramaBridgeServer = async (
       }
       if (req.method === 'GET' && url.pathname === '/scene') {
         writeJson(res, 200, await runtime.callTool('get_scene', {}));
+        return;
+      }
+      if (req.method === 'GET' && url.pathname === '/project-info') {
+        writeJson(res, 200, await runtime.callTool('project_info', {}));
         return;
       }
       if (req.method === 'GET' && url.pathname === '/events') {
@@ -820,11 +1010,14 @@ export const startDioramaBridgeServer = async (
         '/structure-scene': 'structure_scene',
         '/make-interactive': 'make_interactive',
         '/arrange-nodes': 'arrange_nodes',
+        '/register-asset': 'register_asset',
+        '/update-transform': 'update_transform',
         '/import-glb-asset-json': 'import_glb_asset',
         '/ingest-asset': 'ingest_asset',
         '/ingest-local-asset': 'ingest_local_asset',
         '/export-json': 'export_json',
         '/export-r3f': 'export_r3f',
+        '/sync-code': 'sync_code',
       };
       const toolName = routeToTool[url.pathname] ?? url.pathname.match(/^\/tools\/([^/]+)$/)?.[1];
       if (!toolName) {
@@ -852,6 +1045,7 @@ export const startDioramaBridgeServer = async (
     port,
     close: () =>
       new Promise((resolveClose, rejectClose) => {
+        runtime.close();
         server.close((error) => error ? rejectClose(error) : resolveClose());
       }),
   };

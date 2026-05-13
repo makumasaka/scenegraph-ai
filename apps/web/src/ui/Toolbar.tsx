@@ -141,7 +141,7 @@ export function Toolbar() {
       <div className="toolbar__primary">
         <div className="toolbar__brand">
           <span className="toolbar__title">Diorama</span>
-          <span className="toolbar__subtitle">AI-native spatial canvas</span>
+          <span className="toolbar__subtitle">R3F runtime sync</span>
         </div>
 
         <div className="toolbar__actions">

@@ -36,28 +36,44 @@ vi.mock('@react-three/drei', () => ({
 
 vi.mock('./viewport/Viewport', async () => vi.importActual('./viewport/Viewport'));
 
-vi.mock('./viewport/NodeMesh', async () => {
-  const { useSceneStore } = await import('./store/sceneStore');
+vi.mock('@diorama/r3f-bridge', () => {
+  const renderNode = (
+    scene: ReturnType<typeof getStarterScene>,
+    nodeId: string,
+    onSelect?: (nodeId: string | null) => void,
+  ): ReactNode => {
+    const node = scene.nodes[nodeId];
+    if (!node || node.visible === false) return null;
+    return (
+      <div
+        key={node.id}
+        data-testid={`viewport-node-${node.id}`}
+        data-position={node.transform.position.join(',')}
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelect?.(node.id);
+        }}
+      >
+        {node.name}
+        {node.children.map((childId) => renderNode(scene, childId, onSelect))}
+      </div>
+    );
+  };
 
   return {
-    NodeMesh: ({ nodeId, children }: { nodeId: string; children?: ReactNode }) => {
-      const node = useSceneStore((s) => s.scene.nodes[nodeId]);
-      const select = useSceneStore((s) => s.select);
-      if (!node || node.visible === false) return null;
-      return (
-        <div
-          data-testid={`viewport-node-${nodeId}`}
-          data-position={node.transform.position.join(',')}
-          onClick={(event) => {
-            event.stopPropagation();
-            select(nodeId);
-          }}
-        >
-          {node.name}
-          {children}
-        </div>
-      );
-    },
+    createRuntimeNodeRegistry: () => ({
+      clear: vi.fn(),
+      get: vi.fn(),
+      register: vi.fn(),
+      unregister: vi.fn(),
+    }),
+    RuntimeScene: ({
+      scene,
+      onSelect,
+    }: {
+      scene: ReturnType<typeof getStarterScene>;
+      onSelect?: (nodeId: string | null) => void;
+    }) => <>{renderNode(scene, scene.rootId, onSelect)}</>,
   };
 });
 

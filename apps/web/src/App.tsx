@@ -1,5 +1,6 @@
 import './App.css';
 import { BridgeSession } from './bridge/BridgeSession';
+import { CodePane } from './ui/CodePane';
 import { CommandTimeline } from './ui/CommandTimeline';
 import { Inspector } from './ui/Inspector';
 import { Toolbar } from './ui/Toolbar';
@@ -20,6 +21,7 @@ function App() {
           <Viewport />
           <Inspector />
         </main>
+        <CodePane />
         <CommandTimeline />
       </div>
     </div>
