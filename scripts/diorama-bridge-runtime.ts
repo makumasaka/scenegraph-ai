@@ -1,4 +1,4 @@
-import { watch, type FSWatcher } from 'node:fs';
+import { existsSync, readFileSync, watch, type FSWatcher } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, relative, resolve } from 'node:path';
@@ -39,6 +39,7 @@ export type ImportAssetSource =
 export type ImportAssetInput = {
   source: ImportAssetSource;
   importMode?: 'single' | 'shallow';
+  name?: string;
   semanticRole?: SemanticRole;
   parentId?: string;
   dryRun?: boolean;
@@ -52,6 +53,14 @@ export type DioramaBridgeRuntimeOptions = {
   publicUrlBase?: string;
   watchCode?: boolean;
   codeWatchDebounceMs?: number;
+};
+
+export type DioramaProjectConfig = {
+  projectRoot?: string;
+  assetDir?: string;
+  generatedSceneFile?: string;
+  publicAssetBase?: string;
+  sceneJsonFile?: string;
 };
 
 export type ImportAssetResult = {
@@ -79,10 +88,11 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, '..');
 
 const DEFAULT_PROJECT_ROOT = resolve(process.env.DIORAMA_PROJECT_ROOT ?? REPO_ROOT);
-const DEFAULT_SESSION_RELATIVE_PATH = '.diorama/session.scene.json';
-const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/diorama/DioramaScene.generated.tsx';
-const DEFAULT_ASSET_DIR_RELATIVE_PATH = 'public/assets/diorama';
-const DEFAULT_PUBLIC_URL_BASE = '/assets/diorama';
+const CONFIG_FILE_NAME = 'diorama.config.json';
+const DEFAULT_SESSION_RELATIVE_PATH = 'src/generated/diorama.scene.json';
+const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/generated/DioramaScene.generated.tsx';
+const DEFAULT_ASSET_DIR_RELATIVE_PATH = 'public/assets/models';
+const DEFAULT_PUBLIC_URL_BASE = '/assets/models';
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const SEMANTIC_ROLES = new Set<SemanticRole>([
   'product',
@@ -149,6 +159,71 @@ const isPathInside = (targetPath: string, rootPath: string): boolean => {
 
 const resolveProjectRoot = (projectRoot: string | undefined): string =>
   resolve(projectRoot ?? DEFAULT_PROJECT_ROOT);
+
+const configString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+
+const isRelativeProjectPath = (value: string): boolean =>
+  !/^[a-zA-Z]:[\\/]/.test(value) &&
+  !value.startsWith('/') &&
+  !value.startsWith('\\') &&
+  !value.includes('\0');
+
+const readProjectConfigSync = (projectRoot: string): {
+  found: boolean;
+  path: string;
+  config: DioramaProjectConfig;
+  warnings: string[];
+} => {
+  const configPath = resolve(projectRoot, CONFIG_FILE_NAME);
+  if (!existsSync(configPath)) {
+    return { found: false, path: configPath, config: {}, warnings: [] };
+  }
+  try {
+    const raw = JSON.parse(readFileSync(configPath, 'utf8')) as unknown;
+    if (!isRecord(raw)) {
+      return {
+        found: true,
+        path: configPath,
+        config: {},
+        warnings: ['diorama.config.json must contain a JSON object.'],
+      };
+    }
+    return {
+      found: true,
+      path: configPath,
+      config: {
+        ...(configString(raw.projectRoot) !== undefined ? { projectRoot: configString(raw.projectRoot) } : {}),
+        ...(configString(raw.assetDir) !== undefined ? { assetDir: configString(raw.assetDir) } : {}),
+        ...(configString(raw.generatedSceneFile) !== undefined
+          ? { generatedSceneFile: configString(raw.generatedSceneFile) }
+          : {}),
+        ...(configString(raw.publicAssetBase) !== undefined ? { publicAssetBase: configString(raw.publicAssetBase) } : {}),
+        ...(configString(raw.sceneJsonFile) !== undefined ? { sceneJsonFile: configString(raw.sceneJsonFile) } : {}),
+      },
+      warnings: [],
+    };
+  } catch (error) {
+    return {
+      found: true,
+      path: configPath,
+      config: {},
+      warnings: [`Failed to parse diorama.config.json: ${error instanceof Error ? error.message : String(error)}`],
+    };
+  }
+};
+
+const configuredRelativePath = (
+  config: DioramaProjectConfig,
+  key: 'assetDir' | 'generatedSceneFile' | 'sceneJsonFile',
+  fallback: string,
+): string => {
+  const value = config[key] ?? fallback;
+  if (!isRelativeProjectPath(value)) {
+    throw new Error(`${key} in diorama.config.json must be relative to the explicit project root.`);
+  }
+  return value.replace(/\\/g, '/');
+};
 
 export const resolveWorkspaceRelativePath = (
   workspaceRelativePath: string,
@@ -284,7 +359,10 @@ export const loadInitialBridgeScene = async (
   options: DioramaBridgeRuntimeOptions = {},
 ): Promise<Scene> => {
   const projectRoot = resolveProjectRoot(options.projectRoot);
-  const sessionRelativePath = options.sessionRelativePath ?? DEFAULT_SESSION_RELATIVE_PATH;
+  const loadedConfig = readProjectConfigSync(projectRoot);
+  const sessionRelativePath =
+    options.sessionRelativePath ??
+    configuredRelativePath(loadedConfig.config, 'sceneJsonFile', DEFAULT_SESSION_RELATIVE_PATH);
   const sessionPath = resolve(projectRoot, sessionRelativePath);
   return (await loadSceneFromFile(sessionPath)) ?? getStarterScene('default');
 };
@@ -293,8 +371,13 @@ export class DioramaBridgeRuntime {
   private runtime: AgentRuntime;
   private clients = new Set<ServerResponse>();
   private readonly projectRoot: string;
+  private readonly configFound: boolean;
+  private readonly configPath: string;
+  private readonly configWarnings: string[];
   private readonly sessionPath: string;
+  private readonly sessionRelativePath: string;
   private readonly generatedModulePath: string;
+  private readonly generatedModuleRelativePath: string;
   private readonly assetDirPath: string;
   private readonly assetDirRelativePath: string;
   private readonly publicUrlBase: string;
@@ -309,11 +392,32 @@ export class DioramaBridgeRuntime {
 
   constructor(initialScene: Scene, options: DioramaBridgeRuntimeOptions = {}) {
     this.projectRoot = resolveProjectRoot(options.projectRoot);
-    const sessionRelativePath = options.sessionRelativePath ?? DEFAULT_SESSION_RELATIVE_PATH;
+    const loadedConfig = readProjectConfigSync(this.projectRoot);
+    this.configFound = loadedConfig.found;
+    this.configPath = loadedConfig.path;
+    this.configWarnings = loadedConfig.warnings;
+    if (loadedConfig.config.projectRoot !== undefined) {
+      const configuredRoot = resolve(this.projectRoot, loadedConfig.config.projectRoot);
+      if (!samePath(configuredRoot, this.projectRoot)) {
+        throw new Error('projectRoot in diorama.config.json must resolve to the explicit project root.');
+      }
+    }
+    const sessionRelativePath =
+      options.sessionRelativePath ??
+      configuredRelativePath(loadedConfig.config, 'sceneJsonFile', DEFAULT_SESSION_RELATIVE_PATH);
     const generatedModuleRelativePath =
-      options.generatedModuleRelativePath ?? DEFAULT_GENERATED_MODULE_RELATIVE_PATH;
-    this.assetDirRelativePath = options.assetDirRelativePath ?? DEFAULT_ASSET_DIR_RELATIVE_PATH;
-    this.publicUrlBase = (options.publicUrlBase ?? DEFAULT_PUBLIC_URL_BASE).replace(/\/+$/, '');
+      options.generatedModuleRelativePath ??
+      configuredRelativePath(loadedConfig.config, 'generatedSceneFile', DEFAULT_GENERATED_MODULE_RELATIVE_PATH);
+    this.assetDirRelativePath =
+      options.assetDirRelativePath ??
+      configuredRelativePath(loadedConfig.config, 'assetDir', DEFAULT_ASSET_DIR_RELATIVE_PATH);
+    this.publicUrlBase = (
+      options.publicUrlBase ??
+      loadedConfig.config.publicAssetBase ??
+      DEFAULT_PUBLIC_URL_BASE
+    ).replace(/\/+$/, '');
+    this.sessionRelativePath = sessionRelativePath;
+    this.generatedModuleRelativePath = generatedModuleRelativePath;
     this.sessionPath = resolve(this.projectRoot, sessionRelativePath);
     this.generatedModulePath = resolve(this.projectRoot, generatedModuleRelativePath);
     this.assetDirPath = resolve(this.projectRoot, this.assetDirRelativePath);
@@ -374,36 +478,52 @@ export class DioramaBridgeRuntime {
 
   private async syncCodeToProject(scene: Scene): Promise<BridgeResult<{
     path: string;
+    sceneJsonPath: string;
     content: string;
     bytesChanged: boolean;
+    sceneJsonBytesChanged: boolean;
   }>> {
     try {
       const exported = exportSceneToR3fSyncModule(scene, {
         componentName: 'DioramaScene',
         includeStudioLights: true,
       });
+      const sceneJson = serializeScene(scene);
       let previous: string | null = null;
       try {
         previous = await readFile(this.generatedModulePath, 'utf8');
       } catch {
         previous = null;
       }
+      let previousSceneJson: string | null = null;
+      try {
+        previousSceneJson = await readFile(this.sessionPath, 'utf8');
+      } catch {
+        previousSceneJson = null;
+      }
       const bytesChanged = previous !== exported.code;
+      const sceneJsonBytesChanged = previousSceneJson !== sceneJson;
       if (bytesChanged) {
         this.suppressNextCodeWatch = true;
         await mkdir(dirname(this.generatedModulePath), { recursive: true });
         await writeFile(this.generatedModulePath, exported.code, 'utf8');
       }
+      if (sceneJsonBytesChanged) {
+        await mkdir(dirname(this.sessionPath), { recursive: true });
+        await writeFile(this.sessionPath, sceneJson, 'utf8');
+      }
       this.lastSync = {
         ok: true,
         path: this.generatedModulePath,
-        bytesChanged,
+        bytesChanged: bytesChanged || sceneJsonBytesChanged,
         ts: Date.now(),
       };
       return ok({
         path: this.generatedModulePath,
+        sceneJsonPath: this.sessionPath,
         content: exported.code,
-        bytesChanged,
+        bytesChanged: bytesChanged || sceneJsonBytesChanged,
+        sceneJsonBytesChanged,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -421,7 +541,7 @@ export class DioramaBridgeRuntime {
   private async syncCode(input: unknown): Promise<BridgeResult<unknown>> {
     const direction = isRecord(input) && input.direction === 'fromCode' ? 'fromCode' : 'toCode';
     return direction === 'fromCode'
-      ? this.reloadSceneFromGeneratedModule()
+      ? this.reloadSceneFromFile()
       : this.syncCurrentSceneToProject();
   }
 
@@ -438,24 +558,40 @@ export class DioramaBridgeRuntime {
         }
         if (this.codeWatchTimer) clearTimeout(this.codeWatchTimer);
         this.codeWatchTimer = setTimeout(() => {
-          void this.reloadSceneFromGeneratedModule();
+          void this.reloadSceneFromFile();
         }, this.codeWatchDebounceMs);
       });
     });
   }
 
-  private async reloadSceneFromGeneratedModule(): Promise<BridgeResult<unknown>> {
+  private async reloadSceneFromFile(): Promise<BridgeResult<unknown>> {
     try {
-      const code = await readFile(this.generatedModulePath, 'utf8');
-      const parsed = parseSceneFromR3fSyncModule(code);
-      if (!parsed.ok) {
-        this.lastSync = { ok: false, error: parsed.error.message, ts: Date.now() };
-        return fail(parsed.error.code, parsed.error.message);
+      let parsedScene: Scene | null = null;
+      let sourcePath = this.generatedModulePath;
+      try {
+        const code = await readFile(this.generatedModulePath, 'utf8');
+        const parsed = parseSceneFromR3fSyncModule(code);
+        if (!parsed.ok) {
+          this.lastSync = { ok: false, error: parsed.error.message, ts: Date.now() };
+          return fail(parsed.error.code, parsed.error.message);
+        }
+        parsedScene = parsed.scene;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== 'ENOENT') throw error;
+        sourcePath = this.sessionPath;
+        const sceneJson = await readFile(this.sessionPath, 'utf8');
+        parsedScene = parseSceneJson(sceneJson);
+        if (parsedScene === null) {
+          const message = 'Diorama scene JSON file failed JSON parsing or schema validation.';
+          this.lastSync = { ok: false, error: message, ts: Date.now() };
+          return fail('SCENE_BLOCK_INVALID', message);
+        }
       }
-      const command: Command = { type: 'REPLACE_SCENE', scene: parsed.scene };
+      const command: Command = { type: 'REPLACE_SCENE', scene: parsedScene };
       const result = unwrap(
         this.runtime.applyCommand(command, { source: 'system' }),
-        'sync_code',
+        'reload_scene_from_file',
       );
       if (!result.ok) {
         this.lastSync = { ok: false, error: result.error.message, ts: Date.now() };
@@ -464,13 +600,13 @@ export class DioramaBridgeRuntime {
       await this.publishScene('code', command, result.data.summary, false);
       this.lastSync = {
         ok: true,
-        path: this.generatedModulePath,
+        path: sourcePath,
         bytesChanged: false,
         ts: Date.now(),
       };
       return ok({
-        scene: parsed.scene,
-        path: this.generatedModulePath,
+        scene: parsedScene,
+        path: sourcePath,
         changed: result.data.changed,
       });
     } catch (error) {
@@ -482,20 +618,77 @@ export class DioramaBridgeRuntime {
 
   getProjectInfo(): {
     projectRoot: string;
+    configFound: boolean;
+    configPath: string;
     sessionPath: string;
+    sessionRelativePath: string;
     generatedModulePath: string;
+    generatedModuleRelativePath: string;
     assetDirPath: string;
+    assetDirRelativePath: string;
     publicUrlBase: string;
     lastSync: typeof this.lastSync;
   } {
     return {
       projectRoot: this.projectRoot,
+      configFound: this.configFound,
+      configPath: this.configPath,
       sessionPath: this.sessionPath,
+      sessionRelativePath: this.sessionRelativePath,
       generatedModulePath: this.generatedModulePath,
+      generatedModuleRelativePath: this.generatedModuleRelativePath,
       assetDirPath: this.assetDirPath,
+      assetDirRelativePath: this.assetDirRelativePath,
       publicUrlBase: this.publicUrlBase,
       lastSync: this.lastSync,
     };
+  }
+
+  async getProjectStatus(): Promise<BridgeResult<{
+    bridgeConnected: true;
+    projectRoot: string;
+    configFound: boolean;
+    configPath: string;
+    configWarnings: string[];
+    assetDir: string;
+    assetDirExists: boolean;
+    generatedSceneFile: string;
+    generatedFileExists: boolean;
+    publicAssetBase: string;
+    sceneJsonFile: string;
+    sceneJsonFileExists: boolean;
+    currentSceneLoaded: boolean;
+    nodeCount: number;
+    assetCount: number;
+    lastSync: typeof this.lastSync;
+  }>> {
+    const scene = this.getSceneResult();
+    const exists = async (path: string): Promise<boolean> => {
+      try {
+        await stat(path);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    return ok({
+      bridgeConnected: true,
+      projectRoot: this.projectRoot,
+      configFound: this.configFound,
+      configPath: this.configPath,
+      configWarnings: this.configWarnings,
+      assetDir: this.assetDirPath,
+      assetDirExists: await exists(this.assetDirPath),
+      generatedSceneFile: this.generatedModulePath,
+      generatedFileExists: await exists(this.generatedModulePath),
+      publicAssetBase: this.publicUrlBase,
+      sceneJsonFile: this.sessionPath,
+      sceneJsonFileExists: await exists(this.sessionPath),
+      currentSceneLoaded: scene.ok,
+      nodeCount: scene.ok ? Object.keys(scene.data.scene.nodes).length : 0,
+      assetCount: scene.ok ? Object.keys(scene.data.scene.assets ?? {}).length : 0,
+      lastSync: this.lastSync,
+    });
   }
 
   close(): void {
@@ -512,6 +705,9 @@ export class DioramaBridgeRuntime {
       switch (name) {
         case 'health':
           return ok({ status: 'ok' });
+        case 'get_project_status':
+        case 'project_status':
+          return this.getProjectStatus();
         case 'project_info':
           return ok(this.getProjectInfo());
         case 'get_scene':
@@ -547,6 +743,10 @@ export class DioramaBridgeRuntime {
           return this.exportJson(input);
         case 'export_r3f':
           return this.exportR3f(input);
+        case 'write_scene_to_file':
+          return this.syncCurrentSceneToProject();
+        case 'reload_scene_from_file':
+          return this.reloadSceneFromFile();
         case 'sync_code':
           return this.syncCode(input);
         default:
@@ -646,14 +846,19 @@ export class DioramaBridgeRuntime {
   }
 
   private async updateTransform(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
-    if (!isRecord(input) || typeof input.nodeId !== 'string' || !isRecord(input.patch)) {
-      return fail('VALIDATION_ERROR', 'update_transform requires { nodeId, patch }.');
+    const patch = isRecord(input) && isRecord(input.patch)
+      ? input.patch
+      : isRecord(input) && isRecord(input.transform)
+        ? input.transform
+        : undefined;
+    if (!isRecord(input) || typeof input.nodeId !== 'string' || patch === undefined) {
+      return fail('VALIDATION_ERROR', 'update_transform requires { nodeId, patch } or { nodeId, transform }.');
     }
     return this.applyCommand({
       command: {
         type: 'UPDATE_TRANSFORM',
         nodeId: input.nodeId,
-        patch: input.patch,
+        patch,
       },
       ...(input.dryRun === true ? { dryRun: true } : {}),
     }, source);
@@ -681,7 +886,8 @@ export class DioramaBridgeRuntime {
       format,
       id: assetId,
       uri: publicUri,
-      provider: 'mock',
+      provider: 'manual',
+      source: input.source.kind === 'uploadedFile' ? 'upload' : 'manual',
       metadata: {
         importedFrom: sourcePath.data.workspaceRelativePath,
         importSource: input.source.kind,
@@ -689,7 +895,7 @@ export class DioramaBridgeRuntime {
     }, {
       parentId: input.parentId ?? scene.data.scene.rootId,
       nodeId,
-      nodeName: `${sanitizeStem(slug)} Product`,
+      nodeName: input.name ?? `${sanitizeStem(slug)} Product`,
       includeHierarchy: mode === 'shallow',
       sourceFilePath: sourcePath.data.localPath,
     });
@@ -718,8 +924,13 @@ export class DioramaBridgeRuntime {
   }
 
   private async importGlbAssetTool(input: unknown, source: SceneEvent['source']): Promise<BridgeResult<unknown>> {
-    if (!isRecord(input) || typeof input.workspaceRelativePath !== 'string') {
-      return fail('VALIDATION_ERROR', 'import_glb_asset requires { workspaceRelativePath }.');
+    const workspaceRelativePath = isRecord(input) && typeof input.path === 'string'
+      ? input.path
+      : isRecord(input) && typeof input.workspaceRelativePath === 'string'
+        ? input.workspaceRelativePath
+        : undefined;
+    if (!isRecord(input) || workspaceRelativePath === undefined) {
+      return fail('VALIDATION_ERROR', 'import_glb_asset requires { path } or { workspaceRelativePath }.');
     }
     if (input.importMode !== undefined && importModeFromValue(input.importMode) === undefined) {
       return fail('VALIDATION_ERROR', 'importMode must be "single" or "shallow".');
@@ -727,15 +938,16 @@ export class DioramaBridgeRuntime {
     if (input.semanticRole !== undefined && semanticRoleFromValue(input.semanticRole) === undefined) {
       return fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.');
     }
-    const resolved = resolveWorkspaceRelativePath(input.workspaceRelativePath, this.projectRoot);
+    const resolved = resolveWorkspaceRelativePath(workspaceRelativePath, this.projectRoot);
     if (!resolved.ok) return resolved;
     const sourceStat = await stat(resolved.data);
     if (!sourceStat.isFile()) {
-      return fail('VALIDATION_ERROR', `Not a file: ${input.workspaceRelativePath}`);
+      return fail('VALIDATION_ERROR', `Not a file: ${workspaceRelativePath}`);
     }
     return this.importAsset({
-      source: { kind: 'workspacePath', path: input.workspaceRelativePath },
+      source: { kind: 'workspacePath', path: workspaceRelativePath },
       importMode: importModeFromValue(input.importMode) ?? 'shallow',
+      ...(typeof input.name === 'string' ? { name: input.name } : {}),
       ...(semanticRoleFromValue(input.semanticRole) !== undefined
         ? { semanticRole: semanticRoleFromValue(input.semanticRole) }
         : {}),
@@ -917,8 +1129,10 @@ export class DioramaBridgeRuntime {
       ? await this.syncCodeToProject(scene.data.scene)
       : ok({
           path: this.generatedModulePath,
+          sceneJsonPath: this.sessionPath,
           content: exported.code,
           bytesChanged: false,
+          sceneJsonBytesChanged: false,
         });
     if (!sync.ok) return sync;
     return ok({
@@ -961,6 +1175,10 @@ export const startDioramaBridgeServer = async (
       }
       if (req.method === 'GET' && url.pathname === '/project-info') {
         writeJson(res, 200, await runtime.callTool('project_info', {}));
+        return;
+      }
+      if (req.method === 'GET' && url.pathname === '/project-status') {
+        writeJson(res, 200, await runtime.callTool('get_project_status', {}));
         return;
       }
       if (req.method === 'GET' && url.pathname === '/events') {
@@ -1017,6 +1235,8 @@ export const startDioramaBridgeServer = async (
         '/ingest-local-asset': 'ingest_local_asset',
         '/export-json': 'export_json',
         '/export-r3f': 'export_r3f',
+        '/write-scene-to-file': 'write_scene_to_file',
+        '/reload-scene-from-file': 'reload_scene_from_file',
         '/sync-code': 'sync_code',
       };
       const toolName = routeToTool[url.pathname] ?? url.pathname.match(/^\/tools\/([^/]+)$/)?.[1];

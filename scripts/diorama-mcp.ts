@@ -33,6 +33,11 @@ const sceneRef = {
 
 const tools: ToolDefinition[] = [
   {
+    name: 'get_project_status',
+    description: 'Return the local Diorama bridge project status and configured safe paths.',
+    inputSchema: objectSchema(),
+  },
+  {
     name: 'get_scene',
     description: 'Return the active Diorama bridge scene.',
     inputSchema: objectSchema(),
@@ -51,6 +56,8 @@ const tools: ToolDefinition[] = [
     description: 'Register a project-relative GLB/GLTF asset and add an asset-backed scene node.',
     inputSchema: objectSchema({
       workspaceRelativePath: { type: 'string' },
+      path: { type: 'string' },
+      name: { type: 'string' },
       importMode: { type: 'string', enum: ['single', 'shallow'] },
       semanticRole: {
         type: 'string',
@@ -58,7 +65,23 @@ const tools: ToolDefinition[] = [
       },
       parentId: { type: 'string' },
       dryRun: { type: 'boolean' },
-    }, ['workspaceRelativePath']),
+    }),
+  },
+  {
+    name: 'import_glb_asset',
+    description: 'Alias for register_asset. Import a project-relative GLB/GLTF path as an asset-backed scene node.',
+    inputSchema: objectSchema({
+      path: { type: 'string' },
+      workspaceRelativePath: { type: 'string' },
+      name: { type: 'string' },
+      importMode: { type: 'string', enum: ['single', 'shallow'] },
+      semanticRole: {
+        type: 'string',
+        enum: ['product', 'display', 'seating', 'lighting', 'light', 'environment', 'navigation', 'decor', 'container', 'unknown'],
+      },
+      parentId: { type: 'string' },
+      dryRun: { type: 'boolean' },
+    }),
   },
   {
     name: 'update_transform',
@@ -79,6 +102,16 @@ const tools: ToolDefinition[] = [
     inputSchema: objectSchema({
       write: { type: 'boolean' },
     }),
+  },
+  {
+    name: 'write_scene_to_file',
+    description: 'Write the current canonical scene to the generated R3F module and scene JSON file.',
+    inputSchema: objectSchema(),
+  },
+  {
+    name: 'reload_scene_from_file',
+    description: 'Reload canonical scene state from the generated R3F scene block or scene JSON file.',
+    inputSchema: objectSchema(),
   },
   {
     name: 'sync_code',
@@ -115,8 +148,11 @@ const ensureBridge = async (): Promise<void> => {
   } catch {
     // Start an embedded bridge below.
   }
+  if (!process.env.DIORAMA_PROJECT_ROOT) {
+    throw new Error('Diorama MCP requires DIORAMA_PROJECT_ROOT when it needs to start an embedded bridge.');
+  }
   await startDioramaBridgeServer(port, {
-    ...(process.env.DIORAMA_PROJECT_ROOT ? { projectRoot: process.env.DIORAMA_PROJECT_ROOT } : {}),
+    projectRoot: process.env.DIORAMA_PROJECT_ROOT,
     watchCode: process.env.DIORAMA_WATCH_CODE !== 'false',
   });
   process.stderr.write(`Diorama MCP started embedded bridge at ${bridgeUrl}\n`);

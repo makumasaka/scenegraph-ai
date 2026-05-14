@@ -10,15 +10,21 @@ const argValue = (name: string): string | undefined => {
 
 const run = async (): Promise<void> => {
   const projectRoot = argValue('projectRoot') ?? process.env.DIORAMA_PROJECT_ROOT;
+  if (projectRoot === undefined) {
+    throw new Error('Diorama bridge requires an explicit --projectRoot or DIORAMA_PROJECT_ROOT.');
+  }
   const watchCode = process.env.DIORAMA_WATCH_CODE !== 'false';
   const started = await startDioramaBridgeServer(undefined, {
-    ...(projectRoot !== undefined ? { projectRoot } : {}),
+    projectRoot,
     watchCode,
   });
   console.log(`Diorama bridge listening on http://127.0.0.1:${started.port}`);
   console.log('Scene events: http://127.0.0.1:%s/events', started.port);
   console.log('Project root: %s', started.runtime.getProjectInfo().projectRoot);
+  console.log('Config: %s', started.runtime.getProjectInfo().configFound ? started.runtime.getProjectInfo().configPath : 'not found');
   console.log('Generated module: %s', started.runtime.getProjectInfo().generatedModulePath);
+  console.log('Scene JSON: %s', started.runtime.getProjectInfo().sessionPath);
+  console.log('Asset dir: %s', started.runtime.getProjectInfo().assetDirPath);
 };
 
 run().catch((error) => {

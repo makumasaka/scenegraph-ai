@@ -54,8 +54,9 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
       projectRoot,
     });
 
-    const result = await runtime.importAsset({
-      source: { kind: 'workspacePath', path: sourceRel },
+    const result = await runtime.callTool('import_glb_asset', {
+      path: sourceRel,
+      name: 'Fixture Chair',
       importMode: 'shallow',
       semanticRole: 'decor',
       dryRun: true,
@@ -79,10 +80,35 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(result.data.hierarchySummary?.nodeCount).toBe(2);
     expect(result.data.scene.nodes['asset-bridge-import-test-node']?.assetRef).toEqual({
       kind: 'uri',
-      uri: '/assets/diorama/bridge-import-test.glb',
+      uri: '/assets/models/bridge-import-test.glb',
     });
+    expect(result.data.scene.nodes['asset-bridge-import-test-node']?.name).toBe('Fixture Chair');
     expect(result.data.scene.nodes['asset-bridge-import-test-node']?.semantics?.role).toBe('decor');
     expect(result.data.scene.assets?.['asset-bridge-import-test']?.kind).toBe('glb');
+    expect(result.data.scene.assets?.['asset-bridge-import-test']?.source).toBe('manual');
+  });
+
+  it('loads diorama.config.json and reports project status', async () => {
+    await writeFile(resolve(projectRoot, 'diorama.config.json'), JSON.stringify({
+      projectRoot: '.',
+      assetDir: 'public/assets/models',
+      generatedSceneFile: 'src/generated/DioramaScene.generated.tsx',
+      publicAssetBase: '/assets/models',
+      sceneJsonFile: 'src/generated/diorama.scene.json',
+    }, null, 2));
+
+    const runtime = new DioramaBridgeRuntime(createEmptyScene('Config Test'), {
+      projectRoot,
+    });
+
+    const status = await runtime.callTool('get_project_status', {});
+    expect(status.ok).toBe(true);
+    if (!status.ok) return;
+    expect(status.data.configFound).toBe(true);
+    expect(status.data.assetDirExists).toBe(false);
+    expect(status.data.generatedFileExists).toBe(false);
+    expect(status.data.currentSceneLoaded).toBe(true);
+    expect(status.data.publicAssetBase).toBe('/assets/models');
   });
 
   it('rejects workspace paths outside the project root', async () => {
@@ -119,10 +145,20 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(transformed.ok).toBe(true);
     const generatedPath = runtime.getProjectInfo().generatedModulePath;
     const code = await readFile(generatedPath, 'utf8');
+    expect(code).not.toContain(projectRoot);
+    expect(code).not.toContain(projectRoot.replace(/\\/g, '\\\\'));
     const parsed = parseSceneFromR3fSyncModule(code);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.scene.nodes.box?.transform.position).toEqual([1, 2, 3]);
+
+    const sceneJson = await readFile(runtime.getProjectInfo().sessionPath, 'utf8');
+    expect(sceneJson).not.toContain(projectRoot);
+    const secondWrite = await runtime.callTool('write_scene_to_file', {});
+    expect(secondWrite.ok).toBe(true);
+    if (secondWrite.ok) {
+      expect((secondWrite.data as { bytesChanged: boolean }).bytesChanged).toBe(false);
+    }
   });
 
   it('loads code edits from the generated scene block through sync_code parsing', async () => {
@@ -145,9 +181,20 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     );
     await writeFile(generatedPath, code, 'utf8');
 
-    const synced = await runtime.callTool('sync_code', { direction: 'fromCode' });
+    const synced = await runtime.callTool('reload_scene_from_file', {});
     expect(synced.ok).toBe(true);
     const current = await runtime.callTool('get_scene', {});
     expect(current).toEqual({ ok: true, data: { scene: nextScene } });
+  });
+
+  it('rejects invalid scene JSON when reloading from file fallback', async () => {
+    const runtime = new DioramaBridgeRuntime(createEmptyScene('Invalid Reload'), { projectRoot });
+    await mkdir(resolve(projectRoot, 'src/generated'), { recursive: true });
+    await writeFile(runtime.getProjectInfo().sessionPath, '{"format":"diorama-scene","version":2,"data":{}}', 'utf8');
+
+    const result = await runtime.callTool('reload_scene_from_file', {});
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe('SCENE_BLOCK_INVALID');
   });
 });

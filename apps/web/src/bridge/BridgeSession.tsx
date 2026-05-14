@@ -3,7 +3,7 @@ import { useSceneStore } from '../store/sceneStore';
 import { BRIDGE_URL, fetchBridgeScene, type BridgeSceneEvent } from './bridgeClient';
 
 const shouldConnectBridge =
-  import.meta.env.DEV === true && import.meta.env.MODE !== 'test';
+  import.meta.env.MODE !== 'test' && import.meta.env.VITE_DIORAMA_BRIDGE_ENABLED !== 'false';
 
 export function BridgeSession() {
   const applyBridgeScene = useSceneStore((s) => s.applyBridgeScene);

@@ -25,15 +25,20 @@ describe('Milestone 7 future MCP tool contract', () => {
 
     expect(fixture.version).toBe(3);
     expect(fixture.tools.map((tool) => tool.name)).toEqual([
+      'get_project_status',
       'load_scene',
       'get_scene',
       'register_asset',
+      'import_glb_asset',
       'update_transform',
+      'write_scene_to_file',
+      'reload_scene_from_file',
       'export_r3f',
       'sync_code',
     ]);
 
     for (const tool of fixture.tools) {
+      if (tool.runtimeMethod === 'bridge') continue;
       expect(runtimeKeys, `${tool.name} -> ${tool.runtimeMethod}`).toContain(tool.runtimeMethod);
     }
   });
@@ -44,12 +49,18 @@ describe('Milestone 7 future MCP tool contract', () => {
     expect(writeTools.map((tool) => tool.name)).toEqual([
       'load_scene',
       'register_asset',
+      'import_glb_asset',
       'update_transform',
+      'write_scene_to_file',
+      'reload_scene_from_file',
     ]);
     expect(writeTools.map((tool) => tool.runtimeMethod)).toEqual([
       'loadScene',
       'applyCommand',
       'applyCommand',
+      'applyCommand',
+      'bridge',
+      'bridge',
     ]);
   });
 

@@ -16,6 +16,18 @@ Cursor / Claude / Codex
 
 ## Tools
 
+### `get_project_status`
+
+Returns bridge/project status for the explicit project root: config presence,
+safe paths, asset dir status, generated file status, scene JSON status, current
+scene loaded flag, node count, asset count, and last sync result.
+
+Input:
+
+```json
+{}
+```
+
 ### `get_scene`
 
 Returns the current cloned canonical scene.
@@ -52,12 +64,17 @@ Input:
 
 ```json
 {
-  "workspaceRelativePath": "public/assets/diorama/chair.glb",
+  "path": "public/assets/models/chair.glb",
+  "name": "Chair",
   "importMode": "shallow",
   "semanticRole": "product",
   "dryRun": false
 }
 ```
+
+### `import_glb_asset`
+
+Alias for `register_asset`. Accepts either `path` or `workspaceRelativePath`.
 
 ### `update_transform`
 
@@ -92,6 +109,29 @@ Input:
   "componentName": "DioramaScene",
   "write": true
 }
+```
+
+### `write_scene_to_file`
+
+Writes the current canonical scene to the configured generated R3F module and
+scene JSON file.
+
+Input:
+
+```json
+{}
+```
+
+### `reload_scene_from_file`
+
+Reloads the canonical scene from the generated R3F module scene block. If the
+generated module is missing, the bridge falls back to the configured scene JSON
+file.
+
+Input:
+
+```json
+{}
 ```
 
 ### `sync_code`

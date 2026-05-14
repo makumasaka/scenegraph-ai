@@ -34,14 +34,38 @@ export type ImportGlbAssetResult = {
 
 export type BridgeProjectInfo = {
   projectRoot: string;
+  configFound: boolean;
+  configPath: string;
   sessionPath: string;
+  sessionRelativePath: string;
   generatedModulePath: string;
+  generatedModuleRelativePath: string;
   assetDirPath: string;
+  assetDirRelativePath: string;
   publicUrlBase: string;
   lastSync:
     | { ok: true; path: string; bytesChanged: boolean; ts: number }
     | { ok: false; error: string; ts: number }
     | null;
+};
+
+export type BridgeProjectStatus = {
+  bridgeConnected: true;
+  projectRoot: string;
+  configFound: boolean;
+  configPath: string;
+  configWarnings: string[];
+  assetDir: string;
+  assetDirExists: boolean;
+  generatedSceneFile: string;
+  generatedFileExists: boolean;
+  publicAssetBase: string;
+  sceneJsonFile: string;
+  sceneJsonFileExists: boolean;
+  currentSceneLoaded: boolean;
+  nodeCount: number;
+  assetCount: number;
+  lastSync: BridgeProjectInfo['lastSync'];
 };
 
 export const BRIDGE_URL =
@@ -66,6 +90,11 @@ export const fetchBridgeProjectInfo = async (): Promise<BridgeResult<BridgeProje
   return response.json() as Promise<BridgeResult<BridgeProjectInfo>>;
 };
 
+export const fetchBridgeProjectStatus = async (): Promise<BridgeResult<BridgeProjectStatus>> => {
+  const response = await fetch(`${BRIDGE_URL}/project-status`);
+  return response.json() as Promise<BridgeResult<BridgeProjectStatus>>;
+};
+
 export const postBridgeCommand = async (
   command: Command,
 ): Promise<BridgeResult<{ scene: Scene; changed: boolean }>> =>
@@ -79,6 +108,12 @@ export const postBridgeLoadScene = async (
 export const postBridgeSyncCode = async (
   direction: 'toCode' | 'fromCode' = 'toCode',
 ): Promise<BridgeResult<unknown>> => postJson('/sync-code', { direction });
+
+export const postBridgeWriteSceneToFile = async (): Promise<BridgeResult<unknown>> =>
+  postJson('/write-scene-to-file', {});
+
+export const postBridgeReloadSceneFromFile = async (): Promise<BridgeResult<unknown>> =>
+  postJson('/reload-scene-from-file', {});
 
 export const postBridgeImportGlbAsset = async (
   file: File,

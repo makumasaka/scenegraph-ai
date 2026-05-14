@@ -44,8 +44,9 @@ const renderSyncModule = (
   `  metadata: Record<string, unknown>;\n` +
   `  assetRef?: { kind: 'none' } | { kind: 'uri'; uri: string };\n` +
   `  light?: { kind: 'ambient'; intensity?: number } | { kind: 'directional'; intensity?: number; castShadow?: boolean };\n` +
+  `  [key: string]: unknown;\n` +
   `};\n` +
-  `type DioramaSceneData = { rootId: string; nodes: Record<string, DioramaNode> };\n` +
+  `type DioramaSceneData = { rootId: string; nodes: Record<string, DioramaNode>; [key: string]: unknown };\n` +
   `type DioramaSceneDocument = { format: 'diorama-scene'; version: 2; data: DioramaSceneData };\n\n` +
   `export const dioramaScene = (\n` +
   `${DIORAMA_SCENE_BLOCK_START}\n` +

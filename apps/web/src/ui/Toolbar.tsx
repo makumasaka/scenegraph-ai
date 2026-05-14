@@ -138,13 +138,13 @@ export function Toolbar() {
 
   return (
     <header className="toolbar">
-      <div className="toolbar__primary">
+      <div className="toolbar__row toolbar__row--intents">
         <div className="toolbar__brand">
           <span className="toolbar__title">Diorama</span>
-          <span className="toolbar__subtitle">R3F runtime sync</span>
+          <span className="toolbar__subtitle">Semantic scenegraph · live R3F</span>
         </div>
 
-        <div className="toolbar__actions">
+        <div className="toolbar__intent-actions">
           <button
             type="button"
             className="toolbar__demo-action"
@@ -166,34 +166,53 @@ export function Toolbar() {
           >
             Arrange Products
           </button>
-          <div className="toolbar__divider" aria-hidden="true" />
-          <div className="toolbar__group">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={pastCount === 0}
-              title="Undo (Ctrl/Cmd+Z)"
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              onClick={redo}
-              disabled={futureCount === 0}
-              title="Redo (Ctrl/Cmd+Shift+Z)"
-            >
-              Redo
-            </button>
-          </div>
-          <div className="toolbar__divider" aria-hidden="true" />
-          <button type="button" onClick={handleAdd}>
-            Add Cube
+        </div>
+
+        <div className="toolbar__status">
+          {statusNotice ? (
+            <span className="toolbar__status--notice">{statusNotice}</span>
+          ) : bridgeConnected ? (
+            <span className="toolbar__status--muted">Bridge connected</span>
+          ) : bridgeLastError ? (
+            <span className="toolbar__status--muted" title={bridgeLastError}>
+              Bridge offline
+            </span>
+          ) : selectedNode ? (
+            <>
+              Selected: <strong>{selectedNode.name}</strong>
+            </>
+          ) : (
+            <span className="toolbar__status--muted">No selection</span>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="toolbar__row toolbar__tool-strip"
+        role="toolbar"
+        aria-label="Scene editing tools"
+      >
+        <div className="toolbar__tool-group">
+          <button type="button" onClick={undo} disabled={pastCount === 0} title="Undo (Ctrl/Cmd+Z)">
+            Undo
           </button>
           <button
             type="button"
-            onClick={handleDelete}
-            disabled={!selectedId || isRootSelected}
+            onClick={redo}
+            disabled={futureCount === 0}
+            title="Redo (Ctrl/Cmd+Shift+Z)"
           >
+            Redo
+          </button>
+        </div>
+
+        <div className="toolbar__tool-divider" aria-hidden="true" />
+
+        <div className="toolbar__tool-group">
+          <button type="button" onClick={handleAdd}>
+            Add Cube
+          </button>
+          <button type="button" onClick={handleDelete} disabled={!selectedId || isRootSelected}>
             Delete
           </button>
           <button
@@ -224,7 +243,12 @@ export function Toolbar() {
           >
             Dup tree
           </button>
-          <div className="toolbar__divider" aria-hidden="true" />
+        </div>
+
+        <div className="toolbar__tool-divider" aria-hidden="true" />
+
+        <div className="toolbar__tool-group">
+          <span className="toolbar__tool-group-label">Arrange</span>
           <button type="button" onClick={() => handleArrange('line')}>
             Line
           </button>
@@ -234,26 +258,11 @@ export function Toolbar() {
           <button type="button" onClick={() => handleArrange('circle')}>
             Circle
           </button>
-          <button type="button" className="toolbar__ghost" onClick={reset}>
-            Reset
-          </button>
         </div>
 
-        <div className="toolbar__status">
-          {statusNotice ? (
-            <span className="toolbar__status--muted">{statusNotice}</span>
-          ) : bridgeConnected ? (
-            <span className="toolbar__status--muted">Bridge connected</span>
-          ) : bridgeLastError ? (
-            <span className="toolbar__status--muted" title={bridgeLastError}>Bridge offline</span>
-          ) : selectedNode ? (
-            <>
-              Selected: <strong>{selectedNode.name}</strong>
-            </>
-          ) : (
-            <span className="toolbar__status--muted">No selection</span>
-          )}
-        </div>
+        <button type="button" className="toolbar__ghost toolbar__tool-reset" onClick={reset}>
+          Reset
+        </button>
       </div>
 
       <div className="toolbar__secondary">

@@ -143,10 +143,8 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
     return `hsl(${hue}, 65%, 55%)`;
   }, [hasHoverHighlight, isHovered, isSelected, nodeId]);
 
-  const assetUri = useMemo(
-    () => resolveRenderableAssetUri(node?.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined),
-    [node?.assetRef],
-  );
+  const rawAssetUri = node?.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined;
+  const assetUri = useMemo(() => resolveRenderableAssetUri(rawAssetUri), [rawAssetUri]);
 
   const torusProxyArgs = useMemo((): [number, number, number, number] | undefined => {
     if (!node || node.metadata.dioramaProxyMesh !== 'torus') return undefined;

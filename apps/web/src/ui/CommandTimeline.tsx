@@ -223,7 +223,9 @@ export function CommandTimeline() {
       <header className="command-timeline__header">
         <div>
           <div className="command-timeline__title">Command Timeline</div>
-          <div className="command-timeline__subtitle">Edit intent, then recompute the scene.</div>
+          <div className="command-timeline__subtitle">
+            Edit steps below, then recompute to rebuild the scene from the command sequence.
+          </div>
         </div>
         <button
           type="button"

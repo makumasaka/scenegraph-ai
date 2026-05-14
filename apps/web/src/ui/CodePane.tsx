@@ -2,16 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { exportSceneToR3fSyncModule } from '@diorama/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
 import {
-  fetchBridgeProjectInfo,
-  postBridgeSyncCode,
-  type BridgeProjectInfo,
+  fetchBridgeProjectStatus,
+  postBridgeReloadSceneFromFile,
+  postBridgeWriteSceneToFile,
+  type BridgeProjectStatus,
 } from '../bridge/bridgeClient';
 
 export function CodePane() {
   const scene = useSceneStore((s) => s.scene);
   const bridgeConnected = useSceneStore((s) => s.bridgeConnected);
   const bridgeLastError = useSceneStore((s) => s.bridgeLastError);
-  const [projectInfo, setProjectInfo] = useState<BridgeProjectInfo | null>(null);
+  const [projectStatus, setProjectStatus] = useState<BridgeProjectStatus | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const codePreview = useMemo(
@@ -22,10 +23,10 @@ export function CodePane() {
   useEffect(() => {
     if (!bridgeConnected) return;
     let closed = false;
-    void fetchBridgeProjectInfo()
+    void fetchBridgeProjectStatus()
       .then((result) => {
         if (closed) return;
-        if (result.ok) setProjectInfo(result.data);
+        if (result.ok) setProjectStatus(result.data);
       })
       .catch(() => undefined);
     return () => {
@@ -35,7 +36,10 @@ export function CodePane() {
 
   const handleSync = (direction: 'toCode' | 'fromCode') => {
     setStatus(direction === 'toCode' ? 'Writing generated module' : 'Reading scene block');
-    void postBridgeSyncCode(direction)
+    const request = direction === 'toCode'
+      ? postBridgeWriteSceneToFile()
+      : postBridgeReloadSceneFromFile();
+    void request
       .then((result) => {
         setStatus(result.ok ? 'Code sync complete' : result.error.message);
       })
@@ -49,9 +53,9 @@ export function CodePane() {
     <section className="code-pane" aria-label="Generated R3F code">
       <div className="code-pane__header">
         <div>
-          <div className="code-pane__title">Generated R3F</div>
+          <div className="code-pane__title">Generated R3F module</div>
           <div className="code-pane__subtitle">
-            {projectInfo?.generatedModulePath ?? 'Bridge generated module'}
+            {projectStatus?.generatedSceneFile ?? 'Bridge generated module'}
           </div>
         </div>
         <div className="code-pane__actions">
@@ -72,7 +76,10 @@ export function CodePane() {
         </div>
       </div>
       <div className="code-pane__status">
-        {status ?? (bridgeConnected ? 'Bridge connected' : bridgeLastError ?? 'Bridge offline')}
+        {status ??
+          (bridgeConnected
+            ? `Bridge connected - ${projectStatus?.assetDirExists ? 'assets ready' : 'asset dir missing'}`
+            : bridgeLastError ?? 'Bridge offline')}
       </div>
       <pre className="code-pane__preview">{codePreview}</pre>
     </section>

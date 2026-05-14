@@ -73,7 +73,7 @@ export function Inspector() {
         <div className="inspector__empty">
           <p>No node selected.</p>
           <p className="inspector__hint">
-            Click a node in the tree or a cube in the viewport.
+            Select a node in the outline or pick a mesh in the viewport to edit properties.
           </p>
         </div>
       </aside>
@@ -109,6 +109,72 @@ export function Inspector() {
       <div className="inspector__header">Inspector</div>
 
       <section className="inspector__section">
+        <div className="inspector__section-title">Semantics & behaviors</div>
+        <div className="inspector__row">
+          <span className="inspector__key">Role</span>
+          <span className="inspector__value">
+            {semantics?.role ?? node.semanticRole ?? 'unknown'}
+          </span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Group</span>
+          <span className="inspector__value inspector__value--mono">
+            {semanticGroup?.name ?? semanticGroupId ?? '-'}
+          </span>
+        </div>
+        {semantics?.tags?.length ? (
+          <div className="inspector__row inspector__row--wrap">
+            <span className="inspector__key">Tags</span>
+            <span className="inspector__value inspector__value--multiline">
+              {semantics.tags.join(', ')}
+            </span>
+          </div>
+        ) : null}
+        {semantics?.description ? (
+          <p className="inspector__description">{semantics.description}</p>
+        ) : null}
+        <div className="inspector__row">
+          <span className="inspector__key">Hover</span>
+          <span className="inspector__value">
+            {node.behaviors?.hoverHighlight ||
+            behaviorDefinitions.some((b) => b.type === 'hover_highlight')
+              ? 'Highlight'
+              : '-'}
+          </span>
+        </div>
+        <div className="inspector__row">
+          <span className="inspector__key">Click</span>
+          <span className="inspector__value">
+            {node.behaviors?.clickSelect || behaviorDefinitions.some((b) => b.type === 'click_select')
+              ? node.behaviors?.focusOnClick
+                ? 'Select + focus'
+                : 'Select'
+              : '-'}
+          </span>
+        </div>
+        <div className="inspector__row inspector__row--wrap">
+          <span className="inspector__key">Behaviors</span>
+          <span className="inspector__value inspector__value--mono inspector__value--multiline">
+            {behaviorDefinitions.length > 0
+              ? behaviorDefinitions.map((behavior) => behavior.type).join(', ')
+              : '-'}
+          </span>
+        </div>
+        {infoTitle ? (
+          <>
+            <div className="inspector__row">
+              <span className="inspector__key">Info</span>
+              <span className="inspector__value">{infoTitle}</span>
+            </div>
+            {infoDescription ? (
+              <p className="inspector__description">{infoDescription}</p>
+            ) : null}
+          </>
+        ) : null}
+      </section>
+
+      <section className="inspector__section inspector__section--muted">
+        <div className="inspector__section-title">Node</div>
         <div className="inspector__row">
           <span className="inspector__key">Name</span>
           <span className="inspector__value">{node.name}</span>
@@ -142,68 +208,6 @@ export function Inspector() {
       </section>
 
       <section className="inspector__section">
-        <div className="inspector__section-title">Semantics</div>
-        <div className="inspector__row">
-          <span className="inspector__key">Role</span>
-          <span className="inspector__value">{semantics?.role ?? node.semanticRole ?? 'unknown'}</span>
-        </div>
-        <div className="inspector__row">
-          <span className="inspector__key">Group</span>
-          <span className="inspector__value inspector__value--mono">
-            {semanticGroup?.name ?? semanticGroupId ?? '-'}
-          </span>
-        </div>
-        {semantics?.tags?.length ? (
-          <div className="inspector__row">
-            <span className="inspector__key">Tags</span>
-            <span className="inspector__value">{semantics.tags.join(', ')}</span>
-          </div>
-        ) : null}
-        {semantics?.description ? (
-          <p className="inspector__description">{semantics.description}</p>
-        ) : null}
-        <div className="inspector__row">
-          <span className="inspector__key">Hover</span>
-          <span className="inspector__value">
-            {node.behaviors?.hoverHighlight || behaviorDefinitions.some((b) => b.type === 'hover_highlight')
-              ? 'Highlight'
-              : '-'}
-          </span>
-        </div>
-        <div className="inspector__row">
-          <span className="inspector__key">Click</span>
-          <span className="inspector__value">
-            {node.behaviors?.clickSelect || behaviorDefinitions.some((b) => b.type === 'click_select')
-              ? node.behaviors?.focusOnClick
-                ? 'Select + focus'
-                : 'Select'
-              : '-'}
-          </span>
-        </div>
-        <div className="inspector__row">
-          <span className="inspector__key">Behaviors</span>
-          <span className="inspector__value inspector__value--mono">
-            {behaviorDefinitions.length > 0
-              ? behaviorDefinitions.map((behavior) => behavior.type).join(', ')
-              : '-'}
-          </span>
-        </div>
-        {infoTitle ? (
-          <>
-            <div className="inspector__row">
-              <span className="inspector__key">Info</span>
-              <span className="inspector__value">{infoTitle}</span>
-            </div>
-            {infoDescription ? (
-              <p className="inspector__description">
-                {infoDescription}
-              </p>
-            ) : null}
-          </>
-        ) : null}
-      </section>
-
-      <section className="inspector__section">
         <div className="inspector__section-title">Transform</div>
         <Vec3Editor
           label="Position"
@@ -212,7 +216,7 @@ export function Inspector() {
           onChange={(position) => update({ position })}
         />
         <Vec3Editor
-          label="Rotation"
+          label="Rotation (deg)"
           value={rotationDeg}
           step={1}
           onChange={(deg) => update({ rotation: toRad(deg) })}
