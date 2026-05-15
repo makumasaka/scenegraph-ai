@@ -384,7 +384,7 @@ export class DioramaBridgeRuntime {
   private readonly codeWatchDebounceMs: number;
   private codeWatcher: FSWatcher | null = null;
   private codeWatchTimer: ReturnType<typeof setTimeout> | null = null;
-  private suppressNextCodeWatch = false;
+  private lastGeneratedModuleCode: string | null = null;
   private lastSync:
     | { ok: true; path: string; bytesChanged: boolean; ts: number }
     | { ok: false; error: string; ts: number }
@@ -504,10 +504,10 @@ export class DioramaBridgeRuntime {
       const bytesChanged = previous !== exported.code;
       const sceneJsonBytesChanged = previousSceneJson !== sceneJson;
       if (bytesChanged) {
-        this.suppressNextCodeWatch = true;
         await mkdir(dirname(this.generatedModulePath), { recursive: true });
         await writeFile(this.generatedModulePath, exported.code, 'utf8');
       }
+      this.lastGeneratedModuleCode = exported.code;
       if (sceneJsonBytesChanged) {
         await mkdir(dirname(this.sessionPath), { recursive: true });
         await writeFile(this.sessionPath, sceneJson, 'utf8');
@@ -552,16 +552,23 @@ export class DioramaBridgeRuntime {
       this.codeWatcher = watch(dirname(this.generatedModulePath), (eventType, fileName) => {
         if (eventType !== 'change' && eventType !== 'rename') return;
         if (String(fileName) !== basename(this.generatedModulePath)) return;
-        if (this.suppressNextCodeWatch) {
-          this.suppressNextCodeWatch = false;
-          return;
-        }
         if (this.codeWatchTimer) clearTimeout(this.codeWatchTimer);
         this.codeWatchTimer = setTimeout(() => {
-          void this.reloadSceneFromFile();
+          void this.reloadSceneFromGeneratedModuleChange();
         }, this.codeWatchDebounceMs);
       });
     });
+  }
+
+  private async reloadSceneFromGeneratedModuleChange(): Promise<void> {
+    try {
+      const code = await readFile(this.generatedModulePath, 'utf8');
+      if (code === this.lastGeneratedModuleCode) return;
+      await this.reloadSceneFromFile();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.lastSync = { ok: false, error: message, ts: Date.now() };
+    }
   }
 
   private async reloadSceneFromFile(): Promise<BridgeResult<unknown>> {
@@ -576,6 +583,7 @@ export class DioramaBridgeRuntime {
           return fail(parsed.error.code, parsed.error.message);
         }
         parsedScene = parsed.scene;
+        this.lastGeneratedModuleCode = code;
       } catch (error) {
         const code = (error as NodeJS.ErrnoException).code;
         if (code !== 'ENOENT') throw error;

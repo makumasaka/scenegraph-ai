@@ -37,6 +37,15 @@ const createTestGlb = (): Buffer => {
   return buffer;
 };
 
+const waitFor = async (predicate: () => Promise<boolean>, timeoutMs = 1500): Promise<boolean> => {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await predicate()) return true;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 25));
+  }
+  return false;
+};
+
 describe('DioramaBridgeRuntime importAsset and sync', () => {
   beforeEach(async () => {
     projectRoot = await mkdtemp(join(tmpdir(), 'diorama-bridge-'));
@@ -185,6 +194,35 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(synced.ok).toBe(true);
     const current = await runtime.callTool('get_scene', {});
     expect(current).toEqual({ ok: true, data: { scene: nextScene } });
+  });
+
+  it('watches generated module edits without suppressing real user changes after Diorama writes', async () => {
+    const scene = createEmptyScene('Watch Sync Test');
+    const runtime = new DioramaBridgeRuntime(scene, {
+      projectRoot,
+      watchCode: true,
+      codeWatchDebounceMs: 10,
+    });
+    try {
+      const rootId = scene.rootId;
+      const exported = await runtime.callTool('write_scene_to_file', {});
+      expect(exported.ok).toBe(true);
+
+      let code = await readFile(runtime.getProjectInfo().generatedModulePath, 'utf8');
+      code = code.replace(
+        '"position": [\n            0,\n            0,\n            0\n          ]',
+        '"position": [\n            8,\n            0,\n            0\n          ]',
+      );
+      await writeFile(runtime.getProjectInfo().generatedModulePath, code, 'utf8');
+
+      const reloaded = await waitFor(async () => {
+        const current = await runtime.callTool('get_scene', {});
+        return current.ok && current.data.scene.nodes[rootId]?.transform.position[0] === 8;
+      });
+      expect(reloaded).toBe(true);
+    } finally {
+      runtime.close();
+    }
   });
 
   it('rejects invalid scene JSON when reloading from file fallback', async () => {

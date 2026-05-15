@@ -29,11 +29,15 @@ export function BridgeSession() {
         }
       });
 
-    if (typeof EventSource === 'undefined') return () => {
-      closed = true;
+    if (typeof EventSource === 'undefined')
+      return () => {
+        closed = true;
     };
 
     const events = new EventSource(`${BRIDGE_URL}/events`);
+    events.onopen = () => {
+      if (!closed) setBridgeStatus(true, null);
+    };
     events.addEventListener('scene', (event) => {
       if (closed) return;
       const data = JSON.parse((event as MessageEvent<string>).data) as BridgeSceneEvent;
