@@ -12,13 +12,13 @@ code edit -> parse embedded scene document -> canonical scene -> runtime refresh
 Default generated file:
 
 ```text
-src/diorama/DioramaScene.generated.tsx
+src/generated/DioramaScene.generated.tsx
 ```
 
 Default asset location:
 
 ```text
-public/assets/diorama
+public/assets/models
 ```
 
 The generated module contains a canonical scene document and an R3F renderer:
@@ -66,6 +66,10 @@ The bridge accepts a project root through `DIORAMA_PROJECT_ROOT` or an explicit
 startup option. All generated files and registered assets must resolve inside
 that project root. The bridge must reject absolute, parent-directory, `file://`,
 remote, or otherwise unsafe asset/code paths.
+
+Browser-origin requests must pair with the local bridge token printed by
+`diorama dev`. The bridge binds to `127.0.0.1`, reflects CORS only for the
+request origin, and exposes only the P0 safe routes/tools.
 
 ## MVP Limits
 

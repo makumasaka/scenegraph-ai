@@ -1,5 +1,9 @@
 # V1 Vertical Slice Architectural Changelog
 
+> Archived historical note. This generator-first vertical slice is not part of
+> the P0 local runtime-sync architecture. Do not use these generation paths for
+> the public MVP bridge, hosted shell, or MCP tool surface.
+
 This document records the architecture-level changes implemented for the first
 end-to-end V1 slice:
 

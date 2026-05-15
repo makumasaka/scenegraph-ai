@@ -1,4 +1,4 @@
-import { startDioramaBridgeServer } from './diorama-bridge-runtime';
+import { startDioramaBridgeServer } from '@diorama/local-bridge';
 
 const argValue = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -20,6 +20,8 @@ const run = async (): Promise<void> => {
   });
   console.log(`Diorama bridge listening on http://127.0.0.1:${started.port}`);
   console.log('Scene events: http://127.0.0.1:%s/events', started.port);
+  console.log('Pairing token: %s', started.pairingToken);
+  console.log('Shell query: ?bridgeToken=%s', encodeURIComponent(started.pairingToken));
   console.log('Project root: %s', started.runtime.getProjectInfo().projectRoot);
   console.log('Config: %s', started.runtime.getProjectInfo().configFound ? started.runtime.getProjectInfo().configPath : 'not found');
   console.log('Generated module: %s', started.runtime.getProjectInfo().generatedModulePath);

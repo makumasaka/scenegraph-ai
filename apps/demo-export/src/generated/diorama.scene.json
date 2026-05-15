@@ -1,66 +1,38 @@
 {
   "data": {
     "assets": {
-      "asset-meshy_ai_formula_1": {
-        "id": "asset-meshy_ai_formula_1",
+      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture": {
+        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
         "kind": "glb",
         "metadata": {
           "importSource": "uploadedFile",
-          "importedFrom": "public/assets/models/Meshy_AI_Formula_1.glb",
-          "localPath": "public/assets/models/Meshy_AI_Formula_1.glb",
+          "importedFrom": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
+          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
           "provider": "manual",
           "source": "upload"
         },
-        "name": "Meshy_AI_Formula_1",
+        "name": "Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture",
         "source": "upload",
-        "uri": "/assets/models/Meshy_AI_Formula_1.glb"
-      },
-      "asset-meshy_ai_formula_1-2": {
-        "id": "asset-meshy_ai_formula_1-2",
-        "kind": "glb",
-        "metadata": {
-          "importSource": "uploadedFile",
-          "importedFrom": "public/assets/models/Meshy_AI_Formula_1.glb",
-          "localPath": "public/assets/models/Meshy_AI_Formula_1.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "Meshy_AI_Formula_1",
-        "source": "upload",
-        "uri": "/assets/models/Meshy_AI_Formula_1.glb"
-      },
-      "asset-planets_1": {
-        "id": "asset-planets_1",
-        "kind": "glb",
-        "metadata": {
-          "importSource": "uploadedFile",
-          "importedFrom": "public/assets/models/Planets_1.glb",
-          "localPath": "public/assets/models/Planets_1.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "Planets_1",
-        "source": "upload",
-        "uri": "/assets/models/Planets_1.glb"
+        "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
       }
     },
     "nodes": {
-      "asset-meshy_ai_formula_1-2-node": {
+      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node": {
         "assetRef": {
           "kind": "uri",
-          "uri": "/assets/models/Meshy_AI_Formula_1.glb"
+          "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
         },
         "children": [
-          "asset-meshy_ai_formula_1-2-node-gltf-0-gltf-node-0"
+          "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0"
         ],
-        "id": "asset-meshy_ai_formula_1-2-node",
+        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node",
         "metadata": {
-          "assetId": "asset-meshy_ai_formula_1-2",
-          "localPath": "public/assets/models/Meshy_AI_Formula_1.glb",
+          "assetId": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
+          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
           "provider": "manual",
           "source": "upload"
         },
-        "name": "meshy_ai_formula_1 Product",
+        "name": "meshy_ai_tiny_village_in_a_woo_0511004150_texture Product",
         "semanticRole": "product",
         "semantics": {
           "role": "product",
@@ -68,9 +40,9 @@
         },
         "transform": {
           "position": [
+            0.7231671566562332,
             0,
-            0,
-            -9.338436094715695
+            -2.6420929469828582
           ],
           "rotation": [
             0,
@@ -86,94 +58,12 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-meshy_ai_formula_1-2-node-gltf-0-gltf-node-0": {
+      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0": {
         "children": [],
-        "id": "asset-meshy_ai_formula_1-2-node-gltf-0-gltf-node-0",
+        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0",
         "metadata": {
-          "assetId": "asset-meshy_ai_formula_1-2",
-          "assetUri": "/assets/models/Meshy_AI_Formula_1.glb",
-          "gltfMeshIndex": 0,
-          "gltfNodeIndex": 0,
-          "gltfNodeName": "glTF Node 0",
-          "gltfPath": "scene:0/0",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "matrix"
-        },
-        "name": "glTF Node 0",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            120,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-meshy_ai_formula_1-node": {
-        "assetRef": {
-          "kind": "uri",
-          "uri": "/assets/models/Meshy_AI_Formula_1.glb"
-        },
-        "children": [
-          "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0"
-        ],
-        "id": "asset-meshy_ai_formula_1-node",
-        "metadata": {
-          "assetId": "asset-meshy_ai_formula_1",
-          "localPath": "public/assets/models/Meshy_AI_Formula_1.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "meshy_ai_formula_1 Product",
-        "semanticRole": "product",
-        "semantics": {
-          "role": "product",
-          "source": "import"
-        },
-        "transform": {
-          "position": [
-            -6.945037397232247,
-            0,
-            -0.10783716403151544
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0": {
-        "children": [],
-        "id": "asset-meshy_ai_formula_1-node-gltf-0-gltf-node-0",
-        "metadata": {
-          "assetId": "asset-meshy_ai_formula_1",
-          "assetUri": "/assets/models/Meshy_AI_Formula_1.glb",
+          "assetId": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
+          "assetUri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
           "gltfMeshIndex": 0,
           "gltfNodeIndex": 0,
           "gltfNodeName": "glTF Node 0",
@@ -209,32 +99,15 @@
         "type": "mesh",
         "visible": true
       },
-      "asset-planets_1-node": {
-        "assetRef": {
-          "kind": "uri",
-          "uri": "/assets/models/Planets_1.glb"
-        },
-        "children": [
-          "asset-planets_1-node-gltf-6-ring",
-          "asset-planets_1-node-gltf-7-planet"
-        ],
-        "id": "asset-planets_1-node",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "localPath": "public/assets/models/Planets_1.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "planets_1 Product",
-        "semanticRole": "product",
-        "semantics": {
-          "role": "product",
-          "source": "import"
-        },
+      "default-cube-1": {
+        "children": [],
+        "id": "default-cube-1",
+        "metadata": {},
+        "name": "Cube 1",
         "transform": {
           "position": [
             0,
-            0,
+            0.5,
             0
           ],
           "rotation": [
@@ -246,341 +119,6 @@
             1,
             1,
             1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-0-moon1": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-0-moon1",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 0,
-          "gltfNodeIndex": 0,
-          "gltfNodeName": "Moon1",
-          "gltfPath": "scene:0/0/0",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon1",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            1,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            0.08696652203798294,
-            0.2637823224067688,
-            0.08696653693914413
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-1-moon2": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-1-moon2",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 1,
-          "gltfNodeIndex": 1,
-          "gltfNodeName": "Moon2",
-          "gltfPath": "scene:0/0/1",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon2",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            -2.2495670318603516,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            0.17585061490535736,
-            0.533380925655365,
-            0.17585064470767975
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-2-moon4": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-2-moon4",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 2,
-          "gltfNodeIndex": 2,
-          "gltfNodeName": "Moon4",
-          "gltfPath": "scene:0/0/2",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon4",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            0,
-            0,
-            -1.7812094688415527
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            0.2371458262205124,
-            0.7192983627319336,
-            0.23714587092399597
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-3-moon5": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-3-moon5",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 3,
-          "gltfNodeIndex": 3,
-          "gltfNodeName": "Moon5",
-          "gltfPath": "scene:0/0/3",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon5",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            -1.3311115503311157,
-            0,
-            -1.0702019929885864
-          ],
-          "rotation": [
-            3.141592653589793,
-            -0.8936265573599504,
-            3.141592653589793
-          ],
-          "scale": [
-            0.09273392707109451,
-            0.2812756896018982,
-            0.09273392707109451
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-4-moon6": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-4-moon6",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 4,
-          "gltfNodeIndex": 4,
-          "gltfNodeName": "Moon6",
-          "gltfPath": "scene:0/0/4",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon6",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            1.0963397026062012,
-            0,
-            1.0105923414230347
-          ],
-          "rotation": [
-            0,
-            0.8260733274068807,
-            0
-          ],
-          "scale": [
-            0.0665082335472107,
-            0.20172931253910065,
-            0.0665082335472107
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-5-moon3": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-5-moon3",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 5,
-          "gltfNodeIndex": 5,
-          "gltfNodeName": "Moon3",
-          "gltfPath": "scene:0/0/5",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Moon3",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            0,
-            0,
-            1.70797860622406
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            0.09273392707109451,
-            0.2812756896018982,
-            0.09273393452167511
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-6-ring": {
-        "children": [
-          "asset-planets_1-node-gltf-0-moon1",
-          "asset-planets_1-node-gltf-1-moon2",
-          "asset-planets_1-node-gltf-2-moon4",
-          "asset-planets_1-node-gltf-3-moon5",
-          "asset-planets_1-node-gltf-4-moon6",
-          "asset-planets_1-node-gltf-5-moon3"
-        ],
-        "id": "asset-planets_1-node-gltf-6-ring",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 6,
-          "gltfNodeIndex": 6,
-          "gltfNodeName": "Ring",
-          "gltfPath": "scene:0/0",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Ring",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1.9072980880737305,
-            0.6288180947303772,
-            1.9072980880737305
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-planets_1-node-gltf-7-planet": {
-        "children": [],
-        "id": "asset-planets_1-node-gltf-7-planet",
-        "metadata": {
-          "assetId": "asset-planets_1",
-          "assetUri": "/assets/models/Planets_1.glb",
-          "gltfMeshIndex": 7,
-          "gltfNodeIndex": 7,
-          "gltfNodeName": "Planet",
-          "gltfPath": "scene:0/1",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "trs"
-        },
-        "name": "Planet",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            0.7713892459869385,
-            0.7713892459869385,
-            0.7713892459869385
           ]
         },
         "type": "mesh",
@@ -588,9 +126,8 @@
       },
       "default-root": {
         "children": [
-          "asset-meshy_ai_formula_1-node",
-          "asset-planets_1-node",
-          "asset-meshy_ai_formula_1-2-node"
+          "default-cube-1",
+          "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node"
         ],
         "id": "default-root",
         "metadata": {},

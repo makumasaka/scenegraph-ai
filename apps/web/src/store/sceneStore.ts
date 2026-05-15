@@ -9,7 +9,7 @@ import {
   type Command,
   type Scene,
 } from '@diorama/core';
-import { postBridgeCommand, postBridgeLoadScene } from '../bridge/bridgeClient';
+import { postBridgeLoadScene, postBridgeUpdateTransform } from '../bridge/bridgeClient';
 
 const HISTORY_LIMIT = 100;
 const LOG_LIMIT = 200;
@@ -114,17 +114,32 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   dispatch: (command) => {
     const state = get();
     if (state.bridgeConnected && command.type !== 'SET_SELECTION') {
-      void postBridgeCommand(command)
-        .then((result) => {
-          if (result.ok) return;
-          get().setBridgeStatus(false, result.error.message);
-          get().dispatch(command);
-        })
-        .catch((error) => {
-          get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
-          get().dispatch(command);
-        });
-      return;
+      if (command.type === 'UPDATE_TRANSFORM') {
+        void postBridgeUpdateTransform(command)
+          .then((result) => {
+            if (result.ok) return;
+            get().setBridgeStatus(false, result.error.message);
+            get().dispatch(command);
+          })
+          .catch((error) => {
+            get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+            get().dispatch(command);
+          });
+        return;
+      }
+      if (command.type === 'REPLACE_SCENE') {
+        void postBridgeLoadScene(serializeScene(command.scene))
+          .then((result) => {
+            if (result.ok) return;
+            get().setBridgeStatus(false, result.error.message);
+            get().dispatch(command);
+          })
+          .catch((error) => {
+            get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+            get().dispatch(command);
+          });
+        return;
+      }
     }
     const nextScene = applyCommand(state.scene, command);
     if (nextScene === state.scene) return;

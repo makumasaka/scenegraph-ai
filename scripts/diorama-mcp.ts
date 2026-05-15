@@ -1,4 +1,4 @@
-import { startDioramaBridgeServer, DEFAULT_BRIDGE_PORT } from './diorama-bridge-runtime';
+import { DEFAULT_BRIDGE_PORT } from '@diorama/local-bridge';
 
 type JsonRpcId = string | number | null;
 
@@ -135,7 +135,10 @@ const writeError = (id: JsonRpcId | undefined, code: number, message: string): v
 const bridgeFetch = async (toolName: string, args: unknown): Promise<unknown> => {
   const response = await fetch(`${bridgeUrl}/tools/${encodeURIComponent(toolName)}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(process.env.DIORAMA_BRIDGE_TOKEN ? { 'x-diorama-token': process.env.DIORAMA_BRIDGE_TOKEN } : {}),
+    },
     body: JSON.stringify(args ?? {}),
   });
   return response.json() as Promise<unknown>;
@@ -146,16 +149,9 @@ const ensureBridge = async (): Promise<void> => {
     const health = await fetch(`${bridgeUrl}/health`);
     if (health.ok) return;
   } catch {
-    // Start an embedded bridge below.
+    // The MCP adapter is intentionally a bridge proxy only.
   }
-  if (!process.env.DIORAMA_PROJECT_ROOT) {
-    throw new Error('Diorama MCP requires DIORAMA_PROJECT_ROOT when it needs to start an embedded bridge.');
-  }
-  await startDioramaBridgeServer(port, {
-    projectRoot: process.env.DIORAMA_PROJECT_ROOT,
-    watchCode: process.env.DIORAMA_WATCH_CODE !== 'false',
-  });
-  process.stderr.write(`Diorama MCP started embedded bridge at ${bridgeUrl}\n`);
+  throw new Error(`Diorama MCP requires a running local bridge at ${bridgeUrl}. Start it with: npx diorama dev`);
 };
 
 const toolResult = (payload: unknown) => {

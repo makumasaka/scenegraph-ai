@@ -29,16 +29,29 @@ public/assets/models/chair.glb
 From the Diorama repo:
 
 ```bash
+npx diorama init --projectRoot /absolute/path/to/r3f-project
+npx diorama dev --projectRoot /absolute/path/to/r3f-project
+```
+
+The equivalent repo script is:
+
+```bash
 npm run bridge:dev -- --projectRoot /absolute/path/to/r3f-project
 ```
 
 On Windows PowerShell:
 
 ```powershell
-npm run bridge:dev -- --projectRoot D:\Web\my-r3f-project
+npx diorama dev --projectRoot D:\Web\my-r3f-project
 ```
 
 The bridge listens on `http://127.0.0.1:7777` by default.
+It also prints a pairing token for browser-origin requests:
+
+```text
+Pairing token: <token>
+Shell query: ?bridgeToken=<token>
+```
 
 Useful checks:
 
@@ -55,6 +68,12 @@ Local shell:
 
 ```bash
 npm run dev -w web
+```
+
+Open the shell with the bridge token query, for example:
+
+```text
+http://localhost:5173/?bridgeToken=<token>
 ```
 
 The shell connects to `http://127.0.0.1:7777` unless
@@ -147,7 +166,7 @@ npm run build
 For the included sample app:
 
 ```bash
-npm run bridge:dev -- --projectRoot apps/demo-export
+npx diorama dev --projectRoot apps/demo-export
 npm run dev -w demo-export
 npm run build -w demo-export
 ```
@@ -167,19 +186,22 @@ The MVP MCP surface is intentionally narrow:
 - `export_r3f`
 - `sync_code`
 
-If the MCP server needs to start its own embedded bridge, set the same explicit
-project root first:
+Before starting MCP, start the same local bridge for the target project:
 
 ```bash
-DIORAMA_PROJECT_ROOT=/absolute/path/to/r3f-project npm run mcp:stdio
+npx diorama dev --projectRoot /absolute/path/to/r3f-project
+npm run mcp:stdio
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$env:DIORAMA_PROJECT_ROOT = "D:\Web\my-r3f-project"
+npx diorama dev --projectRoot D:\Web\my-r3f-project
 npm run mcp:stdio
 ```
+
+MCP is a proxy to the already-running local bridge. It does not start an
+embedded bridge and it does not touch the filesystem directly.
 
 No shell tools, arbitrary file browsing, code execution, or cloud publishing are
 part of the MVP bridge.

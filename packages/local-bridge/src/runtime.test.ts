@@ -2,12 +2,13 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it, afterEach, beforeEach } from 'vitest';
-import { createEmptyScene, applyCommand } from '@diorama/core';
+import { createEmptyScene, applyCommand, type Command } from '@diorama/core';
 import { parseSceneFromR3fSyncModule } from '@diorama/export-r3f';
 import {
   DioramaBridgeRuntime,
   resolveWorkspaceRelativePath,
-} from './diorama-bridge-runtime';
+  startDioramaBridgeServer,
+} from './runtime';
 
 let projectRoot = '';
 const sourceRel = 'fixtures/bridge-import-test.glb';
@@ -74,7 +75,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.assetId).toBe('asset-bridge-import-test');
-    expect(result.data.commands.map((command) => command.type)).toEqual([
+    expect(result.data.commands.map((command: Command) => command.type)).toEqual([
       'REGISTER_ASSET',
       'ADD_NODE',
       'ADD_NODE',
@@ -133,6 +134,17 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(result.ok).toBe(false);
   });
 
+  it('maps public asset URLs only into the configured project asset dir', () => {
+    const runtime = new DioramaBridgeRuntime(createEmptyScene('Asset Route Test'), {
+      projectRoot,
+    });
+
+    expect(runtime.resolvePublicAssetPath('/assets/models/chair.glb').ok).toBe(true);
+    expect(runtime.resolvePublicAssetPath('/assets/other/chair.glb').ok).toBe(false);
+    expect(runtime.resolvePublicAssetPath('/assets/models/../secret.glb').ok).toBe(false);
+    expect(runtime.resolvePublicAssetPath('/assets/models/chair.exe').ok).toBe(false);
+  });
+
   it('writes deterministic generated R3F sync modules from runtime commands', async () => {
     const scene = createEmptyScene('Sync Test');
     const runtime = new DioramaBridgeRuntime(scene, { projectRoot });
@@ -143,9 +155,10 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
       type: 'mesh' as const,
     };
 
-    await runtime.callTool('apply_command', {
-      command: { type: 'ADD_NODE', parentId: scene.rootId, node },
+    const loaded = await runtime.callTool('load_scene', {
+      scene: applyCommand(scene, { type: 'ADD_NODE', parentId: scene.rootId, node }),
     });
+    expect(loaded.ok).toBe(true);
     const transformed = await runtime.callTool('update_transform', {
       nodeId: 'box',
       patch: { position: [1, 2, 3] },
@@ -234,5 +247,45 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('SCENE_BLOCK_INVALID');
+  });
+
+  it('rejects unsafe generic bridge tools over the HTTP tool route', async () => {
+    const started = await startDioramaBridgeServer(0, {
+      projectRoot,
+      pairingToken: 'test-token',
+    });
+    try {
+      const response = await fetch(`http://127.0.0.1:${started.port}/tools/apply_command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: { type: 'SET_SELECTION', nodeId: null } }),
+      });
+      const payload = await response.json() as { ok: boolean; error?: { code: string } };
+      expect(response.status).toBe(404);
+      expect(payload.ok).toBe(false);
+      expect(payload.error?.code).toBe('NOT_FOUND');
+    } finally {
+      await started.close();
+    }
+  });
+
+  it('requires a pairing token for browser-origin bridge requests', async () => {
+    const started = await startDioramaBridgeServer(0, {
+      projectRoot,
+      pairingToken: 'test-token',
+    });
+    try {
+      const rejected = await fetch(`http://127.0.0.1:${started.port}/scene`, {
+        headers: { Origin: 'https://example.com' },
+      });
+      expect(rejected.status).toBe(403);
+
+      const accepted = await fetch(`http://127.0.0.1:${started.port}/scene?token=test-token`, {
+        headers: { Origin: 'https://example.com' },
+      });
+      expect(accepted.status).toBe(200);
+    } finally {
+      await started.close();
+    }
   });
 });

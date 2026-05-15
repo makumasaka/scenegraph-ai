@@ -73,8 +73,10 @@ GLB/GLTF files, and then registered with Diorama.
 | `packages/core` | Pure command reducer, scene helpers, deterministic transforms |
 | `packages/r3f-bridge` | R3F runtime projection, selection, registry, transform command translation |
 | `packages/export-r3f` | Deterministic R3F module export and generated scene metadata parsing |
-| `packages/agent-interface` | Narrow command/session surface for tools |
-| `packages/mcp` | Thin MCP-facing package over the agent surface |
+| `packages/local-bridge` | Local-only project bridge; the only filesystem/repo/asset-aware layer |
+| `packages/cli` | Thin `diorama` CLI for `init`, `dev`, `export`, and `validate` |
+| `packages/mcp` | MCP bridge proxy with a narrow safe tool surface |
+| `packages/agent-interface` | Deferred legacy command/session experiments, outside the P0 bridge path |
 | `packages/ingestion` | Local GLB/GLTF registration helpers |
 | `apps/web` | Vite runtime debug shell for viewport, hierarchy, inspector, code sync status |
 | `apps/demo-export` | Sample generated R3F app used for local preview |
@@ -102,13 +104,18 @@ Useful scripts:
 For project sync, start the bridge with a project root:
 
 ```bash
-DIORAMA_PROJECT_ROOT=/path/to/r3f-app npm run bridge:dev
+npx diorama init --projectRoot /path/to/r3f-app
+npx diorama dev --projectRoot /path/to/r3f-app
 ```
+
+The bridge prints a pairing token. Open the local or hosted shell with
+`?bridgeToken=<token>` so browser requests can pair with the local bridge.
 
 Default generated output:
 
-- `src/diorama/DioramaScene.generated.tsx`
-- `public/assets/diorama/*`
+- `src/generated/DioramaScene.generated.tsx`
+- `src/generated/diorama.scene.json`
+- `public/assets/models/*`
 
 ## More Docs
 

@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { RuntimeScene, createRuntimeNodeRegistry } from '@diorama/r3f-bridge';
 import { useMemo } from 'react';
 import { useSceneStore } from '../store/sceneStore';
+import { bridgeAssetUrl } from '../bridge/bridgeClient';
 
 export function Viewport() {
   const { scene, gizmoMode, dispatch, select } = useSceneStore(
@@ -53,6 +54,7 @@ export function Viewport() {
             selectedId={scene.selection}
             gizmoMode={gizmoMode}
             registry={registry}
+            assetUrlResolver={bridgeAssetUrl}
             onCommand={dispatch}
             onSelect={select}
           />

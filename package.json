@@ -1,5 +1,5 @@
 {
-  "name": "diorama",
+  "name": "@diorama/monorepo",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -7,14 +7,12 @@
   ],
   "scripts": {
     "dev": "npm run dev -w web",
-    "typecheck": "npm run build -w @diorama/schema && npm run build -w @diorama/core && npm run build -w @diorama/export-r3f && npm run build -w @diorama/r3f-bridge && npm run build -w @diorama/ingestion && npm run build -w @diorama/agent-interface && npm run build -w @diorama/mcp && npm run build -w @diorama/examples",
-    "test": "npm run test:bridge && npm run test -w @diorama/schema && npm run test -w @diorama/core && npm run test -w @diorama/export-r3f && npm run test -w @diorama/r3f-bridge && npm run test -w @diorama/ingestion && npm run test -w @diorama/agent-interface && npm run test -w @diorama/mcp && npm run test -w web",
-    "test:bridge": "vitest run --dir scripts",
+    "typecheck": "npm run build -w @diorama/schema && npm run build -w @diorama/core && npm run build -w @diorama/export-r3f && npm run build -w @diorama/r3f-bridge && npm run build -w @diorama/ingestion && npm run build -w @diorama/local-bridge && npm run build -w diorama && npm run build -w @diorama/mcp && npm run build -w @diorama/examples",
+    "test": "npm run test -w @diorama/schema && npm run test -w @diorama/core && npm run test -w @diorama/export-r3f && npm run test -w @diorama/r3f-bridge && npm run test -w @diorama/ingestion && npm run test -w @diorama/local-bridge && npm run test -w @diorama/mcp && npm run test -w web",
     "build": "npm run typecheck && npm run build -w web",
     "lint": "npm run lint -w web",
     "preview": "npm run preview -w web",
-    "ingest:glb": "tsx scripts/ingest-glb.ts",
-    "bridge:dev": "tsx scripts/diorama-bridge.ts",
+    "bridge:dev": "npm run dev -w diorama --",
     "mcp:stdio": "tsx scripts/diorama-mcp.ts"
   },
   "devDependencies": {

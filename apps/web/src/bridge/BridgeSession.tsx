@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { BRIDGE_URL, fetchBridgeScene, type BridgeSceneEvent } from './bridgeClient';
+import { bridgeUrlFor, fetchBridgeScene, type BridgeSceneEvent } from './bridgeClient';
 
 const shouldConnectBridge =
   import.meta.env.MODE !== 'test' && import.meta.env.VITE_DIORAMA_BRIDGE_ENABLED !== 'false';
@@ -34,7 +34,7 @@ export function BridgeSession() {
         closed = true;
     };
 
-    const events = new EventSource(`${BRIDGE_URL}/events`);
+    const events = new EventSource(bridgeUrlFor('/events'));
     events.onopen = () => {
       if (!closed) setBridgeStatus(true, null);
     };

@@ -39,7 +39,8 @@ flowchart TB
   Core["@diorama/core"]
   Bridge["@diorama/r3f-bridge"]
   Export["@diorama/export-r3f"]
-  Agent["@diorama/agent-interface"]
+  Local["@diorama/local-bridge"]
+  CLI["diorama CLI"]
   MCP["@diorama/mcp"]
   Ingest["@diorama/ingestion"]
   Web["apps/web"]
@@ -49,11 +50,14 @@ flowchart TB
   Schema --> Export
   Core --> Bridge
   Schema --> Bridge
-  Core --> Agent
-  Export --> Agent
-  Ingest --> Agent
-  Agent --> MCP
+  Core --> Local
+  Export --> Local
+  Ingest --> Local
+  Local --> MCP
+  CLI --> Local
   Bridge --> Web
+  Local --> Web
+  Local --> Project
   Export --> Project
   Project --> Export
 ```
@@ -89,13 +93,22 @@ flowchart TB
 - Does not emit editor-only state, command logs, filesystem paths, or runtime
   refs.
 
+## `@diorama/local-bridge`
+
+- Owns the local repo boundary, file watching, generated module writes, local
+  asset serving, and project path validation.
+- Is the only filesystem-aware, repo-aware, and asset-aware P0 layer.
+- Exposes only the safe runtime sync tools needed for local code/runtime sync.
+- Binds to localhost and requires a bridge pairing token for browser-origin
+  requests.
+
 ## `apps/web`
 
 - Runtime debug shell: viewport, hierarchy, inspector, code preview, sync
   status, and local GLB registration UI.
 - Uses Zustand only for app/view/session state.
-- UI interactions dispatch commands or call the bridge; they never rewrite
-  `scene.nodes` directly.
+- Transform edits call the local bridge `update_transform` tool when connected;
+  the shell never owns GLBs, project files, or persistence.
 
 ## Agent And MCP Surface
 
@@ -108,12 +121,13 @@ The MVP tool surface is intentionally narrow:
 - `export_r3f`
 - `sync_code`
 
-MCP and agent tools wrap the same command/export paths. They must not expose
-shell execution, arbitrary filesystem browsing, JavaScript evaluation, Zustand
-state, or R3F objects.
+MCP operates through `@diorama/local-bridge`. It must not access the filesystem
+directly, start generation workflows, run shell commands, evaluate JavaScript,
+touch Zustand state, or expose R3F/Three objects.
 
 ## Deferred Packages
 
-`@diorama/generation` and `@diorama/generation-meshy` are retained only as
-deferred historical experiments. They are not part of the runtime-sync MVP and
-must not be exposed through MVP bridge or MCP tools.
+`@diorama/agent-interface`, `@diorama/generation`, and
+`@diorama/generation-meshy` are retained only as deferred historical
+experiments. They are not part of the P0 runtime-sync bridge, root scripts, or
+MCP tool path.

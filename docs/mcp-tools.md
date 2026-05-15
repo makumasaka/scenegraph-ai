@@ -7,9 +7,8 @@ R3F/Three object references.
 
 ```text
 Cursor / Claude / Codex
-  -> local Diorama MCP stdio server
-  -> project-scoped Diorama bridge runtime
-  -> validated commands or scene replacement
+  -> local Diorama MCP stdio proxy
+  -> local Diorama bridge
   -> canonical Diorama scene
   -> deterministic R3F sync module
 ```
@@ -46,14 +45,10 @@ non-command mutation boundary and must validate through the Diorama schema.
 Input:
 
 ```json
-{ "kind": "json", "json": "{...}", "dryRun": false }
+{ "json": "{...}", "dryRun": false }
 ```
 
-or:
-
-```json
-{ "kind": "scene", "scene": { "...": "..." }, "dryRun": false }
-```
+or `{ "scene": { "...": "..." }, "dryRun": false }`.
 
 ### `register_asset`
 

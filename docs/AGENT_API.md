@@ -1,9 +1,16 @@
 # Agent-Ready Internal API
 
-Diorama's agent-ready API is an internal runtime surface for reading canonical
-scene state, validating commands, previewing changes, applying changes, and
-exporting results. It is not an MCP server yet. Future MCP tools must wrap this
-runtime instead of inventing a second mutation path.
+> Status: legacy/deferred for P0. Public MVP agent access now goes through the
+> local bridge and the narrow MCP proxy described in
+> [`docs/mcp-tools.md`](mcp-tools.md). `@diorama/agent-interface` remains in the
+> repo as a historical command/session experiment, but it is not the P0 MCP or
+> filesystem boundary.
+
+Diorama's old agent-ready API is an internal runtime surface for reading
+canonical scene state, validating commands, previewing changes, applying
+changes, and exporting results. For the local-first MVP, agents call MCP tools,
+MCP proxies those calls to `@diorama/local-bridge`, and the bridge is the only
+filesystem-aware layer.
 
 ## Runtime Surface
 
@@ -80,29 +87,23 @@ This is an agent/runtime action log, not the web product's visible command log.
 
 ## Runtime Architecture
 
-Target MCP direction:
+P0 MCP direction:
 
 ```text
 Cursor/Claude/Codex
   -> local Diorama MCP server
-  -> Diorama agent runtime
-  -> validated commands
-  -> structured scene
-  -> R3F export
+  -> local Diorama bridge
+  -> canonical scene
+  -> deterministic generated R3F module
 ```
 
-Current boundary:
+Current P0 boundary:
 
-- MCP-lite is implemented as a library/runtime facade, not transport.
-- `packages/mcp` currently re-exports `@diorama/agent-interface` for future tool
-  handlers.
-- Future MCP tools must wrap `DioramaSceneRuntime` or the MCP-lite facade.
+- `packages/mcp` is a bridge proxy, not a filesystem or generation package.
 - MCP must not invent a second scene shape or mutation path.
 - MCP must not connect directly to Zustand.
-- MCP must not access R3F objects, files, shells, or arbitrary JS execution.
-- Mutating future MCP tools must validate payloads, support dry-run, and log
-  applied actions through the runtime action log or an explicitly scoped
-  successor.
+- MCP must not access files, shells, arbitrary JS execution, R3F objects, or
+  Three refs.
 
 ## Future MCP Mapping
 
@@ -110,25 +111,18 @@ Current boundary:
 the architecture decision. Narrow MCP tools should compile to runtime APIs or
 validated commands instead of bypassing commands.
 
-| Future MCP tool | Underlying agent-interface API |
+| P0 MCP tool | Bridge tool |
 | --- | --- |
-| `get_scene` | `getScene()` |
-| `get_semantic_groups` | MCP-lite facade over `getScene().scene.semanticGroups ?? {}` |
-| `get_behaviors` | MCP-lite facade over `getScene().scene.behaviors ?? {}` |
-| `get_selected_nodes` | `getSelection()` plus `getScene()` when node details are requested |
-| `structure_scene` | `structureScene()` or `applyCommand({ type: "STRUCTURE_SCENE", ... })` |
-| `set_node_semantics` | `applyCommand({ type: "SET_NODE_SEMANTICS", ... })` |
-| `create_semantic_group` | `applyCommand({ type: "CREATE_SEMANTIC_GROUP", ... })` |
-| `assign_to_semantic_group` | `applyCommand({ type: "ASSIGN_TO_SEMANTIC_GROUP", ... })` |
-| `add_behavior` | `applyCommand({ type: "ADD_BEHAVIOR", ... })` |
-| `remove_behavior` | `applyCommand({ type: "REMOVE_BEHAVIOR", ... })` |
-| `make_interactive` | `makeInteractive()` or `applyCommand({ type: "MAKE_INTERACTIVE", ... })` |
-| `arrange_nodes` | `arrangeNodes()` or `applyCommand({ type: "ARRANGE_NODES", ... })` |
-| `apply_command` | `dryRunCommand()` / `applyCommand()` |
-| `apply_command_batch` | `dryRunCommandBatch()` / `applyCommandBatch()` |
-| `load_scene` | `loadScene()` plus an MCP adapter dry-run validation path |
-| `export_json` | `exportScene({ format: "json" })` |
-| `export_r3f` | `exportScene({ format: "r3f", r3f })` |
+| `get_project_status` | `get_project_status` |
+| `get_scene` | `get_scene` |
+| `load_scene` | `load_scene` |
+| `register_asset` | `register_asset` |
+| `import_glb_asset` | `import_glb_asset` |
+| `update_transform` | `update_transform` |
+| `write_scene_to_file` | `write_scene_to_file` |
+| `reload_scene_from_file` | `reload_scene_from_file` |
+| `export_r3f` | `export_r3f` |
+| `sync_code` | `sync_code` |
 
 ## Eval Contract
 

@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/mcp",
+  "name": "@diorama/local-bridge",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -15,8 +15,14 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@diorama/core": "*",
+    "@diorama/export-r3f": "*",
+    "@diorama/ingestion": "*",
+    "@diorama/schema": "*"
+  },
   "devDependencies": {
+    "@types/node": "^24.12.2",
     "vitest": "^3.2.4"
   }
 }

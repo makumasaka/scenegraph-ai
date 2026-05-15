@@ -24,6 +24,7 @@ export type RuntimeSceneProps = {
   selectedId: string | null;
   gizmoMode: RuntimeGizmoMode;
   registry?: RuntimeNodeRegistry;
+  assetUrlResolver?: (uri: string) => string;
   onCommand: (command: Command) => void;
   onSelect: (nodeId: string | null) => void;
 };
@@ -81,6 +82,7 @@ function RuntimeNodeInner({
   selectedId,
   gizmoMode,
   registry,
+  assetUrlResolver,
   onCommand,
   onSelect,
   children,
@@ -122,6 +124,10 @@ function RuntimeNodeInner({
     () => isRenderableAssetUri(node?.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined),
     [node?.assetRef],
   );
+  const resolvedAssetUri = useMemo(
+    () => assetUri !== undefined ? assetUrlResolver?.(assetUri) ?? assetUri : undefined,
+    [assetUri, assetUrlResolver],
+  );
 
   if (!node || node.visible === false) return null;
 
@@ -143,7 +149,7 @@ function RuntimeNodeInner({
   const hasLight = node.light !== undefined || node.type === 'light';
   const inspectOnly = node.metadata.renderMode === 'gltf-inspect-only';
   const showMesh = node.type === 'mesh' && !hasLight && !inspectOnly;
-  const showAsset = showMesh && assetUri !== undefined;
+  const showAsset = showMesh && resolvedAssetUri !== undefined;
   const showProxy = showMesh && !showAsset;
 
   return (
@@ -170,7 +176,7 @@ function RuntimeNodeInner({
         ) : null}
         {showAsset ? (
           <Suspense fallback={<ProxyMesh isHovered={isHovered} isSelected={isSelected} />}>
-            <AssetModel uri={assetUri} />
+            <AssetModel uri={resolvedAssetUri} />
           </Suspense>
         ) : null}
         {showProxy ? <ProxyMesh isHovered={isHovered} isSelected={isSelected} /> : null}

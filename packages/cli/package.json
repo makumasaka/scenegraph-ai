@@ -1,0 +1,25 @@
+{
+  "name": "diorama",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "diorama": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts dev",
+    "init": "tsx src/index.ts init",
+    "export": "tsx src/index.ts export",
+    "validate": "tsx src/index.ts validate",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"No tests for CLI\""
+  },
+  "dependencies": {
+    "@diorama/local-bridge": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.2"
+  }
+}
