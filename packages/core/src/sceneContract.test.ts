@@ -9,7 +9,7 @@ import {
   validateScene,
   type Scene,
   type SceneNode,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import {
   defaultFixtureScene,
   galleryScene,

@@ -1,4 +1,4 @@
-import type { Command, DioramaAsset } from '@diorama/core';
+import type { Command, DioramaiAsset } from '@dioramai/core';
 
 export type AssetProvider = 'manual' | 'upload' | 'mock' | 'meshy' | 'tripo' | 'luma';
 
@@ -26,5 +26,5 @@ export type IngestionOptions = {
 export type IngestionResult = {
   commands: Command[];
   warnings: string[];
-  assets?: DioramaAsset[];
+  assets?: DioramaiAsset[];
 };

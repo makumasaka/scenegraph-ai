@@ -1,6 +1,6 @@
-# Contributing to Diorama
+# Contributing to Dioramai
 
-Thank you for helping improve Diorama. This document describes how we work and what we look for in contributions.
+Thank you for helping improve Dioramai. This document describes how we work and what we look for in contributions.
 
 ## Code of conduct
 

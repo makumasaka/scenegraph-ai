@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cloneSceneFromJson, validateScene, type Scene, type SceneNode } from '@diorama/schema';
+import { cloneSceneFromJson, validateScene, type Scene, type SceneNode } from '@dioramai/schema';
 import { applyCommand, applyCommandWithResult, type Command } from './commands';
 import { createEmptyScene, createNode, getParent } from './scene';
 import { getWorldMatrix } from './worldTransform';
@@ -85,14 +85,14 @@ describe('Milestone 3 command contract', () => {
       expectValid(next);
     });
 
-    it('adds mesh nodes with diorama torus proxy metadata', () => {
+    it('adds mesh nodes with dioramai torus proxy metadata', () => {
       const scene = createEmptyScene();
       const ring = createNode({
         id: 'saturn-ring',
         name: 'Orbit ring',
         metadata: {
-          dioramaProxyMesh: 'torus',
-          dioramaTorusArgs: [0.5, 0.04, 8, 32],
+          dioramaiProxyMesh: 'torus',
+          dioramaiTorusArgs: [0.5, 0.04, 8, 32],
           source: 'authoring',
         },
         transform: {
@@ -102,7 +102,7 @@ describe('Milestone 3 command contract', () => {
         },
       });
       const next = applyCommand(scene, { type: 'ADD_NODE', parentId: scene.rootId, node: ring });
-      expect(next.nodes['saturn-ring']?.metadata.dioramaProxyMesh).toBe('torus');
+      expect(next.nodes['saturn-ring']?.metadata.dioramaiProxyMesh).toBe('torus');
       expectValid(next);
     });
 

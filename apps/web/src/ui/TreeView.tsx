@@ -1,5 +1,5 @@
 import { useSceneStore } from '../store/sceneStore';
-import type { Scene } from '@diorama/core';
+import type { Scene } from '@dioramai/core';
 
 interface TreeRowProps {
   scene: Scene;

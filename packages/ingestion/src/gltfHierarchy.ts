@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { createNode, type Command, type SceneNode, type Transform } from '@diorama/core';
+import { createNode, type Command, type SceneNode, type Transform } from '@dioramai/core';
 
 type GltfNode = {
   name?: string;

@@ -1,4 +1,4 @@
-import type { Transform, Vec3 } from '@diorama/schema';
+import type { Transform, Vec3 } from '@dioramai/schema';
 
 export type TransformPatch = Partial<{
   position: Vec3;

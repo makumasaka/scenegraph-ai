@@ -5,9 +5,9 @@ import {
   galleryScene,
   showroomScene,
   type Command,
-} from '@diorama/core';
-import { exportSceneToR3fJsx } from '@diorama/export-r3f';
-import { parseSceneJson, serializeScene, type Scene } from '@diorama/schema';
+} from '@dioramai/core';
+import { exportSceneToR3fJsx } from '@dioramai/export-r3f';
+import { parseSceneJson, serializeScene, type Scene } from '@dioramai/schema';
 import type { AgentError } from './errors';
 import { createAgentSession } from './session';
 

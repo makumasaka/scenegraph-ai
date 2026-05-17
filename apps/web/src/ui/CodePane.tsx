@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exportSceneToR3fSyncModule } from '@diorama/export-r3f';
+import type { Scene } from '@dioramai/core';
+import { exportSceneToR3fSyncModule } from '@dioramai/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
 import {
   fetchBridgeProjectStatus,
@@ -10,6 +11,7 @@ import {
 
 export function CodePane() {
   const scene = useSceneStore((s) => s.scene);
+  const applyBridgeScene = useSceneStore((s) => s.applyBridgeScene);
   const bridgeConnected = useSceneStore((s) => s.bridgeConnected);
   const bridgeLastError = useSceneStore((s) => s.bridgeLastError);
   const [projectStatus, setProjectStatus] = useState<BridgeProjectStatus | null>(null);
@@ -34,6 +36,11 @@ export function CodePane() {
     };
   }, [bridgeConnected, scene]);
 
+  const sceneFromReloadResult = (value: unknown): Scene | null => {
+    if (typeof value !== 'object' || value === null || !('scene' in value)) return null;
+    return (value as { scene: Scene }).scene;
+  };
+
   const handleSync = (direction: 'toCode' | 'fromCode') => {
     setStatus(direction === 'toCode' ? 'Writing generated module' : 'Reading scene block');
     const request = direction === 'toCode'
@@ -41,7 +48,17 @@ export function CodePane() {
       : postBridgeReloadSceneFromFile();
     void request
       .then((result) => {
-        setStatus(result.ok ? 'Code sync complete' : result.error.message);
+        if (!result.ok) {
+          setStatus(result.error.message);
+          return;
+        }
+        if (direction === 'fromCode') {
+          const reloadedScene = sceneFromReloadResult(result.data);
+          if (reloadedScene) {
+            applyBridgeScene(reloadedScene, { type: 'REPLACE_SCENE', scene: reloadedScene });
+          }
+        }
+        setStatus('Code sync complete');
       })
       .catch((error) => {
         setStatus(error instanceof Error ? error.message : String(error));

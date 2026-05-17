@@ -10,7 +10,7 @@ Files, CI fixtures, and agents need a portable interchange for full scene state.
 
 ## Decision
 
-- Canonical on-disk / clipboard JSON uses the **`diorama-scene`** document envelope: `format`, `version`, `data` (`Scene`).
+- Canonical on-disk / clipboard JSON uses the **`dioramai-scene`** document envelope: `format`, `version`, `data` (`Scene`).
 - Serialization uses **stable key ordering** (`stableStringify`) for readable diffs.
 - `SCENE_DATA_VERSION` is an integer; bumps require migrations and tests.
 

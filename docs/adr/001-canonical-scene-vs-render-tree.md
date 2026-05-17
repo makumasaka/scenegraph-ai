@@ -6,11 +6,11 @@ Accepted
 
 ## Context
 
-Diorama must support human editing, export, and future agent tooling without ambiguity about where truth lives. React Three Fiber builds a runtime object graph that is convenient for rendering but is not a stable interchange format.
+Dioramai must support human editing, export, and future agent tooling without ambiguity about where truth lives. React Three Fiber builds a runtime object graph that is convenient for rendering but is not a stable interchange format.
 
 ## Decision
 
-- **Canonical state** is the `Scene` graph validated by `@diorama/schema` (nodes, hierarchy, transforms, selection, optional refs).
+- **Canonical state** is the `Scene` graph validated by `@dioramai/schema` (nodes, hierarchy, transforms, selection, optional refs).
 - **Render state** is whatever R3F/Three.js holds (meshes, materials resolved for display, camera pose, OrbitControls internals). It is derived from `Scene` plus non-serialized UI preferences (for example gizmo mode in Zustand).
 
 ## Rationale

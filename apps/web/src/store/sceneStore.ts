@@ -8,7 +8,7 @@ import {
   serializeScene,
   type Command,
   type Scene,
-} from '@diorama/core';
+} from '@dioramai/core';
 import { postBridgeLoadScene, postBridgeUpdateTransform } from '../bridge/bridgeClient';
 
 const HISTORY_LIMIT = 100;

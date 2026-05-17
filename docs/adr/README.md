@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-Short, durable decisions for Diorama's MVP "system lock." Each file states **context**, **decision**, **rationale**, **tradeoffs**, and **consequences**.
+Short, durable decisions for Dioramai's MVP "system lock." Each file states **context**, **decision**, **rationale**, **tradeoffs**, and **consequences**.
 
 | ADR | Title |
 |-----|--------|

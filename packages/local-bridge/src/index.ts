@@ -1,17 +1,17 @@
 export {
   DEFAULT_BRIDGE_PORT,
   DEFAULT_PROJECT_CONFIG,
-  DioramaBridgeRuntime,
-  initializeDioramaProject,
+  DioramaiBridgeRuntime,
+  initializeDioramaiProject,
   loadInitialBridgeScene,
   resolveWorkspaceRelativePath,
-  startDioramaBridgeServer,
-  validateDioramaProject,
+  startDioramaiBridgeServer,
+  validateDioramaiProject,
 } from './runtime';
 export type {
   BridgeResult,
-  DioramaBridgeRuntimeOptions,
-  DioramaProjectConfig,
+  DioramaiBridgeRuntimeOptions,
+  DioramaiProjectConfig,
   ImportAssetInput,
   ImportAssetResult,
   ImportAssetSource,

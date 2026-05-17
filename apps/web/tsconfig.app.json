@@ -7,7 +7,7 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "paths": {
-      "@diorama/r3f-bridge": ["../../packages/r3f-bridge/src/index.ts"]
+      "@dioramai/r3f-bridge": ["../../packages/r3f-bridge/src/index.ts"]
     },
 
     /* Bundler mode */

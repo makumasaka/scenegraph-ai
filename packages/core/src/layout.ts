@@ -1,4 +1,4 @@
-import type { Vec3 } from '@diorama/schema';
+import type { Vec3 } from '@dioramai/schema';
 
 export type ArrangeLayout = 'line' | 'grid' | 'circle';
 

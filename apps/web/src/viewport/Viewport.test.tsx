@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { exportSceneToR3fJsx } from '@diorama/export-r3f';
-import { getStarterScene, getWorldMatrix, type Scene } from '@diorama/core';
+import { exportSceneToR3fJsx } from '@dioramai/export-r3f';
+import { getStarterScene, getWorldMatrix, type Scene } from '@dioramai/core';
 import { useSceneStore } from '../store/sceneStore';
 import { Viewport } from './Viewport';
 
@@ -31,7 +31,7 @@ vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls" />,
 }));
 
-vi.mock('@diorama/r3f-bridge', () => {
+vi.mock('@dioramai/r3f-bridge', () => {
   return {
     createRuntimeNodeRegistry: () => ({
       register: () => () => undefined,

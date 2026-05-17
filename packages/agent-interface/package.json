@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/agent-interface",
+  "name": "@dioramai/agent-interface",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,11 +16,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/core": "*",
-    "@diorama/export-r3f": "*",
-    "@diorama/generation": "*",
-    "@diorama/ingestion": "*",
-    "@diorama/schema": "*",
+    "@dioramai/core": "*",
+    "@dioramai/export-r3f": "*",
+    "@dioramai/generation": "*",
+    "@dioramai/ingestion": "*",
+    "@dioramai/schema": "*",
     "zod": "^3.25.76"
   },
   "devDependencies": {

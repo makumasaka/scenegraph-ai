@@ -1,5 +1,5 @@
-import type { Scene } from '@diorama/schema';
-import { validateScene } from '@diorama/schema';
+import type { Scene } from '@dioramai/schema';
+import { validateScene } from '@dioramai/schema';
 
 /**
  * Throws when the scene graph fails schema-level graph refinements.

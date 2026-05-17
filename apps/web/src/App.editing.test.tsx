@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { parseSceneJson } from '@diorama/core';
+import { parseSceneJson } from '@dioramai/core';
 import App from './App';
 import { useSceneStore } from './store/sceneStore';
 

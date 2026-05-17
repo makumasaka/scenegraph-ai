@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { getStarterScene, type Command, type StarterKitId } from '@diorama/core';
-import { parseSceneJson, serializeScene, type Scene } from '@diorama/schema';
+import { getStarterScene, type Command, type StarterKitId } from '@dioramai/core';
+import { parseSceneJson, serializeScene, type Scene } from '@dioramai/schema';
 import { createAgentSession } from './session';
 
 type ExpectedError = {

@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/local-bridge",
+  "name": "@dioramai/local-bridge",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,10 +16,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/core": "*",
-    "@diorama/export-r3f": "*",
-    "@diorama/ingestion": "*",
-    "@diorama/schema": "*"
+    "@dioramai/core": "*",
+    "@dioramai/export-r3f": "*",
+    "@dioramai/ingestion": "*",
+    "@dioramai/schema": "*"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",

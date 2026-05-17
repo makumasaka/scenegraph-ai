@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { applyCommand, createEmptyScene } from '@diorama/core';
+import { applyCommand, createEmptyScene } from '@dioramai/core';
 import { ingestAsset, ingestAssetWithHierarchy } from './ingest';
 
 const createTestGlb = (gltf: Record<string, unknown>): Buffer => {
@@ -27,7 +27,7 @@ describe('ingestAsset', () => {
         id: 'asset-chair',
         format: 'glb',
         localPath: '/tmp/chair.glb',
-        uri: '/assets/diorama/chair.glb',
+        uri: '/assets/dioramai/chair.glb',
         source: 'manual',
       },
       { parentId: 'root', nodeId: 'chair-node' },
@@ -46,7 +46,7 @@ describe('ingestAsset', () => {
       {
         format: 'glb',
         localPath: '/tmp/chair.glb',
-        uri: '/assets/diorama/chair.glb',
+        uri: '/assets/dioramai/chair.glb',
         source: 'manual',
       },
       { parentId: initial.rootId },
@@ -73,7 +73,7 @@ describe('ingestAsset', () => {
   });
 
   it('adds inspectable GLB hierarchy nodes when requested', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'diorama-gltf-'));
+    const dir = await mkdtemp(join(tmpdir(), 'dioramai-gltf-'));
     const glbPath = join(dir, 'planets.glb');
     await writeFile(glbPath, createTestGlb({
       asset: { version: '2.0' },
@@ -94,7 +94,7 @@ describe('ingestAsset', () => {
           id: 'asset-planets',
           format: 'glb',
           localPath: glbPath,
-          uri: '/assets/diorama/planets.glb',
+          uri: '/assets/dioramai/planets.glb',
           source: 'manual',
         },
         {

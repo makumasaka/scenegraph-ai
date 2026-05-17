@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Grid, OrbitControls } from '@react-three/drei';
 import { useShallow } from 'zustand/react/shallow';
-import { RuntimeScene, createRuntimeNodeRegistry } from '@diorama/r3f-bridge';
+import { RuntimeScene, createRuntimeNodeRegistry } from '@dioramai/r3f-bridge';
 import { useMemo } from 'react';
 import { useSceneStore } from '../store/sceneStore';
 import { bridgeAssetUrl } from '../bridge/bridgeClient';

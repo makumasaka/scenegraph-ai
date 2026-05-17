@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { exportSceneToR3fJsx } from '@diorama/export-r3f';
-import { getStarterScene, parseSceneJson } from '@diorama/core';
+import { exportSceneToR3fJsx } from '@dioramai/export-r3f';
+import { getStarterScene, parseSceneJson } from '@dioramai/core';
 import { useSceneStore } from './sceneStore';
 
 describe('sceneStore — history + command log regression', () => {
@@ -103,7 +103,7 @@ describe('sceneStore — history + command log regression', () => {
       patch: { position: [0, 2, 0] },
     });
     const text = JSON.stringify({
-      format: 'diorama-scene',
+      format: 'dioramai-scene',
       version: 1,
       data: getStarterScene('gallery'),
     });

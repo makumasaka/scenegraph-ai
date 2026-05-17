@@ -1,6 +1,6 @@
 # MCP-Lite Eval Loop
 
-This eval proves the library-level agent workflow before Diorama adds a real MCP
+This eval proves the library-level agent workflow before Dioramai adds a real MCP
 transport.
 
 ## Flow
@@ -40,15 +40,15 @@ Related session contract (clone semantics, batch atomics, replay, safety): `pack
 Run the focused MCP-lite loop first:
 
 ```shell
-npm run test -w @diorama/agent-interface -- mcpLite.test.ts
-npm run test -w @diorama/agent-interface -- mcpLite.agentRuntime.test.ts
+npm run test -w @dioramai/agent-interface -- mcpLite.test.ts
+npm run test -w @dioramai/agent-interface -- mcpLite.agentRuntime.test.ts
 ```
 
 Then run package and workspace gates when practical:
 
 ```shell
-npm run test -w @diorama/agent-interface
-npm run test -w @diorama/export-r3f
+npm run test -w @dioramai/agent-interface
+npm run test -w @dioramai/export-r3f
 npm run typecheck
 ```
 

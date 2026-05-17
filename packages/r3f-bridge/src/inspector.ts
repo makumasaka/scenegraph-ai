@@ -1,4 +1,4 @@
-import type { Scene, SceneNode } from '@diorama/schema';
+import type { Scene, SceneNode } from '@dioramai/schema';
 
 export type InspectorField = {
   label: string;

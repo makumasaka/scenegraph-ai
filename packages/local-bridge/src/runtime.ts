@@ -11,13 +11,13 @@ import {
   type Command,
   type Scene,
   type SemanticRole,
-} from '@diorama/core';
-import { ingestAssetWithHierarchy, type IngestionResult } from '@diorama/ingestion';
+} from '@dioramai/core';
+import { ingestAssetWithHierarchy, type IngestionResult } from '@dioramai/ingestion';
 import {
   exportSceneToR3fSyncModule,
   parseSceneFromR3fSyncModule,
-} from '@diorama/export-r3f';
-import { parseSceneJson, serializeScene } from '@diorama/schema';
+} from '@dioramai/export-r3f';
+import { parseSceneJson, serializeScene } from '@dioramai/schema';
 
 export const DEFAULT_BRIDGE_PORT = 7777;
 
@@ -87,7 +87,7 @@ export type ImportAssetInput = {
   dryRun?: boolean;
 };
 
-export type DioramaBridgeRuntimeOptions = {
+export type DioramaiBridgeRuntimeOptions = {
   projectRoot?: string;
   sessionRelativePath?: string;
   generatedModuleRelativePath?: string;
@@ -99,7 +99,7 @@ export type DioramaBridgeRuntimeOptions = {
   allowedOrigins?: string[];
 };
 
-export type DioramaProjectConfig = {
+export type DioramaiProjectConfig = {
   projectRoot?: string;
   assetDir?: string;
   generatedSceneFile?: string;
@@ -128,10 +128,10 @@ export type ImportAssetResult = {
   appliedCommandCount: number;
 };
 
-const DEFAULT_PROJECT_ROOT = resolve(process.env.DIORAMA_PROJECT_ROOT ?? process.cwd());
-const CONFIG_FILE_NAME = 'diorama.config.json';
-const DEFAULT_SESSION_RELATIVE_PATH = 'src/generated/diorama.scene.json';
-const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/generated/DioramaScene.generated.tsx';
+const DEFAULT_PROJECT_ROOT = resolve(process.env.DIORAMAI_PROJECT_ROOT ?? process.cwd());
+const CONFIG_FILE_NAME = 'dioramai.config.json';
+const DEFAULT_SESSION_RELATIVE_PATH = 'src/generated/dioramai.scene.json';
+const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/generated/DioramaiScene.generated.tsx';
 const DEFAULT_ASSET_DIR_RELATIVE_PATH = 'public/assets/models';
 const DEFAULT_PUBLIC_URL_BASE = '/assets/models';
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
@@ -148,7 +148,7 @@ const SEMANTIC_ROLES = new Set<SemanticRole>([
   'unknown',
 ]);
 
-export const DEFAULT_PROJECT_CONFIG: Required<DioramaProjectConfig> = {
+export const DEFAULT_PROJECT_CONFIG: Required<DioramaiProjectConfig> = {
   projectRoot: '.',
   assetDir: DEFAULT_ASSET_DIR_RELATIVE_PATH,
   generatedSceneFile: DEFAULT_GENERATED_MODULE_RELATIVE_PATH,
@@ -171,7 +171,7 @@ const unwrap = <T>(result: AgentResult<T>, step: string): BridgeResult<T> =>
   result.ok ? ok(result.data) : fail(result.error.code, `${step}: ${result.error.message}`, result.error.issues);
 
 const baseJsonHeaders = {
-  'Access-Control-Allow-Headers': 'content-type,x-diorama-token',
+  'Access-Control-Allow-Headers': 'content-type,x-dioramai-token',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
   'Content-Type': 'application/json; charset=utf-8',
 };
@@ -209,7 +209,7 @@ const createLocalSceneRuntime = (initialScene: Scene): LocalSceneRuntime => {
 
     applyCommand(command, options = {}) {
       if (!isCommand(command)) {
-        return localRuntimeError('VALIDATION_ERROR', 'Expected a Diorama command object.');
+        return localRuntimeError('VALIDATION_ERROR', 'Expected a Dioramai command object.');
       }
       const result = applyCommandWithResult(currentScene, command);
       if (result.error !== undefined && !result.changed) {
@@ -230,7 +230,7 @@ const createLocalSceneRuntime = (initialScene: Scene): LocalSceneRuntime => {
 
     applyCommandBatch(commands, options = {}) {
       if (!Array.isArray(commands)) {
-        return localRuntimeError('VALIDATION_ERROR', 'Expected an array of Diorama commands.');
+        return localRuntimeError('VALIDATION_ERROR', 'Expected an array of Dioramai commands.');
       }
 
       let draft = currentScene;
@@ -241,7 +241,7 @@ const createLocalSceneRuntime = (initialScene: Scene): LocalSceneRuntime => {
       for (let index = 0; index < commands.length; index += 1) {
         const command = commands[index];
         if (!isCommand(command)) {
-          errors.push({ index, error: 'Expected a Diorama command object.' });
+          errors.push({ index, error: 'Expected a Dioramai command object.' });
           continue;
         }
         const result = applyCommandWithResult(draft, command);
@@ -298,7 +298,7 @@ const isRelativeProjectPath = (value: string): boolean =>
 const readProjectConfigSync = (projectRoot: string): {
   found: boolean;
   path: string;
-  config: DioramaProjectConfig;
+  config: DioramaiProjectConfig;
   warnings: string[];
 } => {
   const configPath = resolve(projectRoot, CONFIG_FILE_NAME);
@@ -312,7 +312,7 @@ const readProjectConfigSync = (projectRoot: string): {
         found: true,
         path: configPath,
         config: {},
-        warnings: ['diorama.config.json must contain a JSON object.'],
+        warnings: ['dioramai.config.json must contain a JSON object.'],
       };
     }
     return {
@@ -334,19 +334,19 @@ const readProjectConfigSync = (projectRoot: string): {
       found: true,
       path: configPath,
       config: {},
-      warnings: [`Failed to parse diorama.config.json: ${error instanceof Error ? error.message : String(error)}`],
+      warnings: [`Failed to parse dioramai.config.json: ${error instanceof Error ? error.message : String(error)}`],
     };
   }
 };
 
 const configuredRelativePath = (
-  config: DioramaProjectConfig,
+  config: DioramaiProjectConfig,
   key: 'assetDir' | 'generatedSceneFile' | 'sceneJsonFile',
   fallback: string,
 ): string => {
   const value = config[key] ?? fallback;
   if (!isRelativeProjectPath(value)) {
-    throw new Error(`${key} in diorama.config.json must be relative to the explicit project root.`);
+    throw new Error(`${key} in dioramai.config.json must be relative to the explicit project root.`);
   }
   return value.replace(/\\/g, '/');
 };
@@ -359,12 +359,12 @@ export const resolveWorkspaceRelativePath = (
     return fail('VALIDATION_ERROR', 'workspaceRelativePath must be a non-empty workspace-relative path.');
   }
   if (/^[a-zA-Z]:[\\/]/.test(workspaceRelativePath) || workspaceRelativePath.startsWith('/') || workspaceRelativePath.startsWith('\\')) {
-    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be relative to the Diorama project root.');
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must be relative to the Dioramai project root.');
   }
   const root = resolveProjectRoot(projectRoot);
   const absolutePath = resolve(root, workspaceRelativePath);
   if (!isPathInside(absolutePath, root)) {
-    return fail('VALIDATION_ERROR', 'workspaceRelativePath must stay inside the Diorama project root.');
+    return fail('VALIDATION_ERROR', 'workspaceRelativePath must stay inside the Dioramai project root.');
   }
   return ok(absolutePath);
 };
@@ -442,7 +442,7 @@ const corsHeadersFor = (
 };
 
 const requestToken = (req: IncomingMessage, url: URL): string | undefined => {
-  const header = req.headers['x-diorama-token'];
+  const header = req.headers['x-dioramai-token'];
   if (typeof header === 'string' && header.length > 0) return header;
   return url.searchParams.get('token') ?? undefined;
 };
@@ -558,7 +558,7 @@ const loadSceneFromFile = async (path: string): Promise<Scene | null> => {
 };
 
 export const loadInitialBridgeScene = async (
-  options: DioramaBridgeRuntimeOptions = {},
+  options: DioramaiBridgeRuntimeOptions = {},
 ): Promise<Scene> => {
   const projectRoot = resolveProjectRoot(options.projectRoot);
   const loadedConfig = readProjectConfigSync(projectRoot);
@@ -569,7 +569,7 @@ export const loadInitialBridgeScene = async (
   return (await loadSceneFromFile(sessionPath)) ?? getStarterScene('default');
 };
 
-export const initializeDioramaProject = async (
+export const initializeDioramaiProject = async (
   projectRootInput: string,
 ): Promise<BridgeResult<{
   projectRoot: string;
@@ -590,7 +590,7 @@ export const initializeDioramaProject = async (
     const assetDir = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'assetDir', DEFAULT_ASSET_DIR_RELATIVE_PATH));
     const generatedModule = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'generatedSceneFile', DEFAULT_GENERATED_MODULE_RELATIVE_PATH));
     if (!isPathInside(assetDir, projectRoot) || !isPathInside(generatedModule, projectRoot)) {
-      return fail('VALIDATION_ERROR', 'Configured Diorama paths must stay inside the explicit project root.');
+      return fail('VALIDATION_ERROR', 'Configured Dioramai paths must stay inside the explicit project root.');
     }
     await mkdir(assetDir, { recursive: true });
     await mkdir(dirname(generatedModule), { recursive: true });
@@ -606,12 +606,12 @@ export const initializeDioramaProject = async (
   }
 };
 
-export const validateDioramaProject = async (
+export const validateDioramaiProject = async (
   projectRootInput: string,
 ): Promise<BridgeResult<unknown>> => {
   try {
     const projectRoot = resolveProjectRoot(projectRootInput);
-    const runtime = new DioramaBridgeRuntime(await loadInitialBridgeScene({ projectRoot }), { projectRoot });
+    const runtime = new DioramaiBridgeRuntime(await loadInitialBridgeScene({ projectRoot }), { projectRoot });
     const status = await runtime.getProjectStatus();
     runtime.close();
     return status;
@@ -620,7 +620,7 @@ export const validateDioramaProject = async (
   }
 };
 
-export class DioramaBridgeRuntime {
+export class DioramaiBridgeRuntime {
   private runtime: LocalSceneRuntime;
   private clients = new Set<ServerResponse>();
   private readonly projectRoot: string;
@@ -640,7 +640,7 @@ export class DioramaBridgeRuntime {
   private lastGeneratedModuleCode: string | null = null;
   private lastSync: BridgeLastSync = null;
 
-  constructor(initialScene: Scene, options: DioramaBridgeRuntimeOptions = {}) {
+  constructor(initialScene: Scene, options: DioramaiBridgeRuntimeOptions = {}) {
     this.projectRoot = resolveProjectRoot(options.projectRoot);
     const loadedConfig = readProjectConfigSync(this.projectRoot);
     this.configFound = loadedConfig.found;
@@ -649,7 +649,7 @@ export class DioramaBridgeRuntime {
     if (loadedConfig.config.projectRoot !== undefined) {
       const configuredRoot = resolve(this.projectRoot, loadedConfig.config.projectRoot);
       if (!samePath(configuredRoot, this.projectRoot)) {
-        throw new Error('projectRoot in diorama.config.json must resolve to the explicit project root.');
+        throw new Error('projectRoot in dioramai.config.json must resolve to the explicit project root.');
       }
     }
     const sessionRelativePath =
@@ -675,7 +675,7 @@ export class DioramaBridgeRuntime {
 
     for (const targetPath of [this.sessionPath, this.generatedModulePath, this.assetDirPath]) {
       if (!isPathInside(targetPath, this.projectRoot)) {
-        throw new Error('Diorama bridge paths must stay inside the project root.');
+        throw new Error('Dioramai bridge paths must stay inside the project root.');
       }
     }
 
@@ -735,7 +735,7 @@ export class DioramaBridgeRuntime {
   }>> {
     try {
       const exported = exportSceneToR3fSyncModule(scene, {
-        componentName: 'DioramaScene',
+        componentName: 'DioramaiScene',
         includeStudioLights: true,
       });
       const sceneJson = serializeScene(scene);
@@ -841,7 +841,7 @@ export class DioramaBridgeRuntime {
         const sceneJson = await readFile(this.sessionPath, 'utf8');
         parsedScene = parseSceneJson(sceneJson);
         if (parsedScene === null) {
-          const message = 'Diorama scene JSON file failed JSON parsing or schema validation.';
+          const message = 'Dioramai scene JSON file failed JSON parsing or schema validation.';
           this.lastSync = { ok: false, error: message, ts: Date.now() };
           return fail('SCENE_BLOCK_INVALID', message);
         }
@@ -1023,7 +1023,7 @@ export class DioramaBridgeRuntime {
         case 'sync_code':
           return this.syncCode(input);
         default:
-          return fail('TOOL_NOT_FOUND', `Unknown Diorama bridge tool: ${name}`);
+          return fail('TOOL_NOT_FOUND', `Unknown Dioramai bridge tool: ${name}`);
       }
     } catch (error) {
       return fail('BRIDGE_ERROR', error instanceof Error ? error.message : String(error));
@@ -1182,7 +1182,7 @@ export class DioramaBridgeRuntime {
       return fail('VALIDATION_ERROR', 'importMode must be "single" or "shallow".');
     }
     if (input.semanticRole !== undefined && semanticRoleFromValue(input.semanticRole) === undefined) {
-      return fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.');
+      return fail('VALIDATION_ERROR', 'semanticRole is not a supported Dioramai semantic role.');
     }
     const resolved = resolveWorkspaceRelativePath(workspaceRelativePath, this.projectRoot);
     if (!resolved.ok) return resolved;
@@ -1280,7 +1280,7 @@ export class DioramaBridgeRuntime {
     const scene = this.getSceneResult();
     if (!scene.ok) return scene;
     const exported = exportSceneToR3fSyncModule(scene.data.scene, {
-      componentName: 'DioramaScene',
+      componentName: 'DioramaiScene',
       includeStudioLights: true,
     });
     const shouldWrite = !isRecord(input) || input.write !== false;
@@ -1307,7 +1307,7 @@ export class DioramaBridgeRuntime {
 
 export type StartedBridgeServer = {
   server: Server;
-  runtime: DioramaBridgeRuntime;
+  runtime: DioramaiBridgeRuntime;
   port: number;
   pairingToken: string;
   close: () => Promise<void>;
@@ -1339,17 +1339,17 @@ const SAFE_TOOL_NAMES = new Set([
   'sync_code',
 ]);
 
-export const startDioramaBridgeServer = async (
-  port = Number(process.env.DIORAMA_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT),
-  options: DioramaBridgeRuntimeOptions = {},
+export const startDioramaiBridgeServer = async (
+  port = Number(process.env.DIORAMAI_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT),
+  options: DioramaiBridgeRuntimeOptions = {},
 ): Promise<StartedBridgeServer> => {
-  const runtime = new DioramaBridgeRuntime(await loadInitialBridgeScene(options), options);
+  const runtime = new DioramaiBridgeRuntime(await loadInitialBridgeScene(options), options);
   const pairingToken =
     options.pairingToken ??
-    process.env.DIORAMA_BRIDGE_TOKEN ??
+    process.env.DIORAMAI_BRIDGE_TOKEN ??
     randomBytes(16).toString('hex');
   const allowedOrigins = options.allowedOrigins ?? (
-    process.env.DIORAMA_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? []
+    process.env.DIORAMAI_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? []
   );
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `127.0.0.1:${port}`}`);
@@ -1364,7 +1364,7 @@ export const startDioramaBridgeServer = async (
       }
 
       if (!isLocalHostHeader(req.headers.host)) {
-        sendJson(403, fail('FORBIDDEN', 'Diorama bridge only accepts localhost host headers.'));
+        sendJson(403, fail('FORBIDDEN', 'Dioramai bridge only accepts localhost host headers.'));
         return;
       }
 
@@ -1374,7 +1374,7 @@ export const startDioramaBridgeServer = async (
       }
 
       if (!isBrowserRequestAuthorized(req, url, pairingToken)) {
-        sendJson(403, fail('FORBIDDEN', 'Diorama bridge pairing token is required for browser requests.'));
+        sendJson(403, fail('FORBIDDEN', 'Dioramai bridge pairing token is required for browser requests.'));
         return;
       }
 
@@ -1434,7 +1434,7 @@ export const startDioramaBridgeServer = async (
           return;
         }
         if (semanticRole !== null && semanticRoleFromValue(semanticRole) === undefined) {
-          sendJson(400, fail('VALIDATION_ERROR', 'semanticRole is not a supported Diorama semantic role.'));
+          sendJson(400, fail('VALIDATION_ERROR', 'semanticRole is not a supported Dioramai semantic role.'));
           return;
         }
         const result = await runtime.importAsset({

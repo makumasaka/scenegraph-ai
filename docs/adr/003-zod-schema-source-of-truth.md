@@ -10,10 +10,10 @@ TypeScript interfaces alone do not protect persisted JSON or agent payloads. The
 
 ## Decision
 
-- `@diorama/schema` owns Zod schemas (`SceneGraphSchema`, `SceneDocumentSchema`, node fields, refinements for graph invariants).
+- `@dioramai/schema` owns Zod schemas (`SceneGraphSchema`, `SceneDocumentSchema`, node fields, refinements for graph invariants).
 - Exported TypeScript types for the graph are inferred from Zod where practical.
 - Canonical exports now use `SCENE_DATA_VERSION` 2. Version 2 formalizes persisted node `type`, `visible`, and `metadata` fields.
-- **Legacy parse path**: `parseSceneJson` accepts a wrapped v2 `diorama-scene` document, migrates wrapped v1 documents, and accepts bare legacy scene graphs while that compatibility path is retained. Behavior is covered by tests and must not widen silently without a version/migration test.
+- **Legacy parse path**: `parseSceneJson` accepts a wrapped v2 `dioramai-scene` document, migrates wrapped v1 documents, and accepts bare legacy scene graphs while that compatibility path is retained. Behavior is covered by tests and must not widen silently without a version/migration test.
 - The canonical root contract is explicit: `rootId` must point to a node with `type: "root"`, and no non-root node may use `type: "root"`.
 
 ## Version 2 Scene Node Shape

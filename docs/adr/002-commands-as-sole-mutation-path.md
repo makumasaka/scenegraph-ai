@@ -10,7 +10,7 @@ The product promise is a deterministic, inspectable editing loop. Ad hoc mutatio
 
 ## Decision
 
-- All changes to canonical `Scene` data go through `applyCommand(scene, command)` in `@diorama/core`.
+- All changes to canonical `Scene` data go through `applyCommand(scene, command)` in `@dioramai/core`.
 - The Zustand store updates `scene` only as `next = applyCommand(prev, command)` (except dev-only harnesses).
 
 ### Selection and command log (MVP lock)

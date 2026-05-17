@@ -1,5 +1,5 @@
-import { cloneSceneFromJson } from '@diorama/schema';
-import type { Scene } from '@diorama/schema';
+import { cloneSceneFromJson } from '@dioramai/schema';
+import type { Scene } from '@dioramai/schema';
 import { defaultFixtureScene } from './defaultScene';
 import { galleryScene } from './gallery';
 import { livingSpaceScene } from './livingSpace';

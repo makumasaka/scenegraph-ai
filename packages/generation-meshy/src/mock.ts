@@ -52,7 +52,7 @@ const padTo4 = (value: Uint8Array): Uint8Array => {
 /** Minimal deterministic GLB container with an empty glTF scene. */
 export const createMockGlb = (): ArrayBuffer => {
   const json = JSON.stringify({
-    asset: { version: '2.0', generator: '@diorama/generation-meshy mock' },
+    asset: { version: '2.0', generator: '@dioramai/generation-meshy mock' },
     scene: 0,
     scenes: [{ nodes: [] }],
     nodes: [],

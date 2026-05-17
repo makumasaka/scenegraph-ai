@@ -2,20 +2,20 @@
 
 > Status: legacy/deferred for P0. Public MVP agent access now goes through the
 > local bridge and the narrow MCP proxy described in
-> [`docs/mcp-tools.md`](mcp-tools.md). `@diorama/agent-interface` remains in the
+> [`docs/mcp-tools.md`](mcp-tools.md). `@dioramai/agent-interface` remains in the
 > repo as a historical command/session experiment, but it is not the P0 MCP or
 > filesystem boundary.
 
-Diorama's old agent-ready API is an internal runtime surface for reading
+Dioramai's old agent-ready API is an internal runtime surface for reading
 canonical scene state, validating commands, previewing changes, applying
 changes, and exporting results. For the local-first MVP, agents call MCP tools,
-MCP proxies those calls to `@diorama/local-bridge`, and the bridge is the only
+MCP proxies those calls to `@dioramai/local-bridge`, and the bridge is the only
 filesystem-aware layer.
 
 ## Runtime Surface
 
-The current runtime is `DioramaSceneRuntime`, created with
-`createAgentSession()` from `@diorama/agent-interface`.
+The current runtime is `DioramaiSceneRuntime`, created with
+`createAgentSession()` from `@dioramai/agent-interface`.
 
 | Runtime method | Status | Behavior |
 | --- | --- | --- |
@@ -91,8 +91,8 @@ P0 MCP direction:
 
 ```text
 Cursor/Claude/Codex
-  -> local Diorama MCP server
-  -> local Diorama bridge
+  -> local Dioramai MCP server
+  -> local Dioramai bridge
   -> canonical scene
   -> deterministic generated R3F module
 ```

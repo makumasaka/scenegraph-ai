@@ -1,4 +1,4 @@
-import { DEFAULT_BRIDGE_PORT } from '@diorama/local-bridge';
+import { DEFAULT_BRIDGE_PORT } from '@dioramai/local-bridge';
 
 type JsonRpcId = string | number | null;
 
@@ -15,7 +15,7 @@ type ToolDefinition = {
   inputSchema: Record<string, unknown>;
 };
 
-const port = Number(process.env.DIORAMA_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT);
+const port = Number(process.env.DIORAMAI_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT);
 const bridgeUrl = `http://127.0.0.1:${port}`;
 
 const objectSchema = (properties: Record<string, unknown> = {}, required: string[] = []) => ({
@@ -27,19 +27,19 @@ const objectSchema = (properties: Record<string, unknown> = {}, required: string
 
 const sceneRef = {
   type: 'object',
-  description: 'A Diorama scene graph object.',
+  description: 'A Dioramai scene graph object.',
   additionalProperties: true,
 };
 
 const tools: ToolDefinition[] = [
   {
     name: 'get_project_status',
-    description: 'Return the local Diorama bridge project status and configured safe paths.',
+    description: 'Return the local Dioramai bridge project status and configured safe paths.',
     inputSchema: objectSchema(),
   },
   {
     name: 'get_scene',
-    description: 'Return the active Diorama bridge scene.',
+    description: 'Return the active Dioramai bridge scene.',
     inputSchema: objectSchema(),
   },
   {
@@ -137,7 +137,7 @@ const bridgeFetch = async (toolName: string, args: unknown): Promise<unknown> =>
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(process.env.DIORAMA_BRIDGE_TOKEN ? { 'x-diorama-token': process.env.DIORAMA_BRIDGE_TOKEN } : {}),
+      ...(process.env.DIORAMAI_BRIDGE_TOKEN ? { 'x-dioramai-token': process.env.DIORAMAI_BRIDGE_TOKEN } : {}),
     },
     body: JSON.stringify(args ?? {}),
   });
@@ -151,7 +151,7 @@ const ensureBridge = async (): Promise<void> => {
   } catch {
     // The MCP adapter is intentionally a bridge proxy only.
   }
-  throw new Error(`Diorama MCP requires a running local bridge at ${bridgeUrl}. Start it with: npx diorama dev`);
+  throw new Error(`Dioramai MCP requires a running local bridge at ${bridgeUrl}. Start it with: npx dioramai dev`);
 };
 
 const toolResult = (payload: unknown) => {
@@ -176,7 +176,7 @@ const handleRequest = async (request: JsonRpcRequest): Promise<void> => {
           tools: {},
         },
         serverInfo: {
-          name: 'diorama',
+          name: 'dioramai',
           version: '0.1.0',
         },
       });

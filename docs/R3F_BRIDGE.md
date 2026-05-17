@@ -1,10 +1,10 @@
 # R3F Runtime Bridge And Sync Export
 
-Diorama has two deliberately separate R3F surfaces:
+Dioramai has two deliberately separate R3F surfaces:
 
-- `@diorama/r3f-bridge` projects canonical scene state into a live React Three
-  Fiber runtime and translates runtime interactions into Diorama commands.
-- `@diorama/export-r3f` emits deterministic app-ready R3F code from canonical
+- `@dioramai/r3f-bridge` projects canonical scene state into a live React Three
+  Fiber runtime and translates runtime interactions into Dioramai commands.
+- `@dioramai/export-r3f` emits deterministic app-ready R3F code from canonical
   scene state.
 
 Neither package treats R3F refs, Three objects, viewport state, or Zustand state
@@ -12,7 +12,7 @@ as canonical.
 
 ## Runtime Bridge
 
-`@diorama/r3f-bridge` owns the live adapter layer:
+`@dioramai/r3f-bridge` owns the live adapter layer:
 
 - recursive scene-to-R3F projection
 - runtime object registration by stable node id
@@ -27,31 +27,31 @@ command:
 ```text
 TransformControls draft
   -> UPDATE_TRANSFORM command
-  -> @diorama/core reducer
+  -> @dioramai/core reducer
   -> canonical scene
   -> runtime projection refresh
 ```
 
 ## Sync Module Export
 
-`@diorama/export-r3f` provides `exportSceneToR3fSyncModule(scene, options)` for
+`@dioramai/export-r3f` provides `exportSceneToR3fSyncModule(scene, options)` for
 the MVP live code sync path.
 
 The generated module includes:
 
-- `// @diorama-generated`
-- an embedded `dioramaScene` object
-- stable `userData={{ dioramaId, sourceId }}`
-- recursive R3F rendering derived from `dioramaScene.data`
+- `// @dioramai-generated`
+- an embedded `dioramaiScene` object
+- stable `userData={{ dioramaiId, sourceId }}`
+- recursive R3F rendering derived from `dioramaiScene.data`
 - safe GLB/GLTF loading for project-relative public asset URIs
 
 Default generated location:
 
 ```text
-src/diorama/DioramaScene.generated.tsx
+src/dioramai/DioramaiScene.generated.tsx
 ```
 
-Code-to-runtime sync parses only the embedded `dioramaScene` block. Arbitrary JSX
+Code-to-runtime sync parses only the embedded `dioramaiScene` block. Arbitrary JSX
 roundtripping is intentionally deferred.
 
 ## Safety Rules

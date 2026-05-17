@@ -1,6 +1,6 @@
 # Export pipeline
 
-Diorama exports stable JSON and readable React Three Fiber JSX from a validated
+Dioramai exports stable JSON and readable React Three Fiber JSX from a validated
 scene graph. Both formats are read models: the canonical `Scene` is the source
 of truth, and exporters never mutate it.
 
@@ -9,11 +9,11 @@ not cover, and how the export loop is locked in tests.
 
 ## Formats
 
-### JSON (`@diorama/schema`)
+### JSON (`@dioramai/schema`)
 
-`serializeScene` produces a `diorama-scene` document:
+`serializeScene` produces a `dioramai-scene` document:
 
-- `format`: literal `diorama-scene`.
+- `format`: literal `dioramai-scene`.
 - `version`: integer data version (currently `2`).
 - `data`: the validated `Scene` graph (`rootId`, `selection`, `nodes`).
 
@@ -33,7 +33,7 @@ Each canonical v2 node carries:
 - `visible`, `metadata`
 - optional `assetRef`, `materialRef`, `light`
 
-### R3F JSX (`@diorama/export-r3f`)
+### R3F JSX (`@dioramai/export-r3f`)
 
 `exportSceneToR3fJsx(scene, options?)` produces a JSX string suitable for
 pasting inside a React Three Fiber `<Canvas>`:
@@ -131,7 +131,7 @@ The R3F snapshot tests (`packages/export-r3f/src/r3f.test.ts`) cover:
 
 Milestone 5 locks the loop used by humans, tests, and future agents:
 
-1. Load a starter scene from `@diorama/core` or `packages/examples/scenes`.
+1. Load a starter scene from `@dioramai/core` or `packages/examples/scenes`.
 2. Edit scene state through commands in the canvas.
 3. Export JSON with `serializeScene`.
 4. Export R3F JSX with `exportSceneToR3fJsx`.

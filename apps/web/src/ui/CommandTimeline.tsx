@@ -1,4 +1,4 @@
-import { summarizeCommand, type Command, type Scene } from '@diorama/core';
+import { summarizeCommand, type Command, type Scene } from '@dioramai/core';
 import { useSceneStore } from '../store/sceneStore';
 
 const fmt = (n: number): string => (Number.isFinite(n) ? n.toFixed(2) : '0.00');

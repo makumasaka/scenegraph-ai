@@ -4,7 +4,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getStarterScene, parseSceneJson, type Command } from '@diorama/core';
+import { getStarterScene, parseSceneJson, type Command } from '@dioramai/core';
 import App from './App';
 import { useSceneStore } from './store/sceneStore';
 
@@ -36,7 +36,7 @@ vi.mock('@react-three/drei', () => ({
 
 vi.mock('./viewport/Viewport', async () => vi.importActual('./viewport/Viewport'));
 
-vi.mock('@diorama/r3f-bridge', () => {
+vi.mock('@dioramai/r3f-bridge', () => {
   const renderNode = (
     scene: ReturnType<typeof getStarterScene>,
     nodeId: string,

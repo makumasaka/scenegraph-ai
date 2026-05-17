@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createEmptyScene, createNode, type Command } from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+import { createEmptyScene, createNode, type Command } from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 import { COMMAND_SCHEMA_PARITY, COMMAND_TYPES, CommandSchema } from './commandSchema';
 
 const invalidScene = (): Scene => {

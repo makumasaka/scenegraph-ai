@@ -3,6 +3,7 @@ import {
   parseSceneJson,
   SCENE_DATA_VERSION,
   SCENE_DOCUMENT_FORMAT,
+  SCENE_DOCUMENT_LEGACY_FORMAT,
   SCENE_LEGACY_DATA_VERSION,
   serializeScene,
   validateScene,
@@ -43,7 +44,7 @@ const canonicalScene = (): Scene => ({
 
 const legacyDocument = (data: unknown): string =>
   JSON.stringify({
-    format: SCENE_DOCUMENT_FORMAT,
+    format: SCENE_DOCUMENT_LEGACY_FORMAT,
     version: SCENE_LEGACY_DATA_VERSION,
     data,
   });
@@ -56,6 +57,17 @@ describe('scene JSON contract', () => {
     expect(doc.format).toBe(SCENE_DOCUMENT_FORMAT);
     expect(doc.version).toBe(SCENE_DATA_VERSION);
     expect(doc.version).toBe(2);
+  });
+
+  it('parses v2 documents that still use the pre-rebrand format id', () => {
+    const text = JSON.stringify({
+      format: SCENE_DOCUMENT_LEGACY_FORMAT,
+      version: SCENE_DATA_VERSION,
+      data: canonicalScene(),
+    });
+    const parsed = parseSceneJson(text);
+    expect(parsed).not.toBeNull();
+    expect(validateScene(parsed!)).toBe(true);
   });
 
   it('migrates v1 documents with legacy type, visibility, and metadata defaults', () => {

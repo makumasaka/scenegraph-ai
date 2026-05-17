@@ -1,0 +1,7 @@
+{
+  "projectRoot": ".",
+  "assetDir": "public/assets/models",
+  "generatedSceneFile": "src/generated/DioramaiScene.generated.tsx",
+  "publicAssetBase": "/assets/models",
+  "sceneJsonFile": "src/generated/dioramai.scene.json"
+}

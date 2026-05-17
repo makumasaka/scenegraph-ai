@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, createNode, defaultFixtureScene } from '@diorama/core';
-import { parseSceneJson, serializeScene, type Scene } from '@diorama/schema';
+import { applyCommand, createNode, defaultFixtureScene } from '@dioramai/core';
+import { parseSceneJson, serializeScene, type Scene } from '@dioramai/schema';
 import {
-  DIORAMA_GENERATED_MARKER,
-  DIORAMA_SCENE_BLOCK_END,
-  DIORAMA_SCENE_BLOCK_START,
+  DIORAMAI_GENERATED_MARKER,
+  DIORAMAI_SCENE_BLOCK_END,
+  DIORAMAI_SCENE_BLOCK_START,
   exportSceneToR3fSyncModule,
   extractSceneJsonFromR3fSyncModule,
   parseSceneFromR3fSyncModule,
@@ -16,12 +16,12 @@ describe('R3F sync module export', () => {
       includeStudioLights: true,
     });
 
-    expect(result.code).toContain(DIORAMA_GENERATED_MARKER);
-    expect(result.code).toContain(DIORAMA_SCENE_BLOCK_START);
-    expect(result.code).toContain(DIORAMA_SCENE_BLOCK_END);
-    expect(result.code).toContain('export const dioramaScene = (');
-    expect(result.code).toContain('userData={{ dioramaId: node.id, sourceId: node.id }}');
-    expect(result.code).toContain('export function DioramaScene()');
+    expect(result.code).toContain(DIORAMAI_GENERATED_MARKER);
+    expect(result.code).toContain(DIORAMAI_SCENE_BLOCK_START);
+    expect(result.code).toContain(DIORAMAI_SCENE_BLOCK_END);
+    expect(result.code).toContain('export const dioramaiScene = (');
+    expect(result.code).toContain('userData={{ dioramaiId: node.id, sourceId: node.id }}');
+    expect(result.code).toContain('export function DioramaiScene()');
 
     const json = extractSceneJsonFromR3fSyncModule(result.code);
     expect(json).toBe(serializeScene(defaultFixtureScene));
@@ -46,7 +46,7 @@ describe('R3F sync module export', () => {
     const product = createNode({
       id: 'product',
       name: 'Product',
-      assetRef: { kind: 'uri', uri: '/assets/diorama/product.glb' },
+      assetRef: { kind: 'uri', uri: '/assets/dioramai/product.glb' },
     });
     const root = createNode({
       id: 'root',
@@ -66,7 +66,7 @@ describe('R3F sync module export', () => {
           id: 'product',
           name: 'Product',
           kind: 'glb',
-          uri: '/assets/diorama/product.glb',
+          uri: '/assets/dioramai/product.glb',
           source: 'manual',
         },
       },
@@ -76,7 +76,7 @@ describe('R3F sync module export', () => {
 
     expect(out).toContain("import { useGLTF } from '@react-three/drei';");
     expect(out).toContain('function AssetModel');
-    expect(out).toContain('/assets/diorama/product.glb');
+    expect(out).toContain('/assets/dioramai/product.glb');
     expect(parseSceneFromR3fSyncModule(out)).toEqual({
       ok: true,
       scene,
@@ -89,20 +89,20 @@ describe('R3F sync module export', () => {
       ok: false,
       error: {
         code: 'SCENE_BLOCK_NOT_FOUND',
-        message: 'Generated Diorama scene block was not found.',
+        message: 'Generated Dioramai scene block was not found.',
       },
     });
 
     const invalid =
-      `${DIORAMA_SCENE_BLOCK_START}\n` +
-      `{"format":"diorama-scene","version":2,"data":{"rootId":"missing","nodes":{}}}\n` +
-      `${DIORAMA_SCENE_BLOCK_END}`;
+      `${DIORAMAI_SCENE_BLOCK_START}\n` +
+      `{"format":"dioramai-scene","version":2,"data":{"rootId":"missing","nodes":{}}}\n` +
+      `${DIORAMAI_SCENE_BLOCK_END}`;
 
     expect(parseSceneFromR3fSyncModule(invalid)).toEqual({
       ok: false,
       error: {
         code: 'SCENE_BLOCK_INVALID',
-        message: 'Generated Diorama scene block failed JSON parsing or schema validation.',
+        message: 'Generated Dioramai scene block failed JSON parsing or schema validation.',
       },
     });
   });

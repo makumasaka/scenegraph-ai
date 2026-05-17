@@ -1,4 +1,4 @@
-import type { Scene, SceneNode, Transform, Vec3 } from '@diorama/schema';
+import type { Scene, SceneNode, Transform, Vec3 } from '@dioramai/schema';
 import { createId, getParent } from './scene';
 
 const cloneVec3 = (v: Vec3): Vec3 => [v[0], v[1], v[2]];

@@ -1,1 +1,1 @@
-export { transformPatchFromObject3D } from '@diorama/r3f-bridge';
+export { transformPatchFromObject3D } from '@dioramai/r3f-bridge';

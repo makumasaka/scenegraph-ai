@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/export-r3f",
+  "name": "@dioramai/export-r3f",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,10 +16,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/schema": "*"
+    "@dioramai/schema": "*"
   },
   "devDependencies": {
-    "@diorama/core": "*",
+    "@dioramai/core": "*",
     "vitest": "^3.2.4"
   }
 }

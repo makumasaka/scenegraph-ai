@@ -1,5 +1,5 @@
 import { useSceneStore } from '../store/sceneStore';
-import { getParent, type TransformPatch, type Vec3 } from '@diorama/core';
+import { getParent, type TransformPatch, type Vec3 } from '@dioramai/core';
 
 const RAD_TO_DEG = 180 / Math.PI;
 const DEG_TO_RAD = Math.PI / 180;

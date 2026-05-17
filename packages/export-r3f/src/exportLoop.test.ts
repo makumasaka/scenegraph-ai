@@ -5,13 +5,13 @@ import {
   galleryScene,
   livingSpaceScene,
   showroomScene,
-} from '@diorama/core';
+} from '@dioramai/core';
 import {
   SCENE_DATA_VERSION,
   parseSceneJson,
   serializeScene,
   type Scene,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { exportSceneToR3fJsx, exportSceneToR3fModule } from './r3f';
 
 const examples = [
@@ -110,7 +110,7 @@ describe('Milestone 5 export loop lock', () => {
         version: number;
         data: Scene;
       };
-      expect(doc.format).toBe('diorama-scene');
+      expect(doc.format).toBe('dioramai-scene');
       expect(doc.version).toBe(SCENE_DATA_VERSION);
       for (const [nodeId, node] of Object.entries(doc.data.nodes)) {
         expect(node.id).toBe(nodeId);

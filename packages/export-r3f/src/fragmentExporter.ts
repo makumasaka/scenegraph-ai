@@ -1,4 +1,4 @@
-import { stableStringify, type Scene, type SceneNode } from '@diorama/schema';
+import { stableStringify, type Scene, type SceneNode } from '@dioramai/schema';
 import {
   emitLight,
   escapeAttr,

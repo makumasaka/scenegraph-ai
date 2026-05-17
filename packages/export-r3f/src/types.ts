@@ -7,7 +7,7 @@ import type {
   SemanticGroup,
   SemanticRole,
   Trait,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 
 /**
  * Options for the legacy JSX fragment exporter.

@@ -60,7 +60,7 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
     "rootId": "default-root",
     "selection": null
   },
-  "format": "diorama-scene",
+  "format": "dioramai-scene",
   "version": 2
 }"
 `;
@@ -420,7 +420,7 @@ exports[`versioned serialization > matches snapshot bytes for default + showroom
     "rootId": "showroom-root",
     "selection": null
   },
-  "format": "diorama-scene",
+  "format": "dioramai-scene",
   "version": 2
 }"
 `;

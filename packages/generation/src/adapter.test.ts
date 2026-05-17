@@ -7,7 +7,7 @@ import { createGeneratorAdapter } from './adapter';
 const tmpRoots: string[] = [];
 
 const createTmp = async (): Promise<string> => {
-  const dir = await mkdtemp(join(tmpdir(), 'diorama-generation-'));
+  const dir = await mkdtemp(join(tmpdir(), 'dioramai-generation-'));
   tmpRoots.push(dir);
   return dir;
 };

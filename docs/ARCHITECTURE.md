@@ -1,22 +1,22 @@
 # Architecture Overview
 
-Diorama separates canonical scene state, runtime projection, and generated code.
+Dioramai separates canonical scene state, runtime projection, and generated code.
 Its MVP is a local live-sync loop for React Three Fiber projects.
 
 ## Product Boundary
 
-Diorama is a visual runtime orchestration layer for R3F applications. It is not
+Dioramai is a visual runtime orchestration layer for R3F applications. It is not
 a renderer, cloud publisher, model generator, browser game engine, or general
 3D editor. It operates after assets exist in a developer repository and before
 the resulting R3F application is deployed through that repository.
 
 ## Source Of Truth
 
-The canonical source of truth is the Zod-validated Diorama scene document:
+The canonical source of truth is the Zod-validated Dioramai scene document:
 
-- `@diorama/schema` defines scene documents, nodes, transforms, asset refs,
+- `@dioramai/schema` defines scene documents, nodes, transforms, asset refs,
   semantics, behaviors, validation, and stable JSON serialization.
-- `@diorama/core` applies commands through a pure deterministic reducer.
+- `@dioramai/core` applies commands through a pure deterministic reducer.
 - Runtime objects, R3F refs, TransformControls state, camera state, command
   timeline UI, and Zustand app state are projections or controls only.
 
@@ -24,10 +24,10 @@ Persistent scene edits must flow through commands:
 
 ```text
 R3F pointer/transform interaction
-  -> @diorama/r3f-bridge command translation
-  -> @diorama/core reducer
+  -> @dioramai/r3f-bridge command translation
+  -> @dioramai/core reducer
   -> canonical scene
-  -> @diorama/export-r3f generated module
+  -> @dioramai/export-r3f generated module
   -> app/runtime refresh
 ```
 
@@ -35,14 +35,14 @@ R3F pointer/transform interaction
 
 ```mermaid
 flowchart TB
-  Schema["@diorama/schema"]
-  Core["@diorama/core"]
-  Bridge["@diorama/r3f-bridge"]
-  Export["@diorama/export-r3f"]
-  Local["@diorama/local-bridge"]
-  CLI["diorama CLI"]
-  MCP["@diorama/mcp"]
-  Ingest["@diorama/ingestion"]
+  Schema["@dioramai/schema"]
+  Core["@dioramai/core"]
+  Bridge["@dioramai/r3f-bridge"]
+  Export["@dioramai/export-r3f"]
+  Local["@dioramai/local-bridge"]
+  CLI["dioramai CLI"]
+  MCP["@dioramai/mcp"]
+  Ingest["@dioramai/ingestion"]
   Web["apps/web"]
   Project["Developer R3F project"]
 
@@ -62,38 +62,38 @@ flowchart TB
   Project --> Export
 ```
 
-## `@diorama/schema`
+## `@dioramai/schema`
 
-- Owns the `diorama-scene` document wrapper and scene graph validation.
+- Owns the `dioramai-scene` document wrapper and scene graph validation.
 - Preserves stable node IDs, hierarchy, transforms, visibility, `assetRef`,
   semantic groups, behaviors, and asset records.
 - Provides deterministic `serializeScene` and parse/migration helpers.
 
-## `@diorama/core`
+## `@dioramai/core`
 
 - Owns the command union and `applyCommand` reducer.
 - Commands include node CRUD, transform updates, semantic metadata,
   `REGISTER_ASSET`, `REPLACE_SCENE`, and selection.
 - Core has no React, no Zustand, no file IO, and no R3F refs.
 
-## `@diorama/r3f-bridge`
+## `@dioramai/r3f-bridge`
 
 - Projects canonical scene nodes into R3F groups/components.
-- Maintains a runtime node registry keyed by stable Diorama node IDs.
+- Maintains a runtime node registry keyed by stable Dioramai node IDs.
 - Translates selection and TransformControls commits into commands.
 - Provides inspector helpers derived from schema state.
 - Does not own canonical state, write files, or expose runtime refs as
   canonical data.
 
-## `@diorama/export-r3f`
+## `@dioramai/export-r3f`
 
 - Emits deterministic R3F fragments/modules from canonical scenes.
-- Emits the MVP sync module format with an embedded `dioramaScene` document.
+- Emits the MVP sync module format with an embedded `dioramaiScene` document.
 - Parses the embedded scene block back into validated canonical state.
 - Does not emit editor-only state, command logs, filesystem paths, or runtime
   refs.
 
-## `@diorama/local-bridge`
+## `@dioramai/local-bridge`
 
 - Owns the local repo boundary, file watching, generated module writes, local
   asset serving, and project path validation.
@@ -121,13 +121,13 @@ The MVP tool surface is intentionally narrow:
 - `export_r3f`
 - `sync_code`
 
-MCP operates through `@diorama/local-bridge`. It must not access the filesystem
+MCP operates through `@dioramai/local-bridge`. It must not access the filesystem
 directly, start generation workflows, run shell commands, evaluate JavaScript,
 touch Zustand state, or expose R3F/Three objects.
 
 ## Deferred Packages
 
-`@diorama/agent-interface`, `@diorama/generation`, and
-`@diorama/generation-meshy` are retained only as deferred historical
+`@dioramai/agent-interface`, `@dioramai/generation`, and
+`@dioramai/generation-meshy` are retained only as deferred historical
 experiments. They are not part of the P0 runtime-sync bridge, root scripts, or
 MCP tool path.

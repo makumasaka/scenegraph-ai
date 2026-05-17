@@ -1,4 +1,4 @@
-import type { Scene, SceneNode, Transform } from '@diorama/schema';
+import type { Scene, SceneNode, Transform } from '@dioramai/schema';
 
 export const identityTransform = (): Transform => ({
   position: [0, 0, 0],

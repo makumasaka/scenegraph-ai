@@ -1,4 +1,4 @@
-import type { Scene } from '@diorama/schema';
+import type { Scene } from '@dioramai/schema';
 import { createNode } from '../scene';
 
 /** Flat, intentionally messy showroom used by the MVP demo flow. */

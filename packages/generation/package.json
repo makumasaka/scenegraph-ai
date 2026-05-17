@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/generation",
+  "name": "@dioramai/generation",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/generation-meshy": "*"
+    "@dioramai/generation-meshy": "*"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

@@ -1,4 +1,4 @@
-import { summarizeCommand } from '@diorama/core';
+import { summarizeCommand } from '@dioramai/core';
 import { useSceneStore, type CommandLogEntry } from '../store/sceneStore';
 
 const formatTime = (ts: number): string => {

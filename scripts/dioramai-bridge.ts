@@ -1,4 +1,4 @@
-import { startDioramaBridgeServer } from '@diorama/local-bridge';
+import { startDioramaiBridgeServer } from '@dioramai/local-bridge';
 
 const argValue = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -9,16 +9,16 @@ const argValue = (name: string): string | undefined => {
 };
 
 const run = async (): Promise<void> => {
-  const projectRoot = argValue('projectRoot') ?? process.env.DIORAMA_PROJECT_ROOT;
+  const projectRoot = argValue('projectRoot') ?? process.env.DIORAMAI_PROJECT_ROOT;
   if (projectRoot === undefined) {
-    throw new Error('Diorama bridge requires an explicit --projectRoot or DIORAMA_PROJECT_ROOT.');
+    throw new Error('Dioramai bridge requires an explicit --projectRoot or DIORAMAI_PROJECT_ROOT.');
   }
-  const watchCode = process.env.DIORAMA_WATCH_CODE !== 'false';
-  const started = await startDioramaBridgeServer(undefined, {
+  const watchCode = process.env.DIORAMAI_WATCH_CODE !== 'false';
+  const started = await startDioramaiBridgeServer(undefined, {
     projectRoot,
     watchCode,
   });
-  console.log(`Diorama bridge listening on http://127.0.0.1:${started.port}`);
+  console.log(`Dioramai bridge listening on http://127.0.0.1:${started.port}`);
   console.log('Scene events: http://127.0.0.1:%s/events', started.port);
   console.log('Pairing token: %s', started.pairingToken);
   console.log('Shell query: ?bridgeToken=%s', encodeURIComponent(started.pairingToken));

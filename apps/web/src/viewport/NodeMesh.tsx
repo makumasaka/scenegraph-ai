@@ -15,7 +15,7 @@ import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
 import type { Group, Object3D } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../store/sceneStore';
-import { torusArgsFromMetadata } from '@diorama/export-r3f';
+import { torusArgsFromMetadata } from '@dioramai/export-r3f';
 import { transformPatchFromObject3D } from './object3dTransform';
 
 interface NodeMeshProps {
@@ -147,7 +147,7 @@ function NodeMeshInner({ nodeId, children }: NodeMeshProps) {
   const assetUri = useMemo(() => resolveRenderableAssetUri(rawAssetUri), [rawAssetUri]);
 
   const torusProxyArgs = useMemo((): [number, number, number, number] | undefined => {
-    if (!node || node.metadata.dioramaProxyMesh !== 'torus') return undefined;
+    if (!node || node.metadata.dioramaiProxyMesh !== 'torus') return undefined;
     return torusArgsFromMetadata(node.metadata);
   }, [node]);
 

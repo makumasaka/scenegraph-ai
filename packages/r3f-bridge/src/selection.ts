@@ -1,5 +1,5 @@
-import type { Command } from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+import type { Command } from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 
 export type SelectionModel = {
   selectedId: string | null;

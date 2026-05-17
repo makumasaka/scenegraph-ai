@@ -1,4 +1,4 @@
-import type { NodeType, SemanticRole } from '@diorama/schema';
+import type { NodeType, SemanticRole } from '@dioramai/schema';
 
 const ROLE_COMPONENTS: Record<SemanticRole, string> = {
   product: 'Product',

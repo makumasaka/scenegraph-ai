@@ -1,5 +1,5 @@
-export type { Command } from '@diorama/core';
-export type { Scene } from '@diorama/schema';
+export type { Command } from '@dioramai/core';
+export type { Scene } from '@dioramai/schema';
 export type {
   ActionLogEntry,
   ActionSource,
@@ -10,7 +10,7 @@ export type {
   CommandBatchError,
   CommandBatchItemResult,
   CommandBatchResult,
-  DioramaSceneRuntime,
+  DioramaiSceneRuntime,
   ExportSceneResult,
 } from './session';
 export { createAgentSession } from './session';

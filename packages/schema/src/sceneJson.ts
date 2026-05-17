@@ -26,7 +26,7 @@ export const stableStringify = (value: unknown, space = 2): string => {
 };
 
 /**
- * Canonical JSON export: `diorama-scene` document wrapper, version tag, and
+ * Canonical JSON export: `dioramai-scene` document wrapper, version tag, and
  * {@link stableStringify} so object keys sort lexicographically at every depth
  * (arrays such as `children` keep graph order).
  */

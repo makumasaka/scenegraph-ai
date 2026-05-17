@@ -10,10 +10,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@diorama/schema': path.join(repoRoot, 'packages/schema/src'),
-      '@diorama/core': path.join(repoRoot, 'packages/core/src'),
-      '@diorama/export-r3f': path.join(repoRoot, 'packages/export-r3f/src'),
-      '@diorama/r3f-bridge': path.join(repoRoot, 'packages/r3f-bridge/src'),
+      '@dioramai/schema': path.join(repoRoot, 'packages/schema/src'),
+      '@dioramai/core': path.join(repoRoot, 'packages/core/src'),
+      '@dioramai/export-r3f': path.join(repoRoot, 'packages/export-r3f/src'),
+      '@dioramai/r3f-bridge': path.join(repoRoot, 'packages/r3f-bridge/src'),
     },
   },
   server: {

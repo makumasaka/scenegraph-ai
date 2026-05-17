@@ -11,7 +11,7 @@ round-trips intent for simple scenes.
 
 ## Decision
 
-- `@diorama/export-r3f` emits deterministic JSX strings: nested `<group>`
+- `@dioramai/export-r3f` emits deterministic JSX strings: nested `<group>`
   elements for every visible scene node, primitive mesh placeholders for visible
   `mesh` nodes, simple ambient/directional lights for scene light nodes, hidden
   subtree omission, and an optional studio lights block.

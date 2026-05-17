@@ -6,8 +6,8 @@ import {
   galleryScene,
   livingSpaceScene,
   showroomScene,
-} from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+} from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 import { exportSceneToR3fJsx } from './r3f';
 
 describe('exportSceneToR3fJsx', () => {

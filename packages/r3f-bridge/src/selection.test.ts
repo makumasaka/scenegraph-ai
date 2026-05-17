@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createEmptyScene, createNode, applyCommand } from '@diorama/core';
+import { createEmptyScene, createNode, applyCommand } from '@dioramai/core';
 import { createSelectionManager } from './selection';
 
 describe('createSelectionManager', () => {

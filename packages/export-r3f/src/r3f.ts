@@ -1,9 +1,9 @@
 export { exportSceneToR3fJsx } from './fragmentExporter';
 export { exportSceneToR3fModule } from './moduleExporter';
 export {
-  DIORAMA_GENERATED_MARKER,
-  DIORAMA_SCENE_BLOCK_END,
-  DIORAMA_SCENE_BLOCK_START,
+  DIORAMAI_GENERATED_MARKER,
+  DIORAMAI_SCENE_BLOCK_END,
+  DIORAMAI_SCENE_BLOCK_START,
   exportSceneToR3fSyncModule,
   extractSceneJsonFromR3fSyncModule,
   parseSceneFromR3fSyncModule,

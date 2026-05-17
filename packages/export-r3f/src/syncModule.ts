@@ -2,13 +2,13 @@ import {
   parseSceneJson,
   serializeScene,
   type Scene,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { sanitizeIdentifier } from './semanticMapper';
 import type { R3fExportResult, R3fSyncModuleExportOptions } from './types';
 
-export const DIORAMA_GENERATED_MARKER = '// @diorama-generated';
-export const DIORAMA_SCENE_BLOCK_START = '// @diorama-scene-start';
-export const DIORAMA_SCENE_BLOCK_END = '// @diorama-scene-end';
+export const DIORAMAI_GENERATED_MARKER = '// @dioramai-generated';
+export const DIORAMAI_SCENE_BLOCK_START = '// @dioramai-scene-start';
+export const DIORAMAI_SCENE_BLOCK_END = '// @dioramai-scene-end';
 
 export type R3fSyncModuleSceneParseResult =
   | { ok: true; scene: Scene; json: string }
@@ -21,7 +21,7 @@ export type R3fSyncModuleSceneParseResult =
     };
 
 const safeComponentName = (value: string | undefined): string =>
-  sanitizeIdentifier(value ?? 'DioramaScene', 'DioramaScene');
+  sanitizeIdentifier(value ?? 'DioramaiScene', 'DioramaiScene');
 
 const renderSyncModule = (
   sceneJson: string,
@@ -29,12 +29,12 @@ const renderSyncModule = (
   includeStudioLights: boolean,
 ): string =>
   `/* eslint-disable */\n` +
-  `${DIORAMA_GENERATED_MARKER}\n` +
-  `/* This file is owned by Diorama. Edit dioramaScene for MVP code -> runtime sync. */\n` +
+  `${DIORAMAI_GENERATED_MARKER}\n` +
+  `/* This file is owned by Dioramai. Edit dioramaiScene for MVP code -> runtime sync. */\n` +
   `import { Suspense, useMemo } from 'react';\n` +
   `import { useGLTF } from '@react-three/drei';\n\n` +
   `type Vec3 = readonly [number, number, number];\n` +
-  `type DioramaNode = {\n` +
+  `type DioramaiNode = {\n` +
   `  id: string;\n` +
   `  name: string;\n` +
   `  type: 'root' | 'group' | 'mesh' | 'light' | 'empty';\n` +
@@ -46,13 +46,13 @@ const renderSyncModule = (
   `  light?: { kind: 'ambient'; intensity?: number } | { kind: 'directional'; intensity?: number; castShadow?: boolean };\n` +
   `  [key: string]: unknown;\n` +
   `};\n` +
-  `type DioramaSceneData = { rootId: string; nodes: Record<string, DioramaNode>; [key: string]: unknown };\n` +
-  `type DioramaSceneDocument = { format: 'diorama-scene'; version: 2; data: DioramaSceneData };\n\n` +
-  `export const dioramaScene = (\n` +
-  `${DIORAMA_SCENE_BLOCK_START}\n` +
+  `type DioramaiSceneData = { rootId: string; nodes: Record<string, DioramaiNode>; [key: string]: unknown };\n` +
+  `type DioramaiSceneDocument = { format: 'dioramai-scene'; version: 2; data: DioramaiSceneData };\n\n` +
+  `export const dioramaiScene = (\n` +
+  `${DIORAMAI_SCENE_BLOCK_START}\n` +
   `${sceneJson}\n` +
-  `${DIORAMA_SCENE_BLOCK_END}\n` +
-  `) as const satisfies DioramaSceneDocument;\n\n` +
+  `${DIORAMAI_SCENE_BLOCK_END}\n` +
+  `) as const satisfies DioramaiSceneDocument;\n\n` +
   `function vec3(value: Vec3): [number, number, number] {\n` +
   `  return [value[0], value[1], value[2]];\n` +
   `}\n\n` +
@@ -77,7 +77,7 @@ const renderSyncModule = (
   `    </mesh>\n` +
   `  );\n` +
   `}\n\n` +
-  `function SceneNode({ scene, nodeId }: { scene: DioramaSceneData; nodeId: string }) {\n` +
+  `function SceneNode({ scene, nodeId }: { scene: DioramaiSceneData; nodeId: string }) {\n` +
   `  const node = scene.nodes[nodeId];\n` +
   `  if (!node || node.visible === false) return null;\n` +
   `  const hasLight = node.light !== undefined || node.type === 'light';\n` +
@@ -92,7 +92,7 @@ const renderSyncModule = (
   `      position={vec3(node.transform.position)}\n` +
   `      rotation={vec3(node.transform.rotation)}\n` +
   `      scale={vec3(node.transform.scale)}\n` +
-  `      userData={{ dioramaId: node.id, sourceId: node.id }}\n` +
+  `      userData={{ dioramaiId: node.id, sourceId: node.id }}\n` +
   `    >\n` +
   `      {hasLight && node.light?.kind === 'ambient' ? <ambientLight intensity={node.light.intensity ?? 0.4} /> : null}\n` +
   `      {hasLight && node.light?.kind === 'directional' ? <directionalLight intensity={node.light.intensity ?? 1} castShadow={node.light.castShadow} /> : null}\n` +
@@ -107,7 +107,7 @@ const renderSyncModule = (
   `  );\n` +
   `}\n\n` +
   `export function ${componentName}() {\n` +
-  `  const scene = dioramaScene.data;\n` +
+  `  const scene = dioramaiScene.data;\n` +
   `  return (\n` +
   `    <>\n` +
   (includeStudioLights
@@ -132,10 +132,10 @@ export const exportSceneToR3fSyncModule = (
 });
 
 export const extractSceneJsonFromR3fSyncModule = (code: string): string | null => {
-  const start = code.indexOf(DIORAMA_SCENE_BLOCK_START);
-  const end = code.indexOf(DIORAMA_SCENE_BLOCK_END);
+  const start = code.indexOf(DIORAMAI_SCENE_BLOCK_START);
+  const end = code.indexOf(DIORAMAI_SCENE_BLOCK_END);
   if (start < 0 || end < 0 || end <= start) return null;
-  return code.slice(start + DIORAMA_SCENE_BLOCK_START.length, end).trim();
+  return code.slice(start + DIORAMAI_SCENE_BLOCK_START.length, end).trim();
 };
 
 export const parseSceneFromR3fSyncModule = (
@@ -147,7 +147,7 @@ export const parseSceneFromR3fSyncModule = (
       ok: false,
       error: {
         code: 'SCENE_BLOCK_NOT_FOUND',
-        message: 'Generated Diorama scene block was not found.',
+        message: 'Generated Dioramai scene block was not found.',
       },
     };
   }
@@ -157,7 +157,7 @@ export const parseSceneFromR3fSyncModule = (
       ok: false,
       error: {
         code: 'SCENE_BLOCK_INVALID',
-        message: 'Generated Diorama scene block failed JSON parsing or schema validation.',
+        message: 'Generated Dioramai scene block failed JSON parsing or schema validation.',
       },
     };
   }

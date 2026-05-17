@@ -1,4 +1,4 @@
-import type { BehaviorDefinition, Scene, SceneNode, SemanticGroup } from '@diorama/schema';
+import type { BehaviorDefinition, Scene, SceneNode, SemanticGroup } from '@dioramai/schema';
 import { resolveBehaviorRequirements } from './behaviorMapper';
 import { componentNameForRole } from './semanticMapper';
 import type {

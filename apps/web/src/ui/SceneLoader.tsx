@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { getStarterScene, type StarterKitId } from '@diorama/core';
-import { exportSceneToR3fJsx } from '@diorama/export-r3f';
+import { getStarterScene, type StarterKitId } from '@dioramai/core';
+import { exportSceneToR3fJsx } from '@dioramai/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
 import { postBridgeImportGlbAsset } from '../bridge/bridgeClient';
 

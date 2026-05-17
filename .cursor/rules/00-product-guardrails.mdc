@@ -1,13 +1,13 @@
 ---
-description: Core product guardrails for Diorama
+description: Core product guardrails for Dioramai
 alwaysApply: true
 ---
 
-- Diorama is a visual runtime orchestration layer for AI-native React Three Fiber applications.
+- Dioramai is a visual runtime orchestration layer for AI-native React Three Fiber applications.
 - Optimize for live code <-> runtime sync, stable node identity, deterministic commands, and repo-native R3F output.
-- Diorama is not a full 3D editor, browser game engine, DCC, Blender replacement, Unity clone, or asset generation platform.
-- The Diorama scene schema is canonical; Three.js objects, R3F refs, viewport state, and Zustand state are projections only.
+- Dioramai is not a full 3D editor, browser game engine, DCC, Blender replacement, Unity clone, or asset generation platform.
+- The Dioramai scene schema is canonical; Three.js objects, R3F refs, viewport state, and Zustand state are projections only.
 - Every important user/runtime/agent edit must correspond to a command.
 - Preserve semantic node identity across runtime edits, generated code, and scene reloads.
-- Generated code may own a narrow `dioramaScene` metadata block; deeper JSX parsing is deferred.
-- Deployment is handled by the developer repo and Vercel flow, not Diorama cloud.
+- Generated code may own a narrow `dioramaiScene` metadata block; deeper JSX parsing is deferred.
+- Deployment is handled by the developer repo and Vercel flow, not Dioramai cloud.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Scene } from '@diorama/schema';
-import { validateScene } from '@diorama/schema';
+import type { Scene } from '@dioramai/schema';
+import { validateScene } from '@dioramai/schema';
 import { applyCommand, type Command } from './commands';
 import { collectSubtreeBfsOrder } from './duplicate';
 import { assertSceneGraphInvariants } from './sceneInvariants';

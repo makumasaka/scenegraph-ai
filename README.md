@@ -1,9 +1,8 @@
-# Diorama
+# Dioramai
 
-Diorama is a visual runtime orchestration layer for AI-native React Three Fiber
-applications.
+Dioramai is a visual runtime orchestration layer for AI-native React Three Fiber applications.
 
-It is repo-first, runtime-first, and code-first. Diorama runs inside or
+It is repo-first, runtime-first, and code-first. Dioramai runs inside or
 alongside an existing developer project, keeps a validated canonical scene graph
 as source of truth, projects that scene into an R3F viewport, and synchronizes
 deterministic visual edits back into generated R3F code.
@@ -16,22 +15,22 @@ composition, semantic scene identity, and app-ready R3F modules aligned.
 
 The MVP is live code <-> runtime synchronization.
 
-1. Open an R3F project with Diorama running beside it.
+1. Open an R3F project with Dioramai running beside it.
 2. Register GLB assets that already live in the project.
-3. Select and transform scene nodes in the Diorama viewport.
-4. Diorama applies commands to the canonical scene.
-5. Diorama regenerates a deterministic R3F scene module in the project.
+3. Select and transform scene nodes in the Dioramai viewport.
+4. Dioramai applies commands to the canonical scene.
+5. Dioramai regenerates a deterministic R3F scene module in the project.
 6. The app hot reloads from that module.
-7. Editing the embedded `dioramaScene` block in the generated module reloads the
+7. Editing the embedded `dioramaiScene` block in the generated module reloads the
    canonical scene and updates the runtime again.
 
-Diorama does not host or publish projects. Deployment stays in the developer
+Dioramai does not host or publish projects. Deployment stays in the developer
 repo through Cursor, Codex, Claude, Vercel, or the project's normal deploy
 workflow.
 
 ## Canonical Model
 
-The Diorama scene schema is the source of truth.
+The Dioramai scene schema is the source of truth.
 
 Not canonical:
 
@@ -53,7 +52,7 @@ runtime interaction
 
 ## Product Boundaries
 
-Diorama is not:
+Dioramai is not:
 
 - a general-purpose 3D editor
 - a browser game engine
@@ -63,7 +62,7 @@ Diorama is not:
 - a cloud publishing system
 
 Generated assets can be created elsewhere, committed into the developer repo as
-GLB/GLTF files, and then registered with Diorama.
+GLB/GLTF files, and then registered with Dioramai.
 
 ## Repository Layout
 
@@ -73,10 +72,8 @@ GLB/GLTF files, and then registered with Diorama.
 | `packages/core` | Pure command reducer, scene helpers, deterministic transforms |
 | `packages/r3f-bridge` | R3F runtime projection, selection, registry, transform command translation |
 | `packages/export-r3f` | Deterministic R3F module export and generated scene metadata parsing |
-| `packages/local-bridge` | Local-only project bridge; the only filesystem/repo/asset-aware layer |
-| `packages/cli` | Thin `diorama` CLI for `init`, `dev`, `export`, and `validate` |
-| `packages/mcp` | MCP bridge proxy with a narrow safe tool surface |
-| `packages/agent-interface` | Deferred legacy command/session experiments, outside the P0 bridge path |
+| `packages/agent-interface` | Narrow command/session surface for tools |
+| `packages/mcp` | Thin MCP-facing package over the agent surface |
 | `packages/ingestion` | Local GLB/GLTF registration helpers |
 | `apps/web` | Vite runtime debug shell for viewport, hierarchy, inspector, code sync status |
 | `apps/demo-export` | Sample generated R3F app used for local preview |
@@ -97,25 +94,20 @@ Useful scripts:
 |---------|---------|
 | `npm run test` | Run MVP package and app tests |
 | `npm run typecheck` | Typecheck MVP packages |
-| `npm run build` | Build the Diorama web shell |
-| `npm run bridge:dev` | Start the local Diorama project bridge |
+| `npm run build` | Build the Dioramai web shell |
+| `npm run bridge:dev` | Start the local Dioramai project bridge |
 | `npm run mcp:stdio` | Start the narrow local MCP adapter |
 
 For project sync, start the bridge with a project root:
 
 ```bash
-npx diorama init --projectRoot /path/to/r3f-app
-npx diorama dev --projectRoot /path/to/r3f-app
+DIORAMAI_PROJECT_ROOT=/path/to/r3f-app npm run bridge:dev
 ```
-
-The bridge prints a pairing token. Open the local or hosted shell with
-`?bridgeToken=<token>` so browser requests can pair with the local bridge.
 
 Default generated output:
 
-- `src/generated/DioramaScene.generated.tsx`
-- `src/generated/diorama.scene.json`
-- `public/assets/models/*`
+- `src/dioramai/DioramaiScene.generated.tsx`
+- `public/assets/dioramai/*`
 
 ## More Docs
 

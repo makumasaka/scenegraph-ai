@@ -3,15 +3,15 @@ import {
   createEmptyScene,
   type Command,
   type CommandSummary,
-} from '@diorama/core';
-import { exportSceneToR3fJsx, exportSceneToR3fModule } from '@diorama/export-r3f';
+} from '@dioramai/core';
+import { exportSceneToR3fJsx, exportSceneToR3fModule } from '@dioramai/export-r3f';
 import {
   cloneSceneFromJson,
   parseSceneJson,
   serializeScene,
   validateScene,
   type Scene,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { CommandSchema } from './commandSchema';
 import {
   ExportSceneParamsSchema,
@@ -91,7 +91,7 @@ export type ActionLogEntry = {
  * Small typed surface for agents: reads return clones, writes go only through
  * validated commands (or validated full-graph loads).
  */
-export type DioramaSceneRuntime = {
+export type DioramaiSceneRuntime = {
   getScene(): AgentResult<{ scene: Scene }>;
   getSelection(): AgentResult<{ selection: string | null }>;
   dryRunCommand(input: unknown): AgentResult<ApplyCommandResult>;
@@ -112,7 +112,7 @@ export type DioramaSceneRuntime = {
   redo?: () => AgentResult<{ scene: Scene }>;
 };
 
-export type AgentSession = DioramaSceneRuntime;
+export type AgentSession = DioramaiSceneRuntime;
 
 const validationError = (message: string, issues?: ReturnType<typeof issuesFromZod>) =>
   err({

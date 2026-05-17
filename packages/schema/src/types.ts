@@ -12,7 +12,7 @@ export type {
   SemanticGroup,
   BehaviorType,
   BehaviorDefinition,
-  DioramaAsset,
+  DioramaiAsset,
   InteractionBehavior,
   AssetRef,
   MaterialRef,

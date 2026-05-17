@@ -143,7 +143,7 @@ export const BehaviorDefinitionSchema = z
 
 export type BehaviorDefinition = z.infer<typeof BehaviorDefinitionSchema>;
 
-export const DioramaAssetSchema = z
+export const DioramaiAssetSchema = z
   .object({
     id: z.string().min(1),
     name: z.string(),
@@ -155,7 +155,7 @@ export const DioramaAssetSchema = z
   })
   .strict();
 
-export type DioramaAsset = z.infer<typeof DioramaAssetSchema>;
+export type DioramaiAsset = z.infer<typeof DioramaiAssetSchema>;
 
 export const InteractionBehaviorSchema = z
   .object({
@@ -432,7 +432,7 @@ const SceneGraphBaseSchema = z.object({
   selection: z.string().nullable().default(null),
   semanticGroups: z.record(z.string(), SemanticGroupSchema).optional(),
   behaviors: z.record(z.string(), BehaviorDefinitionSchema).optional(),
-  assets: z.record(z.string(), DioramaAssetSchema).optional(),
+  assets: z.record(z.string(), DioramaiAssetSchema).optional(),
   materials: z.record(z.string(), MetadataSchema).optional(),
   layoutMetadata: MetadataSchema.optional(),
   metadata: MetadataSchema.optional(),
@@ -448,12 +448,20 @@ export const SceneGraphSchema = SceneGraphBaseSchema.superRefine(currentGraphRef
 
 export type Scene = z.infer<typeof SceneGraphSchema>;
 
-export const SCENE_DOCUMENT_FORMAT = 'diorama-scene' as const;
+/** Canonical on-disk / interchange format id (post-rebrand). */
+export const SCENE_DOCUMENT_FORMAT = 'dioramai-scene' as const;
+/** Legacy format id; still accepted by {@link SceneDocumentSchema} for parse/migration. */
+export const SCENE_DOCUMENT_LEGACY_FORMAT = 'diorama-scene' as const;
 export const SCENE_LEGACY_DATA_VERSION = 1 as const;
 export const SCENE_DATA_VERSION = 2 as const;
 
+const SceneDocumentFormatSchema = z.union([
+  z.literal(SCENE_DOCUMENT_FORMAT),
+  z.literal(SCENE_DOCUMENT_LEGACY_FORMAT),
+]);
+
 export const SceneDocumentSchema = z.object({
-  format: z.literal(SCENE_DOCUMENT_FORMAT),
+  format: SceneDocumentFormatSchema,
   version: z.literal(SCENE_DATA_VERSION),
   data: SceneGraphSchema,
 });
@@ -465,7 +473,7 @@ export const LegacySceneGraphSchema = LegacySceneGraphBaseSchema.superRefine(
 );
 
 export const LegacySceneDocumentSchema = z.object({
-  format: z.literal(SCENE_DOCUMENT_FORMAT),
+  format: SceneDocumentFormatSchema,
   version: z.literal(SCENE_LEGACY_DATA_VERSION),
   data: LegacySceneGraphSchema,
 });

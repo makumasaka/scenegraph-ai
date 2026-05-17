@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Diorama prioritizes a **command-first**, **deterministic** scene model. Requests that fit that model are easier to adopt.
+        Dioramai prioritizes a **command-first**, **deterministic** scene model. Requests that fit that model are easier to adopt.
 
   - type: textarea
     id: problem

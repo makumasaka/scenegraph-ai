@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSceneJson, serializeScene, validateScene } from '@diorama/schema';
+import { parseSceneJson, serializeScene, validateScene } from '@dioramai/schema';
 import { applyCommand, type Command } from './commands';
 import { getStarterScene, showroomScene } from './fixtures';
 

@@ -16,8 +16,8 @@ It focuses on mutation boundaries, runtime contracts, and extension points.
 - Added a complete mock-first vertical path from generated GLB reference to
   exported R3F module output.
 - Preserved deterministic command semantics as the only scene mutation path.
-- Kept `@diorama/mcp` as a future adapter layer while extending the current
-  Agent Runtime (`@diorama/agent-interface`).
+- Kept `@dioramai/mcp` as a future adapter layer while extending the current
+  Agent Runtime (`@dioramai/agent-interface`).
 
 ## Architectural Delta Summary
 
@@ -43,7 +43,7 @@ It focuses on mutation boundaries, runtime contracts, and extension points.
 
 ### New package
 
-- Added `@diorama/generation`:
+- Added `@dioramai/generation`:
   - [`packages/generation/src/types.ts`](../packages/generation/src/types.ts)
   - [`packages/generation/src/adapter.ts`](../packages/generation/src/adapter.ts)
   - [`packages/generation/src/index.ts`](../packages/generation/src/index.ts)
@@ -73,7 +73,7 @@ It focuses on mutation boundaries, runtime contracts, and extension points.
 
 ### New package
 
-- Added `@diorama/ingestion`:
+- Added `@dioramai/ingestion`:
   - [`packages/ingestion/src/types.ts`](../packages/ingestion/src/types.ts)
   - [`packages/ingestion/src/ingest.ts`](../packages/ingestion/src/ingest.ts)
   - [`packages/ingestion/src/index.ts`](../packages/ingestion/src/index.ts)
@@ -101,8 +101,8 @@ It focuses on mutation boundaries, runtime contracts, and extension points.
 
 ### Terminology
 
-- `@diorama/agent-interface` is the Agent Runtime.
-- `@diorama/mcp` remains a future adapter surface.
+- `@dioramai/agent-interface` is the Agent Runtime.
+- `@dioramai/mcp` remains a future adapter surface.
 
 ### Added Agent Runtime tools
 
@@ -164,26 +164,26 @@ It focuses on mutation boundaries, runtime contracts, and extension points.
 ## Additional providers (Tripo/Luma)
 
 - Add provider-specific adapters behind the same `GeneratorAdapter` interface
-  in `@diorama/generation`.
+  in `@dioramai/generation`.
 - Keep `GeneratedAsset` contract stable.
 - Continue avoiding provider-specific scene mutation logic.
 
 ## Ingestion enrichment
 
-- Add deeper GLB introspection in `@diorama/ingestion` only as command planning
+- Add deeper GLB introspection in `@dioramai/ingestion` only as command planning
   logic (for example richer node trees and semantic hints).
 - Preserve command-only mutation semantics.
 
 ## Future MCP adapter
 
-- Keep `@diorama/mcp` as adapter-only transport and tool-hosting layer.
-- Route all mutations through `@diorama/agent-interface` instead of creating a
+- Keep `@dioramai/mcp` as adapter-only transport and tool-hosting layer.
+- Route all mutations through `@dioramai/agent-interface` instead of creating a
   second mutation path.
 
 ## Known V1 Limits (Intentional)
 
 - No full glTF pipeline, material fidelity system, animation, or physics.
-- No deployment/publishing features in Diorama.
+- No deployment/publishing features in Dioramai.
 - No file browsing tool surface for agents.
 - No arbitrary code execution surface for agents.
 

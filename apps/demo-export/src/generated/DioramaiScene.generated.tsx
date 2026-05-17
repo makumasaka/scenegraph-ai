@@ -1,3 +1,27 @@
+/* eslint-disable */
+// @dioramai-generated
+/* This file is owned by Dioramai. Edit dioramaiScene for MVP code -> runtime sync. */
+import { Suspense, useMemo } from 'react';
+import { useGLTF } from '@react-three/drei';
+
+type Vec3 = readonly [number, number, number];
+type DioramaiNode = {
+  id: string;
+  name: string;
+  type: 'root' | 'group' | 'mesh' | 'light' | 'empty';
+  visible: boolean;
+  children: readonly string[];
+  transform: { position: Vec3; rotation: Vec3; scale: Vec3 };
+  metadata: Record<string, unknown>;
+  assetRef?: { kind: 'none' } | { kind: 'uri'; uri: string };
+  light?: { kind: 'ambient'; intensity?: number } | { kind: 'directional'; intensity?: number; castShadow?: boolean };
+  [key: string]: unknown;
+};
+type DioramaiSceneData = { rootId: string; nodes: Record<string, DioramaiNode>; [key: string]: unknown };
+type DioramaiSceneDocument = { format: 'dioramai-scene'; version: 2; data: DioramaiSceneData };
+
+export const dioramaiScene = (
+// @dioramai-scene-start
 {
   "data": {
     "assets": {
@@ -40,9 +64,9 @@
         },
         "transform": {
           "position": [
-            0.7231671566562332,
             0,
-            -2.6420929469828582
+            0,
+            0
           ],
           "rotation": [
             0,
@@ -156,6 +180,77 @@
     "rootId": "default-root",
     "selection": null
   },
-  "format": "diorama-scene",
+  "format": "dioramai-scene",
   "version": 2
+}
+// @dioramai-scene-end
+) as const satisfies DioramaiSceneDocument;
+
+function vec3(value: Vec3): [number, number, number] {
+  return [value[0], value[1], value[2]];
+}
+
+function isRenderableAssetUri(uri: string | undefined): string | undefined {
+  if (!uri || !/\.(glb|gltf)(\?|#|$)/i.test(uri)) return undefined;
+  if (uri.startsWith('file://') || uri.startsWith('http://') || uri.startsWith('https://')) return undefined;
+  if (uri.includes('/Users/') || uri.includes('\\Users\\')) return undefined;
+  if (/^[a-zA-Z]:\\/.test(uri)) return undefined;
+  if (uri.startsWith('/assets/') || uri.startsWith('assets/') || uri.startsWith('./') || uri.startsWith('../')) return uri;
+  return undefined;
+}
+
+function AssetModel({ uri }: { uri: string }) {
+  const gltf = useGLTF(uri);
+  const object = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  return <primitive object={object} />;
+}
+
+function ProxyMesh() {
+  return (
+    <mesh castShadow receiveShadow>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#94a3b8" />
+    </mesh>
+  );
+}
+
+function SceneNode({ scene, nodeId }: { scene: DioramaiSceneData; nodeId: string }) {
+  const node = scene.nodes[nodeId];
+  if (!node || node.visible === false) return null;
+  const hasLight = node.light !== undefined || node.type === 'light';
+  const inspectOnly = node.metadata.renderMode === 'gltf-inspect-only';
+  const assetUri = isRenderableAssetUri(node.assetRef?.kind === 'uri' ? node.assetRef.uri : undefined);
+  const showMesh = node.type === 'mesh' && !hasLight && !inspectOnly;
+  const showAsset = showMesh && assetUri !== undefined;
+  const showProxy = showMesh && !showAsset;
+  return (
+    <group
+      name={node.name}
+      position={vec3(node.transform.position)}
+      rotation={vec3(node.transform.rotation)}
+      scale={vec3(node.transform.scale)}
+      userData={{ dioramaiId: node.id, sourceId: node.id }}
+    >
+      {hasLight && node.light?.kind === 'ambient' ? <ambientLight intensity={node.light.intensity ?? 0.4} /> : null}
+      {hasLight && node.light?.kind === 'directional' ? <directionalLight intensity={node.light.intensity ?? 1} castShadow={node.light.castShadow} /> : null}
+      {showAsset ? (
+        <Suspense fallback={<ProxyMesh />}>
+          <AssetModel uri={assetUri} />
+        </Suspense>
+      ) : null}
+      {showProxy ? <ProxyMesh /> : null}
+      {node.children.map((childId) => <SceneNode key={childId} scene={scene} nodeId={childId} />)}
+    </group>
+  );
+}
+
+export function DioramaiScene() {
+  const scene = dioramaiScene.data;
+  return (
+    <>
+      <ambientLight intensity={0.4} />
+      <directionalLight castShadow position={[5, 8, 5]} intensity={1.1} />
+      <SceneNode scene={scene} nodeId={scene.rootId} />
+    </>
+  );
 }

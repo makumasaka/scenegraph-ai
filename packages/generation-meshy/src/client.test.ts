@@ -33,7 +33,7 @@ const response = (payload: unknown): Awaited<ReturnType<FetchLike>> => ({
   arrayBuffer: async () => new Uint8Array([1, 2, 3, 4]).buffer,
 });
 
-describe('@diorama/generation-meshy', () => {
+describe('@dioramai/generation-meshy', () => {
   it('generates deterministic mock job ids without network calls', async () => {
     const a = expectOk(await generateModel('Modern chair'));
     const b = expectOk(await generateModel('  modern   chair  '));

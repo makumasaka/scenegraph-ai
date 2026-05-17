@@ -1,6 +1,6 @@
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
-import { createMockGlb, generateGLB, hashPrompt } from '@diorama/generation-meshy';
+import { createMockGlb, generateGLB, hashPrompt } from '@dioramai/generation-meshy';
 import type { GenerateAssetInput, GeneratedAsset, GenerationConfig, GeneratorAdapter } from './types';
 
 const DEFAULT_ASSET_OUTPUT_DIR = 'apps/demo-export/public/assets/generated';

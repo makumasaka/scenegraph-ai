@@ -11,7 +11,7 @@ Each file in `intents/` uses this shape:
 
 - `id`: stable scenario id.
 - `title`: short human-readable title.
-- `startingSceneId`: starter kit id from `@diorama/core`.
+- `startingSceneId`: starter kit id from `@dioramai/core`.
 - `intent`: natural-language request an external agent might receive.
 - `commands`: deterministic command batch compiled from the intent.
 - `expectedSelection`: expected final selection after successful apply, or

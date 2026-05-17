@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getStarterScene } from '@diorama/core';
+import { getStarterScene } from '@dioramai/core';
 import { postBridgeImportGlbAsset } from '../bridge/bridgeClient';
 import { useSceneStore } from '../store/sceneStore';
 import { SceneLoader } from './SceneLoader';

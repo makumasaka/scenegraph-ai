@@ -1,12 +1,12 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { createAgentSession } from '@diorama/agent-interface';
+import { createAgentSession } from '@dioramai/agent-interface';
 import {
   getStarterScene,
   type Command,
   type StarterKitId,
-} from '@diorama/core';
-import { parseSceneJson, serializeScene } from '@diorama/schema';
+} from '@dioramai/core';
+import { parseSceneJson, serializeScene } from '@dioramai/schema';
 
 type IntentFixture = {
   id: string;

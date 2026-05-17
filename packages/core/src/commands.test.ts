@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateScene } from '@diorama/schema';
+import { validateScene } from '@dioramai/schema';
 import { applyCommand, applyCommandWithResult, applyReparent, type Command } from './commands';
 import { showroomScene } from './fixtures';
 import { createEmptyScene, createNode } from './scene';

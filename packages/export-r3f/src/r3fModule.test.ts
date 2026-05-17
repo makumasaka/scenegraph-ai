@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, createNode, defaultFixtureScene, livingSpaceScene, showroomScene } from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+import { applyCommand, createNode, defaultFixtureScene, livingSpaceScene, showroomScene } from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 import { exportSceneToR3fModule } from './r3f';
 
 const moduleCode = (scene: Scene, options = {}) => exportSceneToR3fModule(scene, options).code;
@@ -8,7 +8,7 @@ const moduleCode = (scene: Scene, options = {}) => exportSceneToR3fModule(scene,
 describe('exportSceneToR3fModule', () => {
   it('emits a readable module for a basic scene', () => {
     const out = moduleCode(defaultFixtureScene);
-    expect(out).toContain('export function DioramaScene()');
+    expect(out).toContain('export function DioramaiScene()');
     expect(out).toContain('function SceneMesh');
     expect(out).toContain('sourceId="default-cube-1"');
     expect(out).toMatchSnapshot();

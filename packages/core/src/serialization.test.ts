@@ -5,7 +5,7 @@ import {
   serializeScene,
   stableStringify,
   validateScene,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { applyCommand } from './commands';
 import {
   defaultFixtureScene,
@@ -26,7 +26,7 @@ describe('versioned serialization', () => {
     });
     const text = serializeScene(scene);
     expect(text).toContain('"format"');
-    expect(text).toContain('diorama-scene');
+    expect(text).toContain('dioramai-scene');
     expect(text).toContain(`"version": ${SCENE_DATA_VERSION}`);
     const parsed = parseSceneJson(text);
     expect(parsed).not.toBeNull();
@@ -62,7 +62,7 @@ describe('versioned serialization', () => {
 
   it('migrates v1 documents to canonical v2 scene shape', () => {
     const legacy = {
-      format: 'diorama-scene',
+      format: 'dioramai-scene',
       version: 1,
       data: {
         rootId: 'r',
@@ -102,7 +102,7 @@ describe('versioned serialization', () => {
 
   it('rejects current documents whose rootId node is not type root', () => {
     const current = {
-      format: 'diorama-scene',
+      format: 'dioramai-scene',
       version: SCENE_DATA_VERSION,
       data: {
         rootId: 'r',

@@ -9,10 +9,10 @@ invalid scene state.
 
 ## Scope
 
-- Schema validation through `@diorama/schema`.
+- Schema validation through `@dioramai/schema`.
 - Core starter fixtures from `packages/core/src/fixtures`.
 - Checked-in example scene parity from `packages/examples/scenes`.
-- Serialization behavior for canonical `diorama-scene` documents.
+- Serialization behavior for canonical `dioramai-scene` documents.
 
 Out of scope:
 

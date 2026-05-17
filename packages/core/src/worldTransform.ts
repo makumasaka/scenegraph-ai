@@ -1,4 +1,4 @@
-import type { Scene, Transform } from '@diorama/schema';
+import type { Scene, Transform } from '@dioramai/schema';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import { getAncestorPath } from './scene';
 

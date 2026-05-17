@@ -1,20 +1,20 @@
 # MVP Local Repo Workflow
 
-Diorama's MVP workflow is local-repo first. The Vercel app is a static shell;
+Dioramai's MVP workflow is local-repo first. The Vercel app is a static shell;
 the local bridge is the only process that can touch a project folder.
 
 ## 1. Prepare An R3F Project
 
 Open your target React Three Fiber project in Cursor. Add a minimal
-`diorama.config.json` at the project root:
+`dioramai.config.json` at the project root:
 
 ```json
 {
   "projectRoot": ".",
   "assetDir": "public/assets/models",
-  "generatedSceneFile": "src/generated/DioramaScene.generated.tsx",
+  "generatedSceneFile": "src/generated/DioramaiScene.generated.tsx",
   "publicAssetBase": "/assets/models",
-  "sceneJsonFile": "src/generated/diorama.scene.json"
+  "sceneJsonFile": "src/generated/dioramai.scene.json"
 }
 ```
 
@@ -26,11 +26,11 @@ public/assets/models/chair.glb
 
 ## 2. Start The Local Bridge
 
-From the Diorama repo:
+From the Dioramai repo:
 
 ```bash
-npx diorama init --projectRoot /absolute/path/to/r3f-project
-npx diorama dev --projectRoot /absolute/path/to/r3f-project
+npx dioramai init --projectRoot /absolute/path/to/r3f-project
+npx dioramai dev --projectRoot /absolute/path/to/r3f-project
 ```
 
 The equivalent repo script is:
@@ -42,7 +42,7 @@ npm run bridge:dev -- --projectRoot /absolute/path/to/r3f-project
 On Windows PowerShell:
 
 ```powershell
-npx diorama dev --projectRoot D:\Web\my-r3f-project
+npx dioramai dev --projectRoot D:\Web\my-r3f-project
 ```
 
 The bridge listens on `http://127.0.0.1:7777` by default.
@@ -60,7 +60,7 @@ curl http://127.0.0.1:7777/project-status
 curl http://127.0.0.1:7777/scene
 ```
 
-## 3. Open Diorama
+## 3. Open Dioramai
 
 Use either local web dev or the deployed static shell.
 
@@ -77,11 +77,11 @@ http://localhost:5173/?bridgeToken=<token>
 ```
 
 The shell connects to `http://127.0.0.1:7777` unless
-`VITE_DIORAMA_BRIDGE_ENABLED=false` is set. For a custom bridge URL, build or run
+`VITE_DIORAMAI_BRIDGE_ENABLED=false` is set. For a custom bridge URL, build or run
 with:
 
 ```bash
-VITE_DIORAMA_BRIDGE_URL=http://127.0.0.1:7777
+VITE_DIORAMAI_BRIDGE_URL=http://127.0.0.1:7777
 ```
 
 ## 4. Register A GLB Asset
@@ -105,7 +105,7 @@ curl -X POST http://127.0.0.1:7777/tools/import_glb_asset \
   -d "{\"path\":\"public/assets/models/chair.glb\",\"name\":\"Chair\",\"semanticRole\":\"product\",\"importMode\":\"single\"}"
 ```
 
-Diorama will:
+Dioramai will:
 
 - validate the path stays inside the explicit project root
 - register an asset with `REGISTER_ASSET`
@@ -117,17 +117,17 @@ Diorama will:
 
 Runtime to code:
 
-1. Select the object in the Diorama viewport.
+1. Select the object in the Dioramai viewport.
 2. Move, rotate, or scale it.
-3. Diorama emits `UPDATE_TRANSFORM`.
-4. The bridge writes `src/generated/DioramaScene.generated.tsx`.
+3. Dioramai emits `UPDATE_TRANSFORM`.
+4. The bridge writes `src/generated/DioramaiScene.generated.tsx`.
 
 Code to runtime:
 
-1. Edit the embedded `dioramaScene` block in
-   `src/generated/DioramaScene.generated.tsx`, or edit
-   `src/generated/diorama.scene.json`.
-2. In the Diorama code pane, press Reload, or call:
+1. Edit the embedded `dioramaiScene` block in
+   `src/generated/DioramaiScene.generated.tsx`, or edit
+   `src/generated/dioramai.scene.json`.
+2. In the Dioramai code pane, press Reload, or call:
 
 ```bash
 curl -X POST http://127.0.0.1:7777/tools/reload_scene_from_file \
@@ -144,13 +144,13 @@ In the target app:
 ```tsx
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { DioramaScene } from './generated/DioramaScene.generated';
+import { DioramaiScene } from './generated/DioramaiScene.generated';
 
 export function App() {
   return (
     <Canvas>
       <OrbitControls />
-      <DioramaScene />
+      <DioramaiScene />
     </Canvas>
   );
 }
@@ -166,7 +166,7 @@ npm run build
 For the included sample app:
 
 ```bash
-npx diorama dev --projectRoot apps/demo-export
+npx dioramai dev --projectRoot apps/demo-export
 npm run dev -w demo-export
 npm run build -w demo-export
 ```
@@ -189,14 +189,14 @@ The MVP MCP surface is intentionally narrow:
 Before starting MCP, start the same local bridge for the target project:
 
 ```bash
-npx diorama dev --projectRoot /absolute/path/to/r3f-project
+npx dioramai dev --projectRoot /absolute/path/to/r3f-project
 npm run mcp:stdio
 ```
 
 On Windows PowerShell:
 
 ```powershell
-npx diorama dev --projectRoot D:\Web\my-r3f-project
+npx dioramai dev --projectRoot D:\Web\my-r3f-project
 npm run mcp:stdio
 ```
 
@@ -208,7 +208,7 @@ part of the MVP bridge.
 
 ## Current Limits
 
-- The generated file is Diorama-owned. Put app customization in wrapper files.
+- The generated file is Dioramai-owned. Put app customization in wrapper files.
 - Code-to-runtime sync parses the embedded scene block or scene JSON, not
   arbitrary JSX.
 - GLB hierarchy import is shallow and optional.

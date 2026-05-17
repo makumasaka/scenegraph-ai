@@ -2,12 +2,12 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it, afterEach, beforeEach } from 'vitest';
-import { createEmptyScene, applyCommand, type Command } from '@diorama/core';
-import { parseSceneFromR3fSyncModule } from '@diorama/export-r3f';
+import { createEmptyScene, applyCommand, type Command } from '@dioramai/core';
+import { parseSceneFromR3fSyncModule } from '@dioramai/export-r3f';
 import {
-  DioramaBridgeRuntime,
+  DioramaiBridgeRuntime,
   resolveWorkspaceRelativePath,
-  startDioramaBridgeServer,
+  startDioramaiBridgeServer,
 } from './runtime';
 
 let projectRoot = '';
@@ -47,9 +47,9 @@ const waitFor = async (predicate: () => Promise<boolean>, timeoutMs = 1500): Pro
   return false;
 };
 
-describe('DioramaBridgeRuntime importAsset and sync', () => {
+describe('DioramaiBridgeRuntime importAsset and sync', () => {
   beforeEach(async () => {
-    projectRoot = await mkdtemp(join(tmpdir(), 'diorama-bridge-'));
+    projectRoot = await mkdtemp(join(tmpdir(), 'dioramai-bridge-'));
     await mkdir(resolve(projectRoot, 'fixtures'), { recursive: true });
     await writeFile(resolve(projectRoot, sourceRel), createTestGlb());
   });
@@ -60,7 +60,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   });
 
   it('imports a project GLB through validated commands with shallow hierarchy', async () => {
-    const runtime = new DioramaBridgeRuntime(createEmptyScene('Import Test'), {
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Import Test'), {
       projectRoot,
     });
 
@@ -98,16 +98,16 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(result.data.scene.assets?.['asset-bridge-import-test']?.source).toBe('manual');
   });
 
-  it('loads diorama.config.json and reports project status', async () => {
-    await writeFile(resolve(projectRoot, 'diorama.config.json'), JSON.stringify({
+  it('loads dioramai.config.json and reports project status', async () => {
+    await writeFile(resolve(projectRoot, 'dioramai.config.json'), JSON.stringify({
       projectRoot: '.',
       assetDir: 'public/assets/models',
-      generatedSceneFile: 'src/generated/DioramaScene.generated.tsx',
+      generatedSceneFile: 'src/generated/DioramaiScene.generated.tsx',
       publicAssetBase: '/assets/models',
-      sceneJsonFile: 'src/generated/diorama.scene.json',
+      sceneJsonFile: 'src/generated/dioramai.scene.json',
     }, null, 2));
 
-    const runtime = new DioramaBridgeRuntime(createEmptyScene('Config Test'), {
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Config Test'), {
       projectRoot,
     });
 
@@ -124,7 +124,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   it('rejects workspace paths outside the project root', async () => {
     expect(resolveWorkspaceRelativePath('../secret.glb', projectRoot).ok).toBe(false);
 
-    const runtime = new DioramaBridgeRuntime(createEmptyScene('Import Test'), {
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Import Test'), {
       projectRoot,
     });
     const result = await runtime.callTool('register_asset', {
@@ -135,7 +135,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   });
 
   it('maps public asset URLs only into the configured project asset dir', () => {
-    const runtime = new DioramaBridgeRuntime(createEmptyScene('Asset Route Test'), {
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Asset Route Test'), {
       projectRoot,
     });
 
@@ -147,7 +147,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
 
   it('writes deterministic generated R3F sync modules from runtime commands', async () => {
     const scene = createEmptyScene('Sync Test');
-    const runtime = new DioramaBridgeRuntime(scene, { projectRoot });
+    const runtime = new DioramaiBridgeRuntime(scene, { projectRoot });
     const node = {
       ...Object.values(scene.nodes)[0]!,
       id: 'box',
@@ -185,7 +185,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
 
   it('loads code edits from the generated scene block through sync_code parsing', async () => {
     const scene = createEmptyScene('Sync Test');
-    const runtime = new DioramaBridgeRuntime(scene, { projectRoot });
+    const runtime = new DioramaiBridgeRuntime(scene, { projectRoot });
     const rootId = scene.rootId;
     const nextScene = applyCommand(scene, {
       type: 'UPDATE_TRANSFORM',
@@ -209,9 +209,9 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
     expect(current).toEqual({ ok: true, data: { scene: nextScene } });
   });
 
-  it('watches generated module edits without suppressing real user changes after Diorama writes', async () => {
+  it('watches generated module edits without suppressing real user changes after Dioramai writes', async () => {
     const scene = createEmptyScene('Watch Sync Test');
-    const runtime = new DioramaBridgeRuntime(scene, {
+    const runtime = new DioramaiBridgeRuntime(scene, {
       projectRoot,
       watchCode: true,
       codeWatchDebounceMs: 10,
@@ -239,9 +239,9 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   });
 
   it('rejects invalid scene JSON when reloading from file fallback', async () => {
-    const runtime = new DioramaBridgeRuntime(createEmptyScene('Invalid Reload'), { projectRoot });
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Invalid Reload'), { projectRoot });
     await mkdir(resolve(projectRoot, 'src/generated'), { recursive: true });
-    await writeFile(runtime.getProjectInfo().sessionPath, '{"format":"diorama-scene","version":2,"data":{}}', 'utf8');
+    await writeFile(runtime.getProjectInfo().sessionPath, '{"format":"dioramai-scene","version":2,"data":{}}', 'utf8');
 
     const result = await runtime.callTool('reload_scene_from_file', {});
     expect(result.ok).toBe(false);
@@ -250,7 +250,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   });
 
   it('rejects unsafe generic bridge tools over the HTTP tool route', async () => {
-    const started = await startDioramaBridgeServer(0, {
+    const started = await startDioramaiBridgeServer(0, {
       projectRoot,
       pairingToken: 'test-token',
     });
@@ -270,7 +270,7 @@ describe('DioramaBridgeRuntime importAsset and sync', () => {
   });
 
   it('requires a pairing token for browser-origin bridge requests', async () => {
-    const started = await startDioramaBridgeServer(0, {
+    const started = await startDioramaiBridgeServer(0, {
       projectRoot,
       pairingToken: 'test-token',
     });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, showroomScene } from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+import { applyCommand, showroomScene } from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 import { exportSceneToR3fJsx, exportSceneToR3fModule } from './r3f';
 
 const forbiddenInExport = [
@@ -128,7 +128,7 @@ describe('MCP-lite showroom → R3F export validation', () => {
         ...poisoned.nodes.product_01!,
         metadata: {
           ...poisoned.nodes.product_01!.metadata,
-          sourcePath: 'C:\\secret\\blueprint.diorama',
+          sourcePath: 'C:\\secret\\blueprint.dioramai',
           uri: 'file:///C:/secret/model.glb',
         },
         assetRef: { kind: 'uri', uri: 'file:///C:/secret/model.glb' },

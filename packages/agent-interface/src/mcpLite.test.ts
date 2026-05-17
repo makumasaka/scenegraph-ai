@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { parseSceneJson, type Scene } from '@diorama/schema';
-import { showroomScene } from '@diorama/core';
+import { parseSceneJson, type Scene } from '@dioramai/schema';
+import { showroomScene } from '@dioramai/core';
 import { createAgentRuntime, createMcpLiteRuntime } from './mcpLite';
 
 const expectOk = <T>(result: { ok: true; data: T } | { ok: false; error: unknown }): T => {
@@ -119,7 +119,7 @@ describe('createMcpLiteRuntime', () => {
   });
 
   it('generateAsset and ingestAsset support mock-first workflow via Agent Runtime', async () => {
-    const assetOutputDir = await mkdtemp(join(tmpdir(), 'diorama-agent-runtime-'));
+    const assetOutputDir = await mkdtemp(join(tmpdir(), 'dioramai-agent-runtime-'));
     try {
       const runtime = createMcpLiteRuntime(undefined, {
         generation: {

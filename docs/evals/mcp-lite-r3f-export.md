@@ -50,6 +50,6 @@ npx vitest run
 From repo root:
 
 ```bash
-npm run test -w @diorama/export-r3f
-npm run build -w @diorama/export-r3f
+npm run test -w @dioramai/export-r3f
+npm run build -w @dioramai/export-r3f
 ```

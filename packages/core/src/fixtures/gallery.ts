@@ -1,4 +1,4 @@
-import type { Scene } from '@diorama/schema';
+import type { Scene } from '@dioramai/schema';
 import { createNode } from '../scene';
 
 /** Root → Hall → small frame cubes in a 3×3 grid on the floor. */

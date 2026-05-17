@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createBridgeMcpClient,
-  DIORAMA_MCP_FORBIDDEN_CAPABILITIES,
-  DIORAMA_MCP_TOOL_NAMES,
-  isDioramaMcpToolName,
+  DIORAMAI_MCP_FORBIDDEN_CAPABILITIES,
+  DIORAMAI_MCP_TOOL_NAMES,
+  isDioramaiMcpToolName,
 } from './index';
 
-describe('@diorama/mcp bridge-only surface', () => {
+describe('@dioramai/mcp bridge-only surface', () => {
   it('exposes only the narrow local-bridge MCP tools', () => {
-    expect(DIORAMA_MCP_TOOL_NAMES).toEqual([
+    expect(DIORAMAI_MCP_TOOL_NAMES).toEqual([
       'get_project_status',
       'get_scene',
       'load_scene',
@@ -20,10 +20,10 @@ describe('@diorama/mcp bridge-only surface', () => {
       'export_r3f',
       'sync_code',
     ]);
-    expect(DIORAMA_MCP_FORBIDDEN_CAPABILITIES).toContain('apply_command');
-    expect(DIORAMA_MCP_FORBIDDEN_CAPABILITIES).toContain('generate_asset');
-    expect(isDioramaMcpToolName('update_transform')).toBe(true);
-    expect(isDioramaMcpToolName('apply_command')).toBe(false);
+    expect(DIORAMAI_MCP_FORBIDDEN_CAPABILITIES).toContain('apply_command');
+    expect(DIORAMAI_MCP_FORBIDDEN_CAPABILITIES).toContain('generate_asset');
+    expect(isDioramaiMcpToolName('update_transform')).toBe(true);
+    expect(isDioramaiMcpToolName('apply_command')).toBe(false);
   });
 
   it('forwards tool calls to the local bridge without filesystem access', async () => {
@@ -42,7 +42,7 @@ describe('@diorama/mcp bridge-only surface', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-diorama-token': 'pair',
+        'x-dioramai-token': 'pair',
       },
       body: '{}',
     });

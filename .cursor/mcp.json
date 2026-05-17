@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "diorama": {
+    "dioramai": {
       "command": "npm",
       "args": ["run", "mcp:stdio"],
       "env": {
-        "DIORAMA_BRIDGE_PORT": "7777"
+        "DIORAMAI_BRIDGE_PORT": "7777"
       }
     }
   }

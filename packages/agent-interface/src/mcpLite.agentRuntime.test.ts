@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { showroomScene } from '@diorama/core';
-import { cloneSceneFromJson, parseSceneJson, serializeScene, type Scene } from '@diorama/schema';
+import { showroomScene } from '@dioramai/core';
+import { cloneSceneFromJson, parseSceneJson, serializeScene, type Scene } from '@dioramai/schema';
 import type { AgentError } from './errors';
 import { createMcpLiteRuntime } from './mcpLite';
 import { createAgentSession } from './session';

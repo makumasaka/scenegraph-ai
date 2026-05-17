@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ForwardedRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getStarterScene } from '@diorama/core';
+import { getStarterScene } from '@dioramai/core';
 import { useSceneStore } from '../store/sceneStore';
 import { NodeMesh } from './NodeMesh';
 

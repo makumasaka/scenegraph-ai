@@ -10,8 +10,8 @@ MCP hosts need stable tool names and payloads. Shipping MCP too early risks lock
 
 ## Decision
 
-- **`@diorama/agent-interface`** is the supported typed entry for validate → `applyCommand` → export flows.
-- **`@diorama/mcp`** may re-export agent-interface during MVP ramp; a real MCP server (stdio/HTTP) lands after session/command batch semantics are frozen and covered by tests.
+- **`@dioramai/agent-interface`** is the supported typed entry for validate → `applyCommand` → export flows.
+- **`@dioramai/mcp`** may re-export agent-interface during MVP ramp; a real MCP server (stdio/HTTP) lands after session/command batch semantics are frozen and covered by tests.
 
 ## Rationale
 

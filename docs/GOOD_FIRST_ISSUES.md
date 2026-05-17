@@ -4,7 +4,7 @@ These are **suggested** starting points for contributors. They are not all filed
 
 ## Documentation and examples
 
-1. **Static example JSON** — Add one or more `*.json` files under `packages/examples/scenes/` (create the directory) matching the `diorama-scene` wrapper, plus a short note in that package’s README on how to load them. Aligns with the TODO in `packages/examples/src/index.ts`.
+1. **Static example JSON** — Add one or more `*.json` files under `packages/examples/scenes/` (create the directory) matching the `dioramai-scene` wrapper, plus a short note in that package’s README on how to load them. Aligns with the TODO in `packages/examples/src/index.ts`.
 
 2. **Link graph** — Cross-link `docs/EXAMPLE_SCENES.md` from agent-interface examples or vice versa where it reduces duplication.
 

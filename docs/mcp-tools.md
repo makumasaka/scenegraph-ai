@@ -1,15 +1,15 @@
-# Diorama MVP MCP Tool Contract
+# Dioramai MVP MCP Tool Contract
 
-Diorama's MVP MCP surface is a narrow developer control plane for repo-first
+Dioramai's MVP MCP surface is a narrow developer control plane for repo-first
 runtime synchronization. It is not a generator middleware layer and it must not
 expose shell, arbitrary file browsing, JavaScript evaluation, Zustand access, or
 R3F/Three object references.
 
 ```text
 Cursor / Claude / Codex
-  -> local Diorama MCP stdio proxy
-  -> local Diorama bridge
-  -> canonical Diorama scene
+  -> local Dioramai MCP stdio proxy
+  -> local Dioramai bridge
+  -> canonical Dioramai scene
   -> deterministic R3F sync module
 ```
 
@@ -40,7 +40,7 @@ Input:
 ### `load_scene`
 
 Loads a validated scene document or JSON scene text. This is the only
-non-command mutation boundary and must validate through the Diorama schema.
+non-command mutation boundary and must validate through the Dioramai schema.
 
 Input:
 
@@ -93,7 +93,7 @@ Input:
 ### `export_r3f`
 
 Writes or previews the generated R3F sync module for the current scene. The
-default file is `src/diorama/DioramaScene.generated.tsx` inside the configured
+default file is `src/dioramai/DioramaiScene.generated.tsx` inside the configured
 project root.
 
 Input:
@@ -101,7 +101,7 @@ Input:
 ```json
 {
   "mode": "sync-module",
-  "componentName": "DioramaScene",
+  "componentName": "DioramaiScene",
   "write": true
 }
 ```
@@ -145,8 +145,8 @@ or:
 { "direction": "fromCode" }
 ```
 
-`toCode` regenerates the Diorama-owned module from canonical scene state.
-`fromCode` parses the embedded `dioramaScene` block from the generated module,
+`toCode` regenerates the Dioramai-owned module from canonical scene state.
+`fromCode` parses the embedded `dioramaiScene` block from the generated module,
 validates it, and replaces canonical scene state.
 
 ## Forbidden MVP Tools
@@ -168,14 +168,14 @@ but they are not part of the runtime sync MVP contract.
 
 ## Project Boundary
 
-The bridge is started with `DIORAMA_PROJECT_ROOT` or `--projectRoot`. All asset
+The bridge is started with `DIORAMAI_PROJECT_ROOT` or `--projectRoot`. All asset
 paths, session paths, and generated module paths must resolve inside that root.
 The MCP server must not browse outside the project root and must not provide a
 general-purpose filesystem API.
 
 ## Generated File Contract
 
-The generated file starts with `// @diorama-generated`, includes an embedded
-JSON-compatible `dioramaScene` object, and renders R3F from that scene. MVP
+The generated file starts with `// @dioramai-generated`, includes an embedded
+JSON-compatible `dioramaiScene` object, and renders R3F from that scene. MVP
 code-to-runtime sync reads only this scene block. Custom app code should import
-and wrap `DioramaScene` instead of editing generated JSX.
+and wrap `DioramaiScene` instead of editing generated JSX.

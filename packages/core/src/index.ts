@@ -11,18 +11,18 @@ export type {
   SemanticGroup,
   BehaviorType,
   BehaviorDefinition,
-  DioramaAsset,
+  DioramaiAsset,
   InteractionBehavior,
   Metadata,
   JsonValue,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 export {
   serializeScene,
   parseSceneJson,
   cloneSceneFromJson,
   validateScene,
   cloneSceneImmutable,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 export {
   createEmptyScene,
   createNode,

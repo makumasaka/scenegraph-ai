@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SceneGraphSchema } from '@diorama/schema';
+import { SceneGraphSchema } from '@dioramai/schema';
 
 /** Payload for {@link AgentSession.loadScene}: either JSON text or an already-parsed graph. */
 export const LoadSceneInputSchema = z.discriminatedUnion('kind', [

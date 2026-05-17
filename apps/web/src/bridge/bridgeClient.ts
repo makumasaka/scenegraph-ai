@@ -1,4 +1,4 @@
-import type { Command, Scene } from '@diorama/core';
+import type { Command, Scene } from '@dioramai/core';
 
 export type BridgeSceneEvent = {
   type: 'scene';
@@ -69,9 +69,9 @@ export type BridgeProjectStatus = {
 };
 
 export const BRIDGE_URL =
-  import.meta.env.VITE_DIORAMA_BRIDGE_URL ?? 'http://127.0.0.1:7777';
+  import.meta.env.VITE_DIORAMAI_BRIDGE_URL ?? 'http://127.0.0.1:7777';
 
-const BRIDGE_TOKEN_STORAGE_KEY = 'diorama.bridgeToken';
+const BRIDGE_TOKEN_STORAGE_KEY = 'dioramai.bridgeToken';
 
 export const getBridgeToken = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -98,7 +98,7 @@ const bridgeHeaders = (): Record<string, string> => {
   const token = getBridgeToken();
   return {
     'Content-Type': 'application/json',
-    ...(token ? { 'x-diorama-token': token } : {}),
+    ...(token ? { 'x-dioramai-token': token } : {}),
   };
 };
 
@@ -170,7 +170,7 @@ export const postBridgeImportGlbAsset = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
-      ...(token ? { 'x-diorama-token': token } : {}),
+      ...(token ? { 'x-dioramai-token': token } : {}),
     },
     body: file,
   });

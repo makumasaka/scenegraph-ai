@@ -11,14 +11,14 @@ server. The future target architecture is:
 
 ```text
 Cursor/Claude/Codex
-  -> local Diorama MCP server
-  -> Diorama agent runtime
+  -> local Dioramai MCP server
+  -> Dioramai agent runtime
   -> validated commands
   -> structured scene
   -> R3F export
 ```
 
-The existing `@diorama/agent-interface` runtime already supports validated scene
+The existing `@dioramai/agent-interface` runtime already supports validated scene
 reads, command dry-run, command apply, scene load, action logging, and export.
 MCP-lite adds a library facade with helpers named like future MCP tools. Real
 MCP should become a thin transport over that runtime, not a second scene system.
@@ -30,7 +30,7 @@ semantics, behaviors, arrangement, loading, and export, plus generic
 `apply_command` and `apply_command_batch` escape hatches for advanced command
 payloads.
 
-Every tool maps to `DioramaSceneRuntime`, the MCP-lite facade, `CommandSchema`,
+Every tool maps to `DioramaiSceneRuntime`, the MCP-lite facade, `CommandSchema`,
 or an explicit command constructor. MCP tools must not connect directly to
 Zustand, R3F objects, files, shells, or arbitrary JavaScript execution.
 
@@ -156,7 +156,7 @@ the architecture decision and gate for real transport work.
 - Mutating tools must support dry-run before apply.
 - Narrow schemas should be used for common tools; generic `apply_command` remains
   available for advanced cases.
-- MCP tools wrap `@diorama/agent-interface` only.
+- MCP tools wrap `@dioramai/agent-interface` only.
 
 ## Go/No-Go For Real MCP
 
@@ -180,7 +180,7 @@ transport work starts.
 
 ## Consequences
 
-- MCP transport stays thin and delegates to `DioramaSceneRuntime`.
+- MCP transport stays thin and delegates to `DioramaiSceneRuntime`.
 - Future MCP tools must not bypass commands.
 - Tests can validate tool contracts without stdio, HTTP, JSON-RPC, auth, or a
   long-running local server.

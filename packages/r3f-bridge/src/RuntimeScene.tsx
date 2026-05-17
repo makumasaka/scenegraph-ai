@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { TransformControls, useGLTF } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
-import type { Command, Scene } from '@diorama/core';
+import type { Command, Scene } from '@dioramai/core';
 import type { Group, Object3D } from 'three';
 import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
 import {
@@ -160,7 +160,7 @@ function RuntimeNodeInner({
         position={node.transform.position}
         rotation={node.transform.rotation}
         scale={node.transform.scale}
-        userData={{ dioramaId: node.id, sourceId: node.id }}
+        userData={{ dioramaiId: node.id, sourceId: node.id }}
         onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
@@ -184,7 +184,7 @@ function RuntimeNodeInner({
       </group>
       {isSelected ? (
         <TransformControls
-          key={`diorama-tc-${nodeId}`}
+          key={`dioramai-tc-${nodeId}`}
           ref={controlsRef}
           object={groupRef as RefObject<Object3D | null> as RefObject<Object3D>}
           mode={gizmoMode}

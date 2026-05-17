@@ -1,4 +1,4 @@
-export const DIORAMA_MCP_TOOL_NAMES = [
+export const DIORAMAI_MCP_TOOL_NAMES = [
   'get_project_status',
   'get_scene',
   'load_scene',
@@ -11,9 +11,9 @@ export const DIORAMA_MCP_TOOL_NAMES = [
   'sync_code',
 ] as const;
 
-export type DioramaMcpToolName = typeof DIORAMA_MCP_TOOL_NAMES[number];
+export type DioramaiMcpToolName = typeof DIORAMAI_MCP_TOOL_NAMES[number];
 
-export const DIORAMA_MCP_FORBIDDEN_CAPABILITIES = [
+export const DIORAMAI_MCP_FORBIDDEN_CAPABILITIES = [
   'shell',
   'read_file',
   'write_file',
@@ -31,11 +31,11 @@ export type BridgeMcpClientOptions = {
 
 export type BridgeMcpClient = {
   bridgeUrl: string;
-  callTool: (name: DioramaMcpToolName, args?: unknown) => Promise<unknown>;
+  callTool: (name: DioramaiMcpToolName, args?: unknown) => Promise<unknown>;
 };
 
-export const isDioramaMcpToolName = (value: string): value is DioramaMcpToolName =>
-  DIORAMA_MCP_TOOL_NAMES.includes(value as DioramaMcpToolName);
+export const isDioramaiMcpToolName = (value: string): value is DioramaiMcpToolName =>
+  DIORAMAI_MCP_TOOL_NAMES.includes(value as DioramaiMcpToolName);
 
 export const createBridgeMcpClient = (
   options: BridgeMcpClientOptions = {},
@@ -50,7 +50,7 @@ export const createBridgeMcpClient = (
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(options.token ? { 'x-diorama-token': options.token } : {}),
+          ...(options.token ? { 'x-dioramai-token': options.token } : {}),
         },
         body: JSON.stringify(args),
       });

@@ -1,8 +1,8 @@
 export { torusArgsFromMetadata } from './jsxWriter';
 export {
-  DIORAMA_GENERATED_MARKER,
-  DIORAMA_SCENE_BLOCK_END,
-  DIORAMA_SCENE_BLOCK_START,
+  DIORAMAI_GENERATED_MARKER,
+  DIORAMAI_SCENE_BLOCK_END,
+  DIORAMAI_SCENE_BLOCK_START,
   exportSceneToR3fJsx,
   exportSceneToR3fModule,
   exportSceneToR3fSyncModule,

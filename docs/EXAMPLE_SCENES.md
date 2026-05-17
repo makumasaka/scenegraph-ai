@@ -1,12 +1,12 @@
 # Example scenes
 
-This document describes how scenes are represented in the repo, which **starter kits** ship with Diorama, and how to move JSON in and out of the app.
+This document describes how scenes are represented in the repo, which **starter kits** ship with Dioramai, and how to move JSON in and out of the app.
 
 ## Document format
 
 Exported files use a small wrapper so tooling can detect version and format:
 
-- **`format`**: `diorama-scene` (see `SCENE_DOCUMENT_FORMAT` in `@diorama/schema`).
+- **`format`**: `dioramai-scene` (see `SCENE_DOCUMENT_FORMAT` in `@dioramai/schema`).
 - **`version`**: Integer data version (`SCENE_DATA_VERSION`). Canonical exports currently use version 2.
 - **`data`**: The `Scene` object: `rootId`, `selection`, and `nodes` (id -> node record).
 
@@ -47,7 +47,7 @@ Migration/defaulting behavior:
 
 ## Starter kits (built-in)
 
-These are TypeScript fixtures in `@diorama/core` (`packages/core/src/fixtures/`). In the web app, use the **Kit** dropdown and **Load kit** in the scene loader panel.
+These are TypeScript fixtures in `@dioramai/core` (`packages/core/src/fixtures/`). In the web app, use the **Kit** dropdown and **Load kit** in the scene loader panel.
 
 | Kit ID | Description | Demonstrates |
 |--------|-------------|--------------|
@@ -77,9 +77,9 @@ fields, and code -> canvas -> code loops.
 
 ## Import and export in the UI
 
-1. **Export JSON** - Writes a `diorama-scene` document (wrapper + sorted keys) suitable for Git or CI fixtures.
+1. **Export JSON** - Writes a `dioramai-scene` document (wrapper + sorted keys) suitable for Git or CI fixtures.
 2. **Import JSON** - Parses the wrapper or, when applicable, a **legacy** graph shape the schema layer still accepts. Successful imports dispatch `REPLACE_SCENE` and become a new session boundary.
-3. **Copy R3F JSX** - Uses `@diorama/export-r3f` to place the current scene into a clipboard-friendly JSX snippet. The web UI passes `includeStudioLights: true` for a previewable studio fill (see [EXPORT.md](EXPORT.md) for the full limitations list).
+3. **Copy R3F JSX** - Uses `@dioramai/export-r3f` to place the current scene into a clipboard-friendly JSX snippet. The web UI passes `includeStudioLights: true` for a previewable studio fill (see [EXPORT.md](EXPORT.md) for the full limitations list).
 
 The code -> canvas -> code loop is:
 
@@ -102,8 +102,8 @@ When in doubt, export a kit from the app and edit from that template.
 
 ## `packages/examples`
 
-The `@diorama/examples` package is reserved for checked-in JSON scenes, small
-scripts that load scenes through `@diorama/core`, and regression assets shared by
+The `@dioramai/examples` package is reserved for checked-in JSON scenes, small
+scripts that load scenes through `@dioramai/core`, and regression assets shared by
 docs and tests.
 
 ## Related reading

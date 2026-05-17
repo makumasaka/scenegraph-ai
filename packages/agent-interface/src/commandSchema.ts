@@ -1,15 +1,15 @@
 import { z } from 'zod';
-import type { Command } from '@diorama/core';
+import type { Command } from '@dioramai/core';
 import {
   BehaviorDefinitionSchema,
-  DioramaAssetSchema,
+  DioramaiAssetSchema,
   SceneGraphSchema,
   SceneNodeSchema,
   SemanticGroupSchema,
   SemanticRoleSchema,
   NodeSemanticsSchema,
   Vec3Schema,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 
 export const COMMAND_TYPES = [
   'ADD_NODE',
@@ -179,7 +179,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   z
     .object({
       type: z.literal('REGISTER_ASSET'),
-      asset: DioramaAssetSchema,
+      asset: DioramaiAssetSchema,
     })
     .strict(),
   z

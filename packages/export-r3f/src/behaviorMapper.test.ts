@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createNode } from '@diorama/core';
-import type { Scene } from '@diorama/schema';
+import { createNode } from '@dioramai/core';
+import type { Scene } from '@dioramai/schema';
 import { resolveBehaviorRequirements } from './behaviorMapper';
 
 const root = createNode({

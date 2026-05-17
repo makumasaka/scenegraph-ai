@@ -1,4 +1,4 @@
-import type { Command, TransformPatch } from '@diorama/core';
+import type { Command, TransformPatch } from '@dioramai/core';
 import type { Object3D } from 'three';
 
 export type TransformCommitInput = {

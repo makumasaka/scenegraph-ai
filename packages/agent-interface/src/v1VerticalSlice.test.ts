@@ -2,7 +2,7 @@ import { mkdtemp, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { parseSceneJson } from '@diorama/schema';
+import { parseSceneJson } from '@dioramai/schema';
 import { createMcpLiteRuntime } from './mcpLite';
 
 const expectOk = <T>(result: { ok: true; data: T } | { ok: false; error: { message: string } }): T => {
@@ -13,7 +13,7 @@ const expectOk = <T>(result: { ok: true; data: T } | { ok: false; error: { messa
 
 describe('V1 vertical slice workflow', () => {
   it('runs generate -> ingest -> structure -> interactive -> arrange -> export', async () => {
-    const assetOutputDir = await mkdtemp(join(tmpdir(), 'diorama-v1-demo-'));
+    const assetOutputDir = await mkdtemp(join(tmpdir(), 'dioramai-v1-demo-'));
     try {
       const runtime = createMcpLiteRuntime(undefined, {
         generation: {

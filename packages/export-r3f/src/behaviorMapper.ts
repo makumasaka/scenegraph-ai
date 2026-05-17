@@ -1,4 +1,4 @@
-import type { BehaviorDefinition, BehaviorType, Scene, SceneNode, Trait } from '@diorama/schema';
+import type { BehaviorDefinition, BehaviorType, Scene, SceneNode, Trait } from '@dioramai/schema';
 import type { R3fBehaviorRequirement } from './types';
 
 const titleFromParams = (behavior: BehaviorDefinition): string | undefined => {

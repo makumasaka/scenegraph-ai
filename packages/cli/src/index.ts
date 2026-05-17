@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 import {
   DEFAULT_BRIDGE_PORT,
-  initializeDioramaProject,
+  initializeDioramaiProject,
   loadInitialBridgeScene,
-  DioramaBridgeRuntime,
-  startDioramaBridgeServer,
-  validateDioramaProject,
-} from '@diorama/local-bridge';
+  DioramaiBridgeRuntime,
+  startDioramaiBridgeServer,
+  validateDioramaiProject,
+} from '@dioramai/local-bridge';
 
 const argValue = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -26,24 +26,24 @@ const printJson = (value: unknown): void => {
 const run = async (): Promise<void> => {
   const command = process.argv[2] ?? 'help';
   const projectRoot = projectRootArg();
-  const port = Number(argValue('port') ?? process.env.DIORAMA_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT);
+  const port = Number(argValue('port') ?? process.env.DIORAMAI_BRIDGE_PORT ?? DEFAULT_BRIDGE_PORT);
 
   switch (command) {
     case 'init': {
-      const result = await initializeDioramaProject(projectRoot);
+      const result = await initializeDioramaiProject(projectRoot);
       printJson(result);
       if (!result.ok) process.exitCode = 1;
       return;
     }
 
     case 'dev': {
-      const started = await startDioramaBridgeServer(port, {
+      const started = await startDioramaiBridgeServer(port, {
         projectRoot,
-        watchCode: process.env.DIORAMA_WATCH_CODE !== 'false',
-        pairingToken: argValue('token') ?? process.env.DIORAMA_BRIDGE_TOKEN,
+        watchCode: process.env.DIORAMAI_WATCH_CODE !== 'false',
+        pairingToken: argValue('token') ?? process.env.DIORAMAI_BRIDGE_TOKEN,
       });
       const info = started.runtime.getProjectInfo();
-      process.stdout.write(`Diorama local bridge listening on http://127.0.0.1:${started.port}\n`);
+      process.stdout.write(`Dioramai local bridge listening on http://127.0.0.1:${started.port}\n`);
       process.stdout.write(`Project root: ${info.projectRoot}\n`);
       process.stdout.write(`Config: ${info.configFound ? info.configPath : 'not found; defaults active'}\n`);
       process.stdout.write(`Generated module: ${info.generatedModulePath}\n`);
@@ -55,7 +55,7 @@ const run = async (): Promise<void> => {
     }
 
     case 'export': {
-      const runtime = new DioramaBridgeRuntime(await loadInitialBridgeScene({ projectRoot }), { projectRoot });
+      const runtime = new DioramaiBridgeRuntime(await loadInitialBridgeScene({ projectRoot }), { projectRoot });
       const result = await runtime.callTool('write_scene_to_file', {});
       runtime.close();
       printJson(result);
@@ -64,7 +64,7 @@ const run = async (): Promise<void> => {
     }
 
     case 'validate': {
-      const result = await validateDioramaProject(projectRoot);
+      const result = await validateDioramaiProject(projectRoot);
       printJson(result);
       if (!result.ok) process.exitCode = 1;
       return;
@@ -73,13 +73,13 @@ const run = async (): Promise<void> => {
     default:
       process.stdout.write(
         [
-          'Usage: diorama <command> [--projectRoot path] [--port 7777]',
+          'Usage: dioramai <command> [--projectRoot path] [--port 7777]',
           '',
           'Commands:',
-          '  init      Create diorama.config.json and local asset/generated dirs',
+          '  init      Create dioramai.config.json and local asset/generated dirs',
           '  dev       Start the local repo bridge',
           '  export    Write the generated R3F scene module',
-          '  validate  Validate the local Diorama project config/status',
+          '  validate  Validate the local Dioramai project config/status',
         ].join('\n'),
       );
       process.stdout.write('\n');

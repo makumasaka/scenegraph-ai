@@ -1,5 +1,5 @@
 {
-  "name": "@diorama/r3f-bridge",
+  "name": "@dioramai/r3f-bridge",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,8 +16,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@diorama/core": "*",
-    "@diorama/schema": "*",
+    "@dioramai/core": "*",
+    "@dioramai/schema": "*",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.0",
     "react": "^19.2.5",

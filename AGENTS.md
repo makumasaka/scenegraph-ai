@@ -1,8 +1,8 @@
-# Diorama Agent Instructions
+# Dioramai Agent Instructions
 
 ## Product intent
 
-Diorama is a visual runtime orchestration layer for AI-native React Three Fiber
+Dioramai is a visual runtime orchestration layer for AI-native React Three Fiber
 applications.
 
 Prioritize live code <-> runtime synchronization, deterministic commands,
@@ -42,8 +42,8 @@ emission inside developer repositories.
 - Local project/repo sync only.
 - Local GLB/GLTF registration only.
 - Deterministic generated R3F module output.
-- Code -> runtime sync through the generated `dioramaScene` block.
-- Deployment happens through the developer repo and Vercel, not Diorama cloud.
+- Code -> runtime sync through the generated `dioramaiScene` block.
+- Deployment happens through the developer repo and Vercel, not Dioramai cloud.
 
 ## Non-goals for MVP
 

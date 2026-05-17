@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { createNode, getParent, type Scene, type Vec3 } from '@diorama/core';
+import { createNode, getParent, type Scene, type Vec3 } from '@dioramai/core';
 import { SceneLoader } from './SceneLoader';
 
 const PALETTE: Vec3[] = [
@@ -140,7 +140,7 @@ export function Toolbar() {
     <header className="toolbar">
       <div className="toolbar__row toolbar__row--intents">
         <div className="toolbar__brand">
-          <span className="toolbar__title">Diorama</span>
+          <span className="toolbar__title">Dioramai</span>
           <span className="toolbar__subtitle">Semantic scenegraph · live R3F</span>
         </div>
 

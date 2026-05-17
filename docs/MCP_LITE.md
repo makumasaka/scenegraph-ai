@@ -3,11 +3,11 @@
 MCP-lite is a library-level proof of the future MCP surface. It proves the
 agent workflow without a server transport:
 
-Agent intent -> MCP-lite facade -> validated Diorama commands -> dry-run ->
+Agent intent -> MCP-lite facade -> validated Dioramai commands -> dry-run ->
 apply -> inspect result -> JSON/R3F export.
 
 The implementation lives in `packages/agent-interface/src/mcpLite.ts` and is
-re-exported by `@diorama/mcp` through the existing package re-export.
+re-exported by `@dioramai/mcp` through the existing package re-export.
 
 ## Scope
 

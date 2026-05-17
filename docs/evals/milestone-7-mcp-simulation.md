@@ -5,7 +5,7 @@ Milestone 7 proves the future MCP loop without implementing MCP transport.
 Target future architecture:
 
 ```text
-Cursor/Claude/Codex -> local Diorama MCP server -> Diorama API layer -> validated commands -> live canvas updates -> JSON/R3F export
+Cursor/Claude/Codex -> local Dioramai MCP server -> Dioramai API layer -> validated commands -> live canvas updates -> JSON/R3F export
 ```
 
 Current implementation uses `createAgentSession()` and fixture-driven command
@@ -56,7 +56,7 @@ Fixtures live in `docs/evals/fixtures/m7`.
 - R3F exports are deterministic snapshots.
 - The web parity test shows fixture-driven state through the existing product
   path.
-- Future MCP tool names map to `DioramaSceneRuntime`.
+- Future MCP tool names map to `DioramaiSceneRuntime`.
 - Future MCP forbidden capabilities remain absent.
 
 ## Go/No-Go For Real MCP

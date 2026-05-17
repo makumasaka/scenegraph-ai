@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Scene } from '@diorama/schema';
+import type { Scene } from '@dioramai/schema';
 import { summarizeCommand } from './commandLog';
 import type { Command } from './commands';
 import { createNode } from './scene';

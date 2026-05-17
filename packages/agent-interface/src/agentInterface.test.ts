@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createNode, createEmptyScene } from '@diorama/core';
+import { createNode, createEmptyScene } from '@dioramai/core';
 import {
   cloneSceneFromJson,
   parseSceneJson,
   serializeScene,
   validateScene,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { createAgentSession } from './session';
 
 describe('createAgentSession', () => {

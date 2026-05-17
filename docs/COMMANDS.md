@@ -1,4 +1,4 @@
-# Diorama Commands
+# Dioramai Commands
 
 Commands are the only mutation path for persistent scene state. UI actions,
 agent sessions, evals, and future MCP tools must produce commands and pass them
@@ -9,7 +9,7 @@ Untrusted payloads are validated by `CommandSchema` in
 
 ## Scene Contract
 
-Commands operate on canonical version 2 `Scene` state from `@diorama/schema`.
+Commands operate on canonical version 2 `Scene` state from `@dioramai/schema`.
 Import code may accept wrapped v1 documents or legacy bare scenes, but those
 inputs are normalized before reducers receive them.
 
@@ -104,7 +104,7 @@ validated command surface. MCP tools must validate payloads with the agent
 schemas, may dry-run before apply, and must not introduce command-specific
 mutation paths.
 
-The locked internal agent runtime lives in `@diorama/agent-interface`; see
+The locked internal agent runtime lives in `@dioramai/agent-interface`; see
 [AGENT_API.md](AGENT_API.md). Command-oriented entry points are:
 
 - `dryRunCommand(input)` for single-command previews.
@@ -321,7 +321,7 @@ Payload shape:
 { type: 'STRUCTURE_SCENE'; preset: 'showroom' }
 ```
 
-For the showroom preset, Diorama creates scene-level semantic groups
+For the showroom preset, Dioramai creates scene-level semantic groups
 `display_area`, `seating_area`, `lighting_zone`, and `environment`, then assigns
 node semantics from deterministic name/type cues. It does not call AI or mutate
 the hierarchy.

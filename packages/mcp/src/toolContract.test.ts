@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DIORAMA_MCP_FORBIDDEN_CAPABILITIES,
-  DIORAMA_MCP_TOOL_NAMES,
+  DIORAMAI_MCP_FORBIDDEN_CAPABILITIES,
+  DIORAMAI_MCP_TOOL_NAMES,
 } from './index';
 
-describe('Diorama MCP P0 tool contract', () => {
+describe('Dioramai MCP P0 tool contract', () => {
   it('keeps MCP as a narrow local-bridge control plane', () => {
-    expect(DIORAMA_MCP_TOOL_NAMES).toEqual([
+    expect(DIORAMAI_MCP_TOOL_NAMES).toEqual([
       'get_project_status',
       'get_scene',
       'load_scene',
@@ -21,8 +21,8 @@ describe('Diorama MCP P0 tool contract', () => {
   });
 
   it('does not expose generation, shell, filesystem, or generic mutation tools', () => {
-    for (const forbidden of DIORAMA_MCP_FORBIDDEN_CAPABILITIES) {
-      expect(DIORAMA_MCP_TOOL_NAMES).not.toContain(forbidden);
+    for (const forbidden of DIORAMAI_MCP_FORBIDDEN_CAPABILITIES) {
+      expect(DIORAMAI_MCP_TOOL_NAMES).not.toContain(forbidden);
     }
   });
 });

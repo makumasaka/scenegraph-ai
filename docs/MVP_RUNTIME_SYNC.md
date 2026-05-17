@@ -12,7 +12,7 @@ code edit -> parse embedded scene document -> canonical scene -> runtime refresh
 Default generated file:
 
 ```text
-src/generated/DioramaScene.generated.tsx
+src/generated/DioramaiScene.generated.tsx
 ```
 
 Default asset location:
@@ -24,29 +24,29 @@ public/assets/models
 The generated module contains a canonical scene document and an R3F renderer:
 
 ```tsx
-// @diorama-generated
-export const dioramaScene = {
-  "format": "diorama-scene",
+// @dioramai-generated
+export const dioramaiScene = {
+  "format": "dioramai-scene",
   "version": 2,
   "data": {}
 } as const;
 
-export function DioramaScene() {
-  return <DioramaSceneRenderer scene={dioramaScene.data} />;
+export function DioramaiScene() {
+  return <DioramaiSceneRenderer scene={dioramaiScene.data} />;
 }
 ```
 
-MVP code -> runtime sync parses only the `dioramaScene` object. Arbitrary JSX
+MVP code -> runtime sync parses only the `dioramaiScene` object. Arbitrary JSX
 roundtripping is deferred. Developers should customize wrapper files that import
-`DioramaScene`, not the generated renderer body.
+`DioramaiScene`, not the generated renderer body.
 
 ## Runtime -> Code
 
 1. User selects a node in the R3F viewport.
 2. TransformControls mutates only the local draft Object3D during dragging.
-3. On commit, `@diorama/r3f-bridge` reads the draft local transform and emits
+3. On commit, `@dioramai/r3f-bridge` reads the draft local transform and emits
    `UPDATE_TRANSFORM`.
-4. `@diorama/core` updates the canonical scene.
+4. `@dioramai/core` updates the canonical scene.
 5. The local bridge regenerates the deterministic R3F module if bytes changed.
 6. The developer app hot reloads from the generated module.
 
@@ -55,20 +55,20 @@ roundtripping is deferred. Developers should customize wrapper files that import
 1. The local bridge watches the generated module inside the configured project
    root.
 2. File changes are debounced.
-3. `@diorama/export-r3f` extracts the embedded `dioramaScene` object.
+3. `@dioramai/export-r3f` extracts the embedded `dioramaiScene` object.
 4. Zod validates the scene document.
 5. The bridge applies `REPLACE_SCENE`.
 6. Web clients receive an SSE scene event and reproject the runtime.
 
 ## Project Safety
 
-The bridge accepts a project root through `DIORAMA_PROJECT_ROOT` or an explicit
+The bridge accepts a project root through `DIORAMAI_PROJECT_ROOT` or an explicit
 startup option. All generated files and registered assets must resolve inside
 that project root. The bridge must reject absolute, parent-directory, `file://`,
 remote, or otherwise unsafe asset/code paths.
 
 Browser-origin requests must pair with the local bridge token printed by
-`diorama dev`. The bridge binds to `127.0.0.1`, reflects CORS only for the
+`dioramai dev`. The bridge binds to `127.0.0.1`, reflects CORS only for the
 request origin, and exposes only the P0 safe routes/tools.
 
 ## MVP Limits

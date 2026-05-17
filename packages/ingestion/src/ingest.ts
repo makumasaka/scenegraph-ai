@@ -1,4 +1,4 @@
-import { createNode, type Command, type DioramaAsset } from '@diorama/core';
+import { createNode, type Command, type DioramaiAsset } from '@dioramai/core';
 import type { IngestAssetInput, IngestionOptions, IngestionResult } from './types';
 import { planGltfHierarchyFromFile } from './gltfHierarchy';
 
@@ -52,7 +52,7 @@ const uriFromInput = (input: IngestAssetInput): string | undefined => {
   return undefined;
 };
 
-const toAsset = (input: IngestAssetInput, assetId: string): DioramaAsset => {
+const toAsset = (input: IngestAssetInput, assetId: string): DioramaiAsset => {
   const localPath = localPathFromInput(input);
   const format = input.format === 'gltf' ? 'gltf' : 'glb';
   const localName = basenameNoExt(localPath);

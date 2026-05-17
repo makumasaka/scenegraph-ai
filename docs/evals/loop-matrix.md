@@ -1,6 +1,6 @@
 # Code -> Canvas -> Code Loop Matrix
 
-These loops validate that Diorama's scenegraph and command system remain the
+These loops validate that Dioramai's scenegraph and command system remain the
 single source of truth across UI, export, and future agent surfaces.
 
 ## Loop A: JSON Roundtrip
@@ -302,8 +302,8 @@ Required APIs:
 
 Flow:
 
-1. Cursor, Claude, or Codex connects to a local Diorama MCP server.
-2. The MCP server wraps the Diorama agent runtime only.
+1. Cursor, Claude, or Codex connects to a local Dioramai MCP server.
+2. The MCP server wraps the Dioramai agent runtime only.
 3. External agent reads scene state with `get_scene`.
 4. Agent inspects `get_semantic_groups`, `get_behaviors`, and
    `get_selected_nodes` when needed.
@@ -348,7 +348,7 @@ Pass criteria:
 - Future tools consume normalized version 2 scenes and do not introduce a second scene shape.
 - Future tools dry-run command batches before apply.
 - Future tools require deterministic ids for duplicate replay.
-- Future tools wrap `DioramaSceneRuntime` and do not connect directly to Zustand.
+- Future tools wrap `DioramaiSceneRuntime` and do not connect directly to Zustand.
 - Future tools expose no filesystem browsing, shell execution, arbitrary
   JavaScript execution, direct Zustand access, or direct R3F object access.
 - Every mutating tool logs source, payload, dry-run status, result, errors, and

@@ -2,7 +2,7 @@ import {
   cloneSceneFromJson,
   validateScene,
   type BehaviorDefinition,
-  type DioramaAsset,
+  type DioramaiAsset,
   type InteractionBehavior,
   type NodeSemantics,
   type Scene,
@@ -10,7 +10,7 @@ import {
   type SemanticGroup,
   type SemanticRole,
   type Trait,
-} from '@diorama/schema';
+} from '@dioramai/schema';
 import { summarizeCommand, type CommandSummary } from './commandLog';
 import { duplicateNodeInScene } from './duplicate';
 import { computeArrangement, type ArrangeLayout, type ArrangeOptions } from './layout';
@@ -72,7 +72,7 @@ export type Command =
     }
   | {
       type: 'REGISTER_ASSET';
-      asset: DioramaAsset;
+      asset: DioramaiAsset;
     }
   | { type: 'REPLACE_SCENE'; scene: Scene }
   | { type: 'SET_SELECTION'; nodeId: string | null };
@@ -697,7 +697,7 @@ const applyArrangeNodes = (
 
 const applyRegisterAsset = (
   scene: Scene,
-  asset: DioramaAsset,
+  asset: DioramaiAsset,
 ): Scene => {
   const prev = scene.assets?.[asset.id];
   if (JSON.stringify(prev) === JSON.stringify(asset)) return scene;

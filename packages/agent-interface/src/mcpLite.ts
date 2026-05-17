@@ -1,19 +1,19 @@
 import { z } from 'zod';
 import type {
-  DioramaAsset,
+  DioramaiAsset,
   BehaviorDefinition,
   Scene,
   SemanticGroup,
   SemanticRole,
-} from '@diorama/schema';
-import { SemanticRoleSchema } from '@diorama/schema';
-import type { Command } from '@diorama/core';
-import { createGeneratorAdapter, type GeneratedAsset, type GenerationConfig } from '@diorama/generation';
-import { ingestAsset as planIngestAsset } from '@diorama/ingestion';
+} from '@dioramai/schema';
+import { SemanticRoleSchema } from '@dioramai/schema';
+import type { Command } from '@dioramai/core';
+import { createGeneratorAdapter, type GeneratedAsset, type GenerationConfig } from '@dioramai/generation';
+import { ingestAsset as planIngestAsset } from '@dioramai/ingestion';
 import {
   type ArrangeLayout,
   type ArrangeOptions,
-} from '@diorama/core';
+} from '@dioramai/core';
 import {
   createAgentSession,
   type AgentSession,
@@ -153,7 +153,7 @@ export type IngestAssetInput = z.infer<typeof IngestAssetInputSchema>;
 
 export type IngestAssetResult = CommandBatchResult & {
   warnings: string[];
-  assets?: DioramaAsset[];
+  assets?: DioramaiAsset[];
 };
 
 export const McpLiteExportSceneInputSchema = z
