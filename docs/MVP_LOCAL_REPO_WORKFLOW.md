@@ -3,10 +3,21 @@
 Dioramai's MVP workflow is local-repo first. The Vercel app is a static shell;
 the local bridge is the only process that can touch a project folder.
 
-## 1. Prepare An R3F Project
+## 1. Create Or Prepare An R3F Project
 
-Open your target React Three Fiber project in Cursor. Add a minimal
-`dioramai.config.json` at the project root:
+For the fastest MVP path, open an empty folder and run:
+
+```bash
+npx dioramai init --template vite-r3f
+npx dioramai doctor
+npx dioramai dev --open
+```
+
+`init` creates a minimal Vite + React + R3F app, `dioramai.config.json`,
+`src/DioramaiApp.tsx`, the generated scene module, the scene JSON file, the
+Cursor rule, and `public/assets/models`.
+
+For an existing app, add a minimal `dioramai.config.json` at the project root:
 
 ```json
 {
@@ -26,14 +37,14 @@ public/assets/models/chair.glb
 
 ## 2. Start The Local Bridge
 
-From the Dioramai repo:
+From the target project:
 
 ```bash
-npx dioramai init --projectRoot /absolute/path/to/r3f-project
-npx dioramai dev --projectRoot /absolute/path/to/r3f-project
+npx dioramai doctor
+npx dioramai dev --open
 ```
 
-The equivalent repo script is:
+From the Dioramai monorepo against another project:
 
 ```bash
 npm run bridge:dev -- --projectRoot /absolute/path/to/r3f-project
@@ -50,7 +61,7 @@ It also prints a pairing token for browser-origin requests:
 
 ```text
 Pairing token: <token>
-Shell query: ?bridgeToken=<token>
+Web shell URL: http://localhost:5173/?bridgeToken=<token>&bridgeUrl=http%3A%2F%2F127.0.0.1%3A7777
 ```
 
 Useful checks:
@@ -70,10 +81,11 @@ Local shell:
 npm run dev -w web
 ```
 
-Open the shell with the bridge token query, for example:
+Open the shell with the printed bridge URL. If you started the bridge with
+`--open`, Dioramai opens it for you. A local shell URL looks like:
 
 ```text
-http://localhost:5173/?bridgeToken=<token>
+http://localhost:5173/?bridgeToken=<token>&bridgeUrl=http%3A%2F%2F127.0.0.1%3A7777
 ```
 
 The shell connects to `http://127.0.0.1:7777` unless

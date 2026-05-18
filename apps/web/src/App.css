@@ -182,7 +182,8 @@
   letter-spacing: 0.5px;
 }
 
-.scene-loader select {
+.scene-loader select,
+.scene-loader input {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--border);
@@ -190,6 +191,16 @@
   padding: 4px 8px;
   font-family: var(--mono);
   font-size: 11px;
+}
+
+.scene-loader__path {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scene-loader__path input {
+  width: min(260px, 52vw);
 }
 
 .scene-loader button {

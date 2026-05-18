@@ -73,7 +73,9 @@ GLB/GLTF files, and then registered with Dioramai.
 | `packages/r3f-bridge` | R3F runtime projection, selection, registry, transform command translation |
 | `packages/export-r3f` | Deterministic R3F module export and generated scene metadata parsing |
 | `packages/agent-interface` | Narrow command/session surface for tools |
-| `packages/mcp` | Thin MCP-facing package over the agent surface |
+| `packages/local-bridge` | Local filesystem-aware bridge for safe repo sync |
+| `packages/cli` | `npx dioramai` init/doctor/dev/export/validate commands |
+| `packages/mcp` | Narrow MCP-facing package that proxies to the local bridge |
 | `packages/ingestion` | Local GLB/GLTF registration helpers |
 | `apps/web` | Vite runtime debug shell for viewport, hierarchy, inspector, code sync status |
 | `apps/demo-export` | Sample generated R3F app used for local preview |
@@ -101,13 +103,16 @@ Useful scripts:
 For project sync, start the bridge with a project root:
 
 ```bash
-DIORAMAI_PROJECT_ROOT=/path/to/r3f-app npm run bridge:dev
+npx dioramai init --template vite-r3f
+npx dioramai doctor
+npx dioramai dev --open
 ```
 
 Default generated output:
 
-- `src/dioramai/DioramaiScene.generated.tsx`
-- `public/assets/dioramai/*`
+- `src/generated/DioramaiScene.generated.tsx`
+- `src/generated/dioramai.scene.json`
+- `public/assets/models/*`
 
 ## More Docs
 

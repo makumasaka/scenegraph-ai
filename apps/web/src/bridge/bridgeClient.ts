@@ -72,6 +72,31 @@ export const BRIDGE_URL =
   import.meta.env.VITE_DIORAMAI_BRIDGE_URL ?? 'http://127.0.0.1:7777';
 
 const BRIDGE_TOKEN_STORAGE_KEY = 'dioramai.bridgeToken';
+const BRIDGE_URL_STORAGE_KEY = 'dioramai.bridgeUrl';
+
+const isLocalBridgeUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === 'http:' &&
+      ['127.0.0.1', 'localhost', '[::1]', '::1'].includes(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+};
+
+export const getBridgeUrl = (): string => {
+  if (typeof window === 'undefined') return BRIDGE_URL;
+  const params = new URLSearchParams(window.location.search);
+  const url = params.get('bridgeUrl');
+  if (url && isLocalBridgeUrl(url)) {
+    const normalized = url.replace(/\/+$/, '');
+    window.localStorage.setItem(BRIDGE_URL_STORAGE_KEY, normalized);
+    return normalized;
+  }
+  return window.localStorage.getItem(BRIDGE_URL_STORAGE_KEY) ?? BRIDGE_URL;
+};
 
 export const getBridgeToken = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -92,7 +117,7 @@ const withBridgeToken = (path: string): string => {
 };
 
 export const bridgeUrlFor = (path: string): string =>
-  `${BRIDGE_URL}${withBridgeToken(path)}`;
+  `${getBridgeUrl()}${withBridgeToken(path)}`;
 
 const bridgeHeaders = (): Record<string, string> => {
   const token = getBridgeToken();
@@ -166,7 +191,7 @@ export const postBridgeImportGlbAsset = async (
   const token = getBridgeToken();
   if (token) params.set('token', token);
 
-  const response = await fetch(`${BRIDGE_URL}/import-glb-asset?${params.toString()}`, {
+  const response = await fetch(`${getBridgeUrl()}/import-glb-asset?${params.toString()}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
@@ -176,6 +201,23 @@ export const postBridgeImportGlbAsset = async (
   });
   return response.json() as Promise<BridgeResult<ImportGlbAssetResult>>;
 };
+
+export const postBridgeRegisterGlbAssetPath = async (
+  path: string,
+  options: {
+    importMode?: 'single' | 'shallow';
+    semanticRole?: string;
+    parentId?: string;
+    name?: string;
+  } = {},
+): Promise<BridgeResult<ImportGlbAssetResult>> =>
+  postJson('/import-glb-asset-json', {
+    path,
+    importMode: options.importMode ?? 'shallow',
+    ...(options.semanticRole ? { semanticRole: options.semanticRole } : {}),
+    ...(options.parentId ? { parentId: options.parentId } : {}),
+    ...(options.name ? { name: options.name } : {}),
+  });
 
 export const bridgeAssetUrl = (uri: string): string => {
   const clean = uri.startsWith('/') ? uri : `/${uri}`;

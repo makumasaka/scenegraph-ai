@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "bin": {
-    "dioramai": "./src/index.ts"
+    "dioramai": "./src/index.ts",
+    "diorama": "./src/index.ts"
   },
   "scripts": {
     "dev": "tsx src/index.ts dev",
     "init": "tsx src/index.ts init",
+    "doctor": "tsx src/index.ts doctor",
     "export": "tsx src/index.ts export",
     "validate": "tsx src/index.ts validate",
     "build": "tsc -p tsconfig.json --noEmit",

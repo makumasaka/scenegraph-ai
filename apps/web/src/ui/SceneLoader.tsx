@@ -2,7 +2,10 @@ import { useRef, useState } from 'react';
 import { getStarterScene, type StarterKitId } from '@dioramai/core';
 import { exportSceneToR3fJsx } from '@dioramai/export-r3f';
 import { useSceneStore } from '../store/sceneStore';
-import { postBridgeImportGlbAsset } from '../bridge/bridgeClient';
+import {
+  postBridgeImportGlbAsset,
+  postBridgeRegisterGlbAssetPath,
+} from '../bridge/bridgeClient';
 
 export function SceneLoader() {
   const dispatch = useSceneStore((s) => s.dispatch);
@@ -16,6 +19,7 @@ export function SceneLoader() {
   const sceneFileRef = useRef<HTMLInputElement>(null);
   const glbFileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [glbPath, setGlbPath] = useState('');
 
   const loadKit = () => {
     dispatch({
@@ -81,6 +85,32 @@ export function SceneLoader() {
       .finally(() => window.setTimeout(() => setStatus(null), 2500));
   };
 
+  const handleRegisterGlbPath = () => {
+    const path = glbPath.trim();
+    if (path.length === 0) {
+      setStatus('Enter a project-relative GLB path');
+      window.setTimeout(() => setStatus(null), 2500);
+      return;
+    }
+    setStatus('Registering GLB');
+    void postBridgeRegisterGlbAssetPath(path, { importMode: 'shallow' })
+      .then((result) => {
+        if (result.ok) {
+          applyBridgeScene(result.data.scene);
+          setBridgeStatus(true, null);
+          setStatus(`Registered ${path}`);
+          return;
+        }
+        setBridgeStatus(false, result.error.message);
+        setStatus(result.error.message);
+      })
+      .catch((error) => {
+        setBridgeStatus(false, error instanceof Error ? error.message : String(error));
+        setStatus('Register GLB failed');
+      })
+      .finally(() => window.setTimeout(() => setStatus(null), 3000));
+  };
+
   const handleCopyR3f = async () => {
     const jsx = exportSceneToR3fJsx(scene, { includeStudioLights: true });
     try {
@@ -133,6 +163,21 @@ export function SceneLoader() {
         hidden
         onChange={handleGlbFile}
       />
+      <label className="scene-loader__path">
+        <span className="scene-loader__muted">Path</span>
+        <input
+          type="text"
+          value={glbPath}
+          placeholder="public/assets/models/chair.glb"
+          onChange={(event) => setGlbPath(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') handleRegisterGlbPath();
+          }}
+        />
+      </label>
+      <button type="button" onClick={handleRegisterGlbPath}>
+        Register GLB
+      </button>
       <button type="button" onClick={handleCopyR3f} title="Copy JSX for React Three Fiber">
         R3F
       </button>

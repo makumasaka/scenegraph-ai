@@ -1,13 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getStarterScene } from '@dioramai/core';
-import { postBridgeImportGlbAsset } from '../bridge/bridgeClient';
+import {
+  postBridgeImportGlbAsset,
+  postBridgeRegisterGlbAssetPath,
+} from '../bridge/bridgeClient';
 import { useSceneStore } from '../store/sceneStore';
 import { SceneLoader } from './SceneLoader';
 
 vi.mock('../bridge/bridgeClient', async () => ({
   ...(await vi.importActual<typeof import('../bridge/bridgeClient')>('../bridge/bridgeClient')),
   postBridgeImportGlbAsset: vi.fn(),
+  postBridgeRegisterGlbAssetPath: vi.fn(),
 }));
 
 describe('SceneLoader GLB import', () => {
@@ -58,5 +62,46 @@ describe('SceneLoader GLB import', () => {
     expect(await screen.findByText('Imported sample.glb')).toBeInTheDocument();
     expect(useSceneStore.getState().scene.rootId).toBe(scene.rootId);
     expect(useSceneStore.getState().bridgeConnected).toBe(true);
+  });
+
+  it('registers an existing project-relative GLB path through the bridge', async () => {
+    const scene = getStarterScene('showroom');
+    vi.mocked(postBridgeRegisterGlbAssetPath).mockResolvedValue({
+      ok: true,
+      data: {
+        assetId: 'asset-chair',
+        commands: [],
+        warnings: [],
+        sceneSummary: {
+          nodeCount: Object.keys(scene.nodes).length,
+          assetCount: 1,
+          rootChildCount: scene.nodes[scene.rootId]?.children.length ?? 0,
+        },
+        importedNodeIds: ['asset-chair-node'],
+        hierarchySummary: {
+          nodeCount: 0,
+          rootNodeIds: [],
+        },
+        scene,
+        changed: true,
+        dryRun: false,
+        appliedCommandCount: 2,
+      },
+    });
+
+    render(<SceneLoader />);
+
+    fireEvent.change(screen.getByPlaceholderText('public/assets/models/chair.glb'), {
+      target: { value: 'public/assets/models/chair.glb' },
+    });
+    fireEvent.click(screen.getByText('Register GLB'));
+
+    await waitFor(() => {
+      expect(postBridgeRegisterGlbAssetPath).toHaveBeenCalledWith(
+        'public/assets/models/chair.glb',
+        { importMode: 'shallow' },
+      );
+    });
+    expect(await screen.findByText('Registered public/assets/models/chair.glb')).toBeInTheDocument();
   });
 });

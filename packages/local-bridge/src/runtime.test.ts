@@ -6,6 +6,8 @@ import { createEmptyScene, applyCommand, type Command } from '@dioramai/core';
 import { parseSceneFromR3fSyncModule } from '@dioramai/export-r3f';
 import {
   DioramaiBridgeRuntime,
+  doctorDioramaiProject,
+  initializeDioramaiProject,
   resolveWorkspaceRelativePath,
   startDioramaiBridgeServer,
 } from './runtime';
@@ -46,6 +48,100 @@ const waitFor = async (predicate: () => Promise<boolean>, timeoutMs = 1500): Pro
   }
   return false;
 };
+
+describe('Dioramai project onboarding', () => {
+  let initRoot = '';
+
+  afterEach(async () => {
+    if (initRoot) await rm(initRoot, { recursive: true, force: true });
+    initRoot = '';
+  });
+
+  it('scaffolds a minimal Vite/R3F project in an empty folder', async () => {
+    initRoot = await mkdtemp(join(tmpdir(), 'dioramai-init-'));
+
+    const result = await initializeDioramaiProject(initRoot, {
+      template: 'vite-r3f',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.configPath.endsWith('dioramai.config.json')).toBe(true);
+    expect(result.data.generatedModule.endsWith('src\\generated\\DioramaiScene.generated.tsx') ||
+      result.data.generatedModule.endsWith('src/generated/DioramaiScene.generated.tsx')).toBe(true);
+    expect(result.data.wroteFiles).toEqual(expect.arrayContaining([
+      'package.json',
+      'index.html',
+      'src/main.tsx',
+      'src/App.tsx',
+      'src/DioramaiApp.tsx',
+      'src/generated/DioramaiScene.generated.tsx',
+      'src/generated/dioramai.scene.json',
+      '.cursor/rules/dioramai.mdc',
+    ]));
+
+    const wrapper = await readFile(resolve(initRoot, 'src/DioramaiApp.tsx'), 'utf8');
+    expect(wrapper).toContain("import { DioramaiScene } from './generated/DioramaiScene.generated';");
+    const generated = await readFile(resolve(initRoot, 'src/generated/DioramaiScene.generated.tsx'), 'utf8');
+    expect(generated).not.toContain(initRoot);
+    expect(parseSceneFromR3fSyncModule(generated).ok).toBe(true);
+  });
+
+  it('refuses to scaffold a non-empty folder without --force', async () => {
+    initRoot = await mkdtemp(join(tmpdir(), 'dioramai-init-nonempty-'));
+    await writeFile(resolve(initRoot, 'README.md'), 'keep me', 'utf8');
+
+    const result = await initializeDioramaiProject(initRoot, {
+      template: 'vite-r3f',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe('PROJECT_NOT_EMPTY');
+    expect(await readFile(resolve(initRoot, 'README.md'), 'utf8')).toBe('keep me');
+  });
+
+  it('reports a fresh scaffold as doctor-ready with only non-blocking warnings', async () => {
+    initRoot = await mkdtemp(join(tmpdir(), 'dioramai-doctor-'));
+    const initialized = await initializeDioramaiProject(initRoot, {
+      template: 'vite-r3f',
+    });
+    expect(initialized.ok).toBe(true);
+
+    const doctor = await doctorDioramaiProject(initRoot, { port: 9 });
+
+    expect(doctor.ok).toBe(true);
+    if (!doctor.ok) return;
+    expect(doctor.data.ok).toBe(true);
+    expect(doctor.data.items.filter((item) => item.status === 'fail')).toEqual([]);
+    expect(doctor.data.items.map((item) => item.label)).toEqual(expect.arrayContaining([
+      'package.json',
+      'React/R3F dependencies',
+      'dioramai.config.json',
+      'Generated scene parses',
+      'App wiring',
+    ]));
+  });
+
+  it('reports clear doctor failures for missing project essentials', async () => {
+    initRoot = await mkdtemp(join(tmpdir(), 'dioramai-doctor-missing-'));
+
+    const doctor = await doctorDioramaiProject(initRoot, { port: 9 });
+
+    expect(doctor.ok).toBe(true);
+    if (!doctor.ok) return;
+    expect(doctor.data.ok).toBe(false);
+    const failedLabels = doctor.data.items
+      .filter((item) => item.status === 'fail')
+      .map((item) => item.label);
+    expect(failedLabels).toEqual(expect.arrayContaining([
+      'package.json',
+      'dioramai.config.json',
+      'Asset directory',
+      'Generated scene module',
+    ]));
+  });
+});
 
 describe('DioramaiBridgeRuntime importAsset and sync', () => {
   beforeEach(async () => {

@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, readFileSync, watch, type FSWatcher } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, relative, resolve } from 'node:path';
 import {
   applyCommandWithResult,
@@ -129,11 +129,14 @@ export type ImportAssetResult = {
 };
 
 const DEFAULT_PROJECT_ROOT = resolve(process.env.DIORAMAI_PROJECT_ROOT ?? process.cwd());
-const CONFIG_FILE_NAME = 'dioramai.config.json';
+const PRIMARY_CONFIG_FILE_NAME = 'dioramai.config.json';
+const LEGACY_CONFIG_FILE_NAME = 'diorama.config.json';
+const CONFIG_FILE_NAME = PRIMARY_CONFIG_FILE_NAME;
 const DEFAULT_SESSION_RELATIVE_PATH = 'src/generated/dioramai.scene.json';
 const DEFAULT_GENERATED_MODULE_RELATIVE_PATH = 'src/generated/DioramaiScene.generated.tsx';
 const DEFAULT_ASSET_DIR_RELATIVE_PATH = 'public/assets/models';
 const DEFAULT_PUBLIC_URL_BASE = '/assets/models';
+const DEFAULT_COMPONENT_NAME = 'DioramaiScene';
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const SEMANTIC_ROLES = new Set<SemanticRole>([
   'product',
@@ -301,7 +304,13 @@ const readProjectConfigSync = (projectRoot: string): {
   config: DioramaiProjectConfig;
   warnings: string[];
 } => {
-  const configPath = resolve(projectRoot, CONFIG_FILE_NAME);
+  const primaryConfigPath = resolve(projectRoot, PRIMARY_CONFIG_FILE_NAME);
+  const legacyConfigPath = resolve(projectRoot, LEGACY_CONFIG_FILE_NAME);
+  const usingLegacyConfig = !existsSync(primaryConfigPath) && existsSync(legacyConfigPath);
+  const configPath = usingLegacyConfig ? legacyConfigPath : primaryConfigPath;
+  const baseWarnings = usingLegacyConfig
+    ? [`Using legacy ${LEGACY_CONFIG_FILE_NAME}; prefer ${PRIMARY_CONFIG_FILE_NAME}.`]
+    : [];
   if (!existsSync(configPath)) {
     return { found: false, path: configPath, config: {}, warnings: [] };
   }
@@ -312,7 +321,7 @@ const readProjectConfigSync = (projectRoot: string): {
         found: true,
         path: configPath,
         config: {},
-        warnings: ['dioramai.config.json must contain a JSON object.'],
+        warnings: [...baseWarnings, `${basename(configPath)} must contain a JSON object.`],
       };
     }
     return {
@@ -327,14 +336,17 @@ const readProjectConfigSync = (projectRoot: string): {
         ...(configString(raw.publicAssetBase) !== undefined ? { publicAssetBase: configString(raw.publicAssetBase) } : {}),
         ...(configString(raw.sceneJsonFile) !== undefined ? { sceneJsonFile: configString(raw.sceneJsonFile) } : {}),
       },
-      warnings: [],
+      warnings: baseWarnings,
     };
   } catch (error) {
     return {
       found: true,
       path: configPath,
       config: {},
-      warnings: [`Failed to parse dioramai.config.json: ${error instanceof Error ? error.message : String(error)}`],
+      warnings: [
+        ...baseWarnings,
+        `Failed to parse ${basename(configPath)}: ${error instanceof Error ? error.message : String(error)}`,
+      ],
     };
   }
 };
@@ -569,40 +581,608 @@ export const loadInitialBridgeScene = async (
   return (await loadSceneFromFile(sessionPath)) ?? getStarterScene('default');
 };
 
+export type DioramaiInitTemplate = 'vite-r3f' | 'config';
+
+export type DioramaiProjectInitOptions = {
+  template?: DioramaiInitTemplate;
+  force?: boolean;
+};
+
+export type DioramaiDoctorItem = {
+  status: 'pass' | 'warn' | 'fail';
+  label: string;
+  message: string;
+  fix?: string;
+};
+
+export type DioramaiDoctorResult = {
+  ok: boolean;
+  projectRoot: string;
+  configPath: string;
+  items: DioramaiDoctorItem[];
+  glbFiles: string[];
+};
+
+const fileExists = async (path: string): Promise<boolean> => {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isDirectoryEmpty = async (path: string): Promise<boolean> => {
+  try {
+    const entries = await readdir(path);
+    return entries.length === 0;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') return true;
+    throw error;
+  }
+};
+
+const projectFilePath = (projectRoot: string, relativePath: string): string => {
+  if (!isRelativeProjectPath(relativePath)) {
+    throw new Error(`${relativePath} must be relative to the Dioramai project root.`);
+  }
+  const absolutePath = resolve(projectRoot, relativePath);
+  if (!isPathInside(absolutePath, projectRoot)) {
+    throw new Error(`${relativePath} must stay inside the Dioramai project root.`);
+  }
+  return absolutePath;
+};
+
+const writeProjectTextFile = async (
+  projectRoot: string,
+  relativePath: string,
+  content: string,
+  force: boolean,
+  wroteFiles: string[],
+): Promise<void> => {
+  const absolutePath = projectFilePath(projectRoot, relativePath);
+  if (!force && existsSync(absolutePath)) {
+    throw new Error(`${relativePath} already exists. Pass --force to overwrite it.`);
+  }
+  await mkdir(dirname(absolutePath), { recursive: true });
+  await writeFile(absolutePath, content, 'utf8');
+  wroteFiles.push(relativePath);
+};
+
+const ensureProjectDirectory = async (
+  projectRoot: string,
+  relativePath: string,
+  wroteFiles: string[],
+): Promise<void> => {
+  const absolutePath = projectFilePath(projectRoot, relativePath);
+  const existed = existsSync(absolutePath);
+  await mkdir(absolutePath, { recursive: true });
+  if (!existed) wroteFiles.push(`${relativePath.replace(/\\/g, '/')}/`);
+};
+
+const packageNameForRoot = (projectRoot: string): string => {
+  const name = sanitizeStem(basename(projectRoot).toLowerCase()).replace(/^[._-]+/, '');
+  return name.length > 0 ? name : 'dioramai-r3f-app';
+};
+
+const jsonFile = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`;
+
+const vitePackageJson = (projectRoot: string): string => jsonFile({
+  name: packageNameForRoot(projectRoot),
+  private: true,
+  version: '0.0.0',
+  type: 'module',
+  scripts: {
+    dev: 'vite',
+    build: 'tsc -b && vite build',
+    preview: 'vite preview',
+    doctor: 'dioramai doctor',
+    dioramai: 'dioramai dev --open',
+  },
+  dependencies: {
+    '@react-three/drei': '^10.7.7',
+    '@react-three/fiber': '^9.6.0',
+    react: '^19.2.5',
+    'react-dom': '^19.2.5',
+    three: '^0.184.0',
+  },
+  devDependencies: {
+    '@types/react': '^19.2.14',
+    '@types/react-dom': '^19.2.3',
+    '@vitejs/plugin-react': '^6.0.1',
+    typescript: '~6.0.2',
+    vite: '^8.0.9',
+  },
+});
+
+const indexHtml = (): string =>
+  [
+    '<!doctype html>',
+    '<html lang="en">',
+    '  <head>',
+    '    <meta charset="UTF-8" />',
+    '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+    '    <title>Dioramai R3F App</title>',
+    '  </head>',
+    '  <body>',
+    '    <div id="root"></div>',
+    '    <script type="module" src="/src/main.tsx"></script>',
+    '  </body>',
+    '</html>',
+    '',
+  ].join('\n');
+
+const mainTsx = (): string =>
+  [
+    "import { StrictMode } from 'react';",
+    "import { createRoot } from 'react-dom/client';",
+    "import './style.css';",
+    "import { App } from './App';",
+    '',
+    "createRoot(document.getElementById('root')!).render(",
+    '  <StrictMode>',
+    '    <App />',
+    '  </StrictMode>,',
+    ');',
+    '',
+  ].join('\n');
+
+const appTsx = (): string =>
+  [
+    "import { DioramaiApp } from './DioramaiApp';",
+    '',
+    'export function App() {',
+    '  return <DioramaiApp />;',
+    '}',
+    '',
+  ].join('\n');
+
+const dioramaiAppTsx = (): string =>
+  [
+    "import { Canvas } from '@react-three/fiber';",
+    "import { OrbitControls } from '@react-three/drei';",
+    "import { DioramaiScene } from './generated/DioramaiScene.generated';",
+    '',
+    'export function DioramaiApp() {',
+    '  return (',
+    '    <main className="dioramai-app">',
+    '      <Canvas camera={{ position: [4, 3, 6], fov: 50 }} shadows>',
+    '        <color attach="background" args={["#0f172a"]} />',
+    '        <OrbitControls makeDefault />',
+    '        <DioramaiScene />',
+    '      </Canvas>',
+    '    </main>',
+    '  );',
+    '}',
+    '',
+  ].join('\n');
+
+const styleCss = (): string =>
+  [
+    ':root {',
+    '  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;',
+    '  color: #e5e7eb;',
+    '  background: #0f172a;',
+    '}',
+    '',
+    '* {',
+    '  box-sizing: border-box;',
+    '}',
+    '',
+    'body {',
+    '  margin: 0;',
+    '}',
+    '',
+    '.dioramai-app {',
+    '  width: 100vw;',
+    '  height: 100vh;',
+    '  overflow: hidden;',
+    '}',
+    '',
+  ].join('\n');
+
+const cursorRule = (): string =>
+  [
+    '---',
+    'description: Dioramai local runtime sync guidance',
+    'alwaysApply: true',
+    '---',
+    '',
+    '- DioramaiScene.generated.tsx is generated by Dioramai.',
+    '- Prefer editing the embedded `dioramaiScene` block for scene state changes.',
+    '- Do not manually edit generated JSX unless intentionally changing Dioramai export output.',
+    '- Put custom app logic in `App.tsx`, `DioramaiApp.tsx`, or separate user components.',
+    '- Put GLB/GLTF assets under `public/assets/models` unless `dioramai.config.json` says otherwise.',
+    '- Use Dioramai MCP tools for scene operations when available.',
+    '',
+  ].join('\n');
+
 export const initializeDioramaiProject = async (
   projectRootInput: string,
+  options: DioramaiProjectInitOptions = {},
 ): Promise<BridgeResult<{
   projectRoot: string;
   configPath: string;
   wroteConfig: boolean;
   assetDir: string;
+  generatedModule: string;
   generatedDir: string;
+  wroteFiles: string[];
 }>> => {
   try {
     const projectRoot = resolveProjectRoot(projectRootInput);
-    const configPath = resolve(projectRoot, CONFIG_FILE_NAME);
-    let wroteConfig = false;
-    if (!existsSync(configPath)) {
-      await writeFile(configPath, `${JSON.stringify(DEFAULT_PROJECT_CONFIG, null, 2)}\n`, 'utf8');
-      wroteConfig = true;
+    const template = options.template ?? 'vite-r3f';
+    const force = options.force === true;
+    await mkdir(projectRoot, { recursive: true });
+    if (template === 'vite-r3f' && !force && !(await isDirectoryEmpty(projectRoot))) {
+      return fail(
+        'PROJECT_NOT_EMPTY',
+        `Dioramai init expected an empty folder: ${projectRoot}`,
+      );
     }
+
+    const configPath = resolve(projectRoot, CONFIG_FILE_NAME);
+    const wroteFiles: string[] = [];
+    const starterScene = getStarterScene('default');
+    const generatedModuleContent = exportSceneToR3fSyncModule(starterScene, {
+      componentName: DEFAULT_COMPONENT_NAME,
+      includeStudioLights: true,
+    }).code;
+
+    await writeProjectTextFile(projectRoot, CONFIG_FILE_NAME, jsonFile(DEFAULT_PROJECT_CONFIG), force, wroteFiles);
+    const wroteConfig = wroteFiles.includes(CONFIG_FILE_NAME);
+
     const loadedConfig = readProjectConfigSync(projectRoot);
     const assetDir = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'assetDir', DEFAULT_ASSET_DIR_RELATIVE_PATH));
     const generatedModule = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'generatedSceneFile', DEFAULT_GENERATED_MODULE_RELATIVE_PATH));
+    const sceneJson = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'sceneJsonFile', DEFAULT_SESSION_RELATIVE_PATH));
     if (!isPathInside(assetDir, projectRoot) || !isPathInside(generatedModule, projectRoot)) {
       return fail('VALIDATION_ERROR', 'Configured Dioramai paths must stay inside the explicit project root.');
     }
-    await mkdir(assetDir, { recursive: true });
-    await mkdir(dirname(generatedModule), { recursive: true });
+    await ensureProjectDirectory(projectRoot, loadedConfig.config.assetDir ?? DEFAULT_ASSET_DIR_RELATIVE_PATH, wroteFiles);
+    await ensureProjectDirectory(projectRoot, dirname(loadedConfig.config.generatedSceneFile ?? DEFAULT_GENERATED_MODULE_RELATIVE_PATH).replace(/\\/g, '/'), wroteFiles);
+
+    if (template === 'vite-r3f') {
+      await writeProjectTextFile(projectRoot, 'package.json', vitePackageJson(projectRoot), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'index.html', indexHtml(), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/main.tsx', mainTsx(), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/App.tsx', appTsx(), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/DioramaiApp.tsx', dioramaiAppTsx(), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/style.css', styleCss(), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/generated/DioramaiScene.generated.tsx', generatedModuleContent, force, wroteFiles);
+      await writeProjectTextFile(projectRoot, 'src/generated/dioramai.scene.json', serializeScene(starterScene), force, wroteFiles);
+      await writeProjectTextFile(projectRoot, '.cursor/rules/dioramai.mdc', cursorRule(), force, wroteFiles);
+    } else {
+      if (!existsSync(generatedModule)) {
+        await writeProjectTextFile(projectRoot, loadedConfig.config.generatedSceneFile ?? DEFAULT_GENERATED_MODULE_RELATIVE_PATH, generatedModuleContent, force, wroteFiles);
+      }
+      if (!existsSync(sceneJson)) {
+        await writeProjectTextFile(projectRoot, loadedConfig.config.sceneJsonFile ?? DEFAULT_SESSION_RELATIVE_PATH, serializeScene(starterScene), force, wroteFiles);
+      }
+    }
+
     return ok({
       projectRoot,
       configPath,
       wroteConfig,
       assetDir,
+      generatedModule,
       generatedDir: dirname(generatedModule),
+      wroteFiles,
     });
   } catch (error) {
-    return fail('INIT_ERROR', error instanceof Error ? error.message : String(error));
+    return fail(
+      error instanceof Error && error.message.includes('already exists') ? 'FILE_EXISTS' : 'INIT_ERROR',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+};
+
+const listGlbFiles = async (
+  projectRoot: string,
+  assetDirPath: string,
+): Promise<string[]> => {
+  try {
+    const entries = await readdir(assetDirPath, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() && /\.(glb|gltf)$/i.test(entry.name))
+      .map((entry) => relative(projectRoot, resolve(assetDirPath, entry.name)).replace(/\\/g, '/'))
+      .sort();
+  } catch {
+    return [];
+  }
+};
+
+const readJsonObjectFile = async (path: string): Promise<JsonRecord | null> => {
+  try {
+    const raw = JSON.parse(await readFile(path, 'utf8')) as unknown;
+    return isRecord(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+};
+
+const hasDependency = (packageJson: JsonRecord, name: string): boolean => {
+  const dependencies = isRecord(packageJson.dependencies) ? packageJson.dependencies : {};
+  const devDependencies = isRecord(packageJson.devDependencies) ? packageJson.devDependencies : {};
+  return typeof dependencies[name] === 'string' || typeof devDependencies[name] === 'string';
+};
+
+const appImportsGeneratedScene = async (projectRoot: string): Promise<boolean | null> => {
+  const candidates = [
+    'src/DioramaiApp.tsx',
+    'src/App.tsx',
+    'src/main.tsx',
+  ];
+  let foundReadableFile = false;
+  for (const candidate of candidates) {
+    try {
+      const content = await readFile(resolve(projectRoot, candidate), 'utf8');
+      foundReadableFile = true;
+      if (
+        content.includes('DioramaiScene.generated') ||
+        content.includes('DioramaScene.generated')
+      ) {
+        return true;
+      }
+    } catch {
+      // Missing app files are handled by the final null/false result.
+    }
+  }
+  return foundReadableFile ? false : null;
+};
+
+const bridgeIsReachable = async (port: number): Promise<boolean> => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/health`);
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
+export const doctorDioramaiProject = async (
+  projectRootInput: string,
+  options: { port?: number } = {},
+): Promise<BridgeResult<DioramaiDoctorResult>> => {
+  try {
+    const projectRoot = resolveProjectRoot(projectRootInput);
+    const items: DioramaiDoctorItem[] = [];
+    const add = (item: DioramaiDoctorItem): void => {
+      items.push(item);
+    };
+    const loadedConfig = readProjectConfigSync(projectRoot);
+    const packageJsonPath = resolve(projectRoot, 'package.json');
+    const packageJson = await readJsonObjectFile(packageJsonPath);
+
+    if (packageJson === null) {
+      add({
+        status: 'fail',
+        label: 'package.json',
+        message: 'No package.json was found in the project root.',
+        fix: 'Run npx dioramai init --template vite-r3f in an empty folder.',
+      });
+    } else {
+      add({
+        status: 'pass',
+        label: 'package.json',
+        message: 'package.json exists.',
+      });
+
+      const requiredDependencies = [
+        'react',
+        'react-dom',
+        'three',
+        '@react-three/fiber',
+        '@react-three/drei',
+      ];
+      const missingDependencies = requiredDependencies.filter((dependency) =>
+        !hasDependency(packageJson, dependency),
+      );
+      if (missingDependencies.length > 0) {
+        add({
+          status: 'fail',
+          label: 'React/R3F dependencies',
+          message: `Missing dependencies: ${missingDependencies.join(', ')}.`,
+          fix: `npm install ${missingDependencies.join(' ')}`,
+        });
+      } else {
+        add({
+          status: 'pass',
+          label: 'React/R3F dependencies',
+          message: 'React, Three, R3F, and Drei are listed.',
+        });
+      }
+
+      const nodeModulesPath = resolve(projectRoot, 'node_modules');
+      if (await fileExists(nodeModulesPath)) {
+        add({
+          status: 'pass',
+          label: 'Dependencies installed',
+          message: 'node_modules exists.',
+        });
+      } else {
+        add({
+          status: 'warn',
+          label: 'Dependencies installed',
+          message: 'Dependencies are listed but node_modules is not present.',
+          fix: 'Run npm install before starting the target app.',
+        });
+      }
+    }
+
+    if (!loadedConfig.found) {
+      add({
+        status: 'fail',
+        label: 'dioramai.config.json',
+        message: 'No Dioramai config was found.',
+        fix: 'Run npx dioramai init --template vite-r3f or add dioramai.config.json.',
+      });
+    } else if (loadedConfig.warnings.some((warning) => warning.startsWith('Failed to parse'))) {
+      add({
+        status: 'fail',
+        label: 'dioramai.config.json',
+        message: loadedConfig.warnings.join(' '),
+        fix: 'Fix the JSON syntax in dioramai.config.json.',
+      });
+    } else {
+      add({
+        status: loadedConfig.warnings.length > 0 ? 'warn' : 'pass',
+        label: 'dioramai.config.json',
+        message: loadedConfig.warnings.length > 0
+          ? loadedConfig.warnings.join(' ')
+          : 'Dioramai config exists and is JSON.',
+      });
+    }
+
+    let assetDirPath = resolve(projectRoot, DEFAULT_ASSET_DIR_RELATIVE_PATH);
+    let generatedModulePath = resolve(projectRoot, DEFAULT_GENERATED_MODULE_RELATIVE_PATH);
+    let sceneJsonPath = resolve(projectRoot, DEFAULT_SESSION_RELATIVE_PATH);
+    try {
+      assetDirPath = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'assetDir', DEFAULT_ASSET_DIR_RELATIVE_PATH));
+      generatedModulePath = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'generatedSceneFile', DEFAULT_GENERATED_MODULE_RELATIVE_PATH));
+      sceneJsonPath = resolve(projectRoot, configuredRelativePath(loadedConfig.config, 'sceneJsonFile', DEFAULT_SESSION_RELATIVE_PATH));
+      if (![assetDirPath, generatedModulePath, sceneJsonPath].every((path) => isPathInside(path, projectRoot))) {
+        add({
+          status: 'fail',
+          label: 'Configured paths',
+          message: 'One or more configured paths resolve outside the project root.',
+          fix: 'Keep assetDir, generatedSceneFile, and sceneJsonFile relative to the project root.',
+        });
+      } else {
+        add({
+          status: 'pass',
+          label: 'Configured paths',
+          message: 'Configured paths stay inside the project root.',
+        });
+      }
+    } catch (error) {
+      add({
+        status: 'fail',
+        label: 'Configured paths',
+        message: error instanceof Error ? error.message : String(error),
+        fix: 'Use project-relative paths in dioramai.config.json.',
+      });
+    }
+
+    const assetDirExists = await fileExists(assetDirPath);
+    add(assetDirExists
+      ? {
+          status: 'pass',
+          label: 'Asset directory',
+          message: `${relative(projectRoot, assetDirPath).replace(/\\/g, '/')} exists.`,
+        }
+      : {
+          status: 'fail',
+          label: 'Asset directory',
+          message: `${relative(projectRoot, assetDirPath).replace(/\\/g, '/')} is missing.`,
+          fix: `Create ${relative(projectRoot, assetDirPath).replace(/\\/g, '/')} or rerun init with --force.`,
+        });
+
+    const generatedFileExists = await fileExists(generatedModulePath);
+    add(generatedFileExists
+      ? {
+          status: 'pass',
+          label: 'Generated scene module',
+          message: `${relative(projectRoot, generatedModulePath).replace(/\\/g, '/')} exists.`,
+        }
+      : {
+          status: 'fail',
+          label: 'Generated scene module',
+          message: `${relative(projectRoot, generatedModulePath).replace(/\\/g, '/')} is missing.`,
+          fix: 'Run npx dioramai export after starting the bridge, or rerun init with --force.',
+        });
+
+    if (generatedFileExists) {
+      const code = await readFile(generatedModulePath, 'utf8');
+      const parsed = parseSceneFromR3fSyncModule(code);
+      add(parsed.ok
+        ? {
+            status: 'pass',
+            label: 'Generated scene parses',
+            message: 'Embedded dioramaiScene block parses and validates.',
+          }
+        : {
+            status: 'fail',
+            label: 'Generated scene parses',
+            message: parsed.error.message,
+            fix: 'Fix the embedded dioramaiScene block or run npx dioramai export.',
+          });
+    } else if (await fileExists(sceneJsonPath)) {
+      const parsedScene = parseSceneJson(await readFile(sceneJsonPath, 'utf8'));
+      add(parsedScene
+        ? {
+            status: 'pass',
+            label: 'Generated scene parses',
+            message: 'Scene JSON parses and validates.',
+          }
+        : {
+            status: 'fail',
+            label: 'Generated scene parses',
+            message: 'Scene JSON exists but failed parsing or validation.',
+            fix: 'Fix the scene JSON or rerun init/export.',
+          });
+    }
+
+    const reachable = await bridgeIsReachable(options.port ?? DEFAULT_BRIDGE_PORT);
+    add(reachable
+      ? {
+          status: 'pass',
+          label: 'Local bridge',
+          message: `Bridge is reachable on port ${options.port ?? DEFAULT_BRIDGE_PORT}.`,
+        }
+      : {
+          status: 'warn',
+          label: 'Local bridge',
+          message: `Bridge is not currently running on port ${options.port ?? DEFAULT_BRIDGE_PORT}.`,
+          fix: 'Run npx dioramai dev --open when you are ready to sync.',
+        });
+
+    const glbFiles = await listGlbFiles(projectRoot, assetDirPath);
+    add(glbFiles.length > 0
+      ? {
+          status: 'pass',
+          label: 'GLB assets',
+          message: `${glbFiles.length} GLB/GLTF asset(s) found.`,
+        }
+      : {
+          status: 'warn',
+          label: 'GLB assets',
+          message: 'No GLB/GLTF assets were found yet.',
+          fix: 'Drop .glb or .gltf files into public/assets/models.',
+        });
+
+    const appImport = await appImportsGeneratedScene(projectRoot);
+    add(appImport === true
+      ? {
+          status: 'pass',
+          label: 'App wiring',
+          message: 'The app imports the generated Dioramai scene module.',
+        }
+      : appImport === false
+        ? {
+            status: 'fail',
+            label: 'App wiring',
+            message: 'App files exist but do not appear to import DioramaiScene.generated.',
+            fix: 'Render <DioramaiScene /> from src/generated/DioramaiScene.generated inside your Canvas.',
+          }
+        : {
+            status: 'warn',
+            label: 'App wiring',
+            message: 'No app source files were found to inspect.',
+            fix: 'Run npx dioramai init --template vite-r3f in an empty folder.',
+          });
+
+    return ok({
+      ok: !items.some((item) => item.status === 'fail'),
+      projectRoot,
+      configPath: loadedConfig.path,
+      items,
+      glbFiles,
+    });
+  } catch (error) {
+    return fail('DOCTOR_ERROR', error instanceof Error ? error.message : String(error));
   }
 };
 
@@ -735,7 +1315,7 @@ export class DioramaiBridgeRuntime {
   }>> {
     try {
       const exported = exportSceneToR3fSyncModule(scene, {
-        componentName: 'DioramaiScene',
+        componentName: DEFAULT_COMPONENT_NAME,
         includeStudioLights: true,
       });
       const sceneJson = serializeScene(scene);
@@ -1280,7 +1860,7 @@ export class DioramaiBridgeRuntime {
     const scene = this.getSceneResult();
     if (!scene.ok) return scene;
     const exported = exportSceneToR3fSyncModule(scene.data.scene, {
-      componentName: 'DioramaiScene',
+      componentName: DEFAULT_COMPONENT_NAME,
       includeStudioLights: true,
     });
     const shouldWrite = !isRecord(input) || input.write !== false;
