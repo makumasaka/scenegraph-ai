@@ -67,7 +67,7 @@ export function SceneLoader() {
     e.target.value = '';
     if (!file) return;
     setStatus('Importing GLB');
-    void postBridgeImportGlbAsset(file, { importMode: 'shallow' })
+    void postBridgeImportGlbAsset(file, { importMode: 'single' })
       .then((result) => {
         if (result.ok) {
           applyBridgeScene(result.data.scene);
@@ -93,7 +93,7 @@ export function SceneLoader() {
       return;
     }
     setStatus('Registering GLB');
-    void postBridgeRegisterGlbAssetPath(path, { importMode: 'shallow' })
+    void postBridgeRegisterGlbAssetPath(path, { importMode: 'single' })
       .then((result) => {
         if (result.ok) {
           applyBridgeScene(result.data.scene);

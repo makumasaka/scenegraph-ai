@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it, afterEach, beforeEach } from 'vitest';
-import { createEmptyScene, applyCommand, type Command } from '@dioramai/core';
+import { createEmptyScene, applyCommand, type Command, type SceneNode } from '@dioramai/core';
 import { parseSceneFromR3fSyncModule } from '@dioramai/export-r3f';
 import {
   DioramaiBridgeRuntime,
@@ -192,6 +192,36 @@ describe('DioramaiBridgeRuntime importAsset and sync', () => {
     expect(result.data.scene.nodes['asset-bridge-import-test-node']?.semantics?.role).toBe('decor');
     expect(result.data.scene.assets?.['asset-bridge-import-test']?.kind).toBe('glb');
     expect(result.data.scene.assets?.['asset-bridge-import-test']?.source).toBe('manual');
+  });
+
+  it('registers a project GLB as a single placed asset by default', async () => {
+    const runtime = new DioramaiBridgeRuntime(createEmptyScene('Import Test'), {
+      projectRoot,
+    });
+
+    const result = await runtime.callTool('register_asset', {
+      path: sourceRel,
+      name: 'Fixture Chair',
+      dryRun: true,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.commands.map((command: Command) => command.type)).toEqual([
+      'REGISTER_ASSET',
+      'ADD_NODE',
+    ]);
+    expect(result.data.importedNodeIds).toEqual(['asset-bridge-import-test-node']);
+    expect(result.data.hierarchySummary?.nodeCount).toBe(0);
+    const renderableNodes = (Object.values(result.data.scene.nodes) as SceneNode[]).filter((node) =>
+      node.assetRef?.kind === 'uri' &&
+      node.metadata.renderMode !== 'gltf-inspect-only',
+    );
+    expect(renderableNodes).toHaveLength(1);
+    expect(renderableNodes[0]?.assetRef).toEqual({
+      kind: 'uri',
+      uri: '/assets/models/bridge-import-test.glb',
+    });
   });
 
   it('loads dioramai.config.json and reports project status', async () => {

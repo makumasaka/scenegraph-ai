@@ -1,104 +1,6 @@
 {
   "data": {
-    "assets": {
-      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture": {
-        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
-        "kind": "glb",
-        "metadata": {
-          "importSource": "uploadedFile",
-          "importedFrom": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
-          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture",
-        "source": "upload",
-        "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
-      }
-    },
     "nodes": {
-      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node": {
-        "assetRef": {
-          "kind": "uri",
-          "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
-        },
-        "children": [
-          "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0"
-        ],
-        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node",
-        "metadata": {
-          "assetId": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
-          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
-          "provider": "manual",
-          "source": "upload"
-        },
-        "name": "meshy_ai_tiny_village_in_a_woo_0511004150_texture Product",
-        "semanticRole": "product",
-        "semantics": {
-          "role": "product",
-          "source": "import"
-        },
-        "transform": {
-          "position": [
-            0.7231671566562332,
-            0,
-            -2.6420929469828582
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
-      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0": {
-        "children": [],
-        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node-gltf-0-gltf-node-0",
-        "metadata": {
-          "assetId": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
-          "assetUri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
-          "gltfMeshIndex": 0,
-          "gltfNodeIndex": 0,
-          "gltfNodeName": "glTF Node 0",
-          "gltfPath": "scene:0/0",
-          "renderMode": "gltf-inspect-only",
-          "source": "gltf",
-          "transformSource": "matrix"
-        },
-        "name": "glTF Node 0",
-        "semantics": {
-          "source": "import",
-          "tags": [
-            "gltf-mesh"
-          ]
-        },
-        "transform": {
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "rotation": [
-            0,
-            0,
-            0
-          ],
-          "scale": [
-            1,
-            1,
-            1
-          ]
-        },
-        "type": "mesh",
-        "visible": true
-      },
       "default-cube-1": {
         "children": [],
         "id": "default-cube-1",
@@ -126,8 +28,7 @@
       },
       "default-root": {
         "children": [
-          "default-cube-1",
-          "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node"
+          "default-cube-1"
         ],
         "id": "default-root",
         "metadata": {},

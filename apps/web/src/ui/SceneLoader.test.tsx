@@ -57,7 +57,7 @@ describe('SceneLoader GLB import', () => {
     fireEvent.change(input!, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(postBridgeImportGlbAsset).toHaveBeenCalledWith(file, { importMode: 'shallow' });
+      expect(postBridgeImportGlbAsset).toHaveBeenCalledWith(file, { importMode: 'single' });
     });
     expect(await screen.findByText('Imported sample.glb')).toBeInTheDocument();
     expect(useSceneStore.getState().scene.rootId).toBe(scene.rootId);
@@ -99,7 +99,7 @@ describe('SceneLoader GLB import', () => {
     await waitFor(() => {
       expect(postBridgeRegisterGlbAssetPath).toHaveBeenCalledWith(
         'public/assets/models/chair.glb',
-        { importMode: 'shallow' },
+        { importMode: 'single' },
       );
     });
     expect(await screen.findByText('Registered public/assets/models/chair.glb')).toBeInTheDocument();
