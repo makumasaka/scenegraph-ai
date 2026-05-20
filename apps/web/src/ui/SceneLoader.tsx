@@ -140,9 +140,6 @@ export function SceneLoader() {
         Load kit
       </button>
       <div className="scene-loader__divider" aria-hidden="true" />
-      <button type="button" onClick={handleExportJson}>
-        JSON
-      </button>
       <button type="button" onClick={handleImportClick}>
         Import
       </button>
@@ -178,9 +175,16 @@ export function SceneLoader() {
       <button type="button" onClick={handleRegisterGlbPath}>
         Register GLB
       </button>
-      <button type="button" onClick={handleCopyR3f} title="Copy JSX for React Three Fiber">
-        R3F
-      </button>
+      <div className="scene-loader__divider" aria-hidden="true" />
+      <div className="scene-loader__group scene-loader__group--export" aria-label="Export options">
+        <span className="scene-loader__muted">Export</span>
+        <button type="button" onClick={handleExportJson}>
+          JSON
+        </button>
+        <button type="button" onClick={handleCopyR3f} title="Copy JSX for React Three Fiber">
+          R3F
+        </button>
+      </div>
       {status ? <span className="scene-loader__status">{status}</span> : null}
     </div>
   );

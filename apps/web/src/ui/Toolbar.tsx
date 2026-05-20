@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { createNode, getParent, type Scene, type Vec3 } from '@dioramai/core';
+import { createNode, getParent, type Vec3 } from '@dioramai/core';
 import { SceneLoader } from './SceneLoader';
 
 const PALETTE: Vec3[] = [
@@ -13,49 +12,6 @@ const PALETTE: Vec3[] = [
   [-1.5, 0.5, -1.5],
 ];
 
-const arrangeTargets = (scene: Scene, selectedId: string | null): string[] => {
-  if (selectedId && scene.nodes[selectedId]) {
-    const ch = scene.nodes[selectedId].children;
-    if (ch.length > 0) return [...ch];
-    if (selectedId !== scene.rootId) return [selectedId];
-  }
-  return [...scene.nodes[scene.rootId].children];
-};
-
-const showroomTargets = (scene: Scene): string[] =>
-  Object.values(scene.nodes)
-    .filter((node) => {
-      if (node.id === scene.rootId || node.type === 'root') return false;
-      const role = node.semantics?.role ?? node.semanticRole;
-      if (role === 'product' || role === 'display') return true;
-      const label = `${node.id} ${node.name}`.toLowerCase();
-      return label.includes('product') || label.includes('display') || label.includes('plinth');
-    })
-    .map((node) => node.id);
-
-const showroomStructureCandidates = (scene: Scene): string[] =>
-  Object.values(scene.nodes)
-    .filter((node) => {
-      if (node.id === scene.rootId) return false;
-      const label = `${node.id} ${node.name}`.toLowerCase();
-      return (
-        label.includes('product') ||
-        label.includes('display') ||
-        label.includes('plinth') ||
-        label.includes('table') ||
-        label.includes('bench') ||
-        label.includes('chair') ||
-        label.includes('seat') ||
-        label.includes('light') ||
-        label.includes('wall') ||
-        label.includes('floor') ||
-        label.includes('backdrop') ||
-        node.type === 'light' ||
-        node.light !== undefined
-      );
-    })
-    .map((node) => node.id);
-
 export function Toolbar() {
   const scene = useSceneStore((s) => s.scene);
   const selectedId = scene.selection;
@@ -67,19 +23,18 @@ export function Toolbar() {
   const futureCount = useSceneStore((s) => s.future.length);
   const bridgeConnected = useSceneStore((s) => s.bridgeConnected);
   const bridgeLastError = useSceneStore((s) => s.bridgeLastError);
-  const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   const selectedNode = selectedId ? scene.nodes[selectedId] : null;
   const isRootSelected = selectedId === scene.rootId;
   const parentOfSelected = selectedId ? getParent(scene, selectedId) : undefined;
 
-  const totalCubes = Object.keys(scene.nodes).length - 1;
+  const totalNodes = Object.keys(scene.nodes).length - 1;
 
   const handleAdd = () => {
     const parentId = selectedId ?? scene.rootId;
-    const position = PALETTE[totalCubes % PALETTE.length];
+    const position = PALETTE[totalNodes % PALETTE.length];
     const node = createNode({
-      name: `Cube ${totalCubes + 1}`,
+      name: `Cube ${totalNodes + 1}`,
       transform: { position },
     });
     dispatch({ type: 'ADD_NODE', parentId, node });
@@ -105,73 +60,16 @@ export function Toolbar() {
     });
   };
 
-  const handleArrange = (layout: 'line' | 'grid' | 'circle') => {
-    const nodeIds = arrangeTargets(scene, selectedId);
-    if (nodeIds.length === 0) return;
-    dispatch({ type: 'ARRANGE_NODES', nodeIds, layout });
-  };
-
-  const handleStructureShowroom = () => {
-    const candidates = showroomStructureCandidates(scene);
-    if (candidates.length === 0) {
-      setStatusNotice('No showroom-eligible nodes in current scene.');
-      window.setTimeout(() => setStatusNotice(null), 2500);
-      return;
-    }
-    dispatch({ type: 'STRUCTURE_SCENE', preset: 'showroom' });
-  };
-
-  const handleMakeInteractive = () => {
-    dispatch({ type: 'MAKE_INTERACTIVE', targetRole: 'product' });
-  };
-
-  const handleArrangeProducts = () => {
-    const nodeIds = showroomTargets(scene);
-    if (nodeIds.length === 0) return;
-    dispatch({
-      type: 'ARRANGE_NODES',
-      nodeIds,
-      layout: 'grid',
-      options: { spacing: 1.45, cols: 3 },
-    });
-  };
-
   return (
     <header className="toolbar">
       <div className="toolbar__row toolbar__row--intents">
         <div className="toolbar__brand">
           <span className="toolbar__title">Dioramai</span>
-          <span className="toolbar__subtitle">Semantic scenegraph · live R3F</span>
-        </div>
-
-        <div className="toolbar__intent-actions">
-          <button
-            type="button"
-            className="toolbar__demo-action"
-            onClick={handleStructureShowroom}
-          >
-            Structure Scene
-          </button>
-          <button
-            type="button"
-            className="toolbar__demo-action"
-            onClick={handleMakeInteractive}
-          >
-            Make Interactive
-          </button>
-          <button
-            type="button"
-            className="toolbar__demo-action"
-            onClick={handleArrangeProducts}
-          >
-            Arrange Products
-          </button>
+          <span className="toolbar__subtitle">Runtime sync · local R3F</span>
         </div>
 
         <div className="toolbar__status">
-          {statusNotice ? (
-            <span className="toolbar__status--notice">{statusNotice}</span>
-          ) : bridgeConnected ? (
+          {bridgeConnected ? (
             <span className="toolbar__status--muted">Bridge connected</span>
           ) : bridgeLastError ? (
             <span className="toolbar__status--muted" title={bridgeLastError}>
@@ -242,21 +140,6 @@ export function Toolbar() {
             title="Duplicate subtree"
           >
             Dup tree
-          </button>
-        </div>
-
-        <div className="toolbar__tool-divider" aria-hidden="true" />
-
-        <div className="toolbar__tool-group">
-          <span className="toolbar__tool-group-label">Arrange</span>
-          <button type="button" onClick={() => handleArrange('line')}>
-            Line
-          </button>
-          <button type="button" onClick={() => handleArrange('grid')}>
-            Grid
-          </button>
-          <button type="button" onClick={() => handleArrange('circle')}>
-            Circle
           </button>
         </div>
 

@@ -33,15 +33,6 @@
   gap: 16px;
 }
 
-.toolbar__intent-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-}
-
 .toolbar__tool-strip {
   padding-top: 10px;
   margin-top: 2px;
@@ -97,21 +88,6 @@
 .toolbar__tool-strip button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.toolbar__intent-actions .toolbar__demo-action {
-  background: linear-gradient(135deg, #172033, #10233a);
-  border: 1px solid #2b6f8f;
-  color: #d7f7ff;
-  font-weight: 700;
-  padding: 7px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.toolbar__intent-actions .toolbar__demo-action:hover {
-  background: linear-gradient(135deg, #1c2d48, #123451);
-  border-color: #38bdf8;
 }
 
 .toolbar__tool-reset {
@@ -197,6 +173,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.scene-loader__group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scene-loader__group--export {
+  padding: 3px 5px;
+  border: 1px solid rgba(38, 42, 54, 0.9);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .scene-loader__path input {
@@ -504,6 +493,7 @@
 }
 
 .toolbar__status {
+  margin-left: auto;
   flex-shrink: 0;
   max-width: min(100%, 16rem);
   text-align: right;
@@ -519,11 +509,6 @@
 
 .toolbar__status--muted {
   opacity: 0.65;
-}
-
-.toolbar__status--notice {
-  color: #fde68a;
-  font-size: 11px;
 }
 
 .main {
