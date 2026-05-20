@@ -3,7 +3,6 @@ import {
   applyCommand,
   cloneSceneImmutable,
   getStarterScene,
-  parseSceneJson,
   replayCommands,
   serializeScene,
   type Command,
@@ -95,7 +94,6 @@ export interface SceneState {
   canRedo: () => boolean;
   reset: () => void;
   exportSceneJson: () => string;
-  importSceneJson: (text: string) => boolean;
 }
 
 export const useSceneStore = create<SceneState>()((set, get) => ({
@@ -301,24 +299,4 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
   reset: () => get().dispatch({ type: 'REPLACE_SCENE', scene: buildInitialScene() }),
 
   exportSceneJson: () => serializeScene(get().scene),
-
-  importSceneJson: (text) => {
-    const parsed = parseSceneJson(text);
-    if (!parsed) return false;
-    if (get().bridgeConnected) {
-      void postBridgeLoadScene(text)
-        .then((result) => {
-          if (result.ok) return;
-          get().setBridgeStatus(false, result.error.message);
-          get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
-        })
-        .catch((error) => {
-          get().setBridgeStatus(false, error instanceof Error ? error.message : String(error));
-          get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
-        });
-      return true;
-    }
-    get().dispatch({ type: 'REPLACE_SCENE', scene: parsed });
-    return true;
-  },
 }));

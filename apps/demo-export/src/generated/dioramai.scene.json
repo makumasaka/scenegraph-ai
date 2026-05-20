@@ -1,6 +1,61 @@
 {
   "data": {
+    "assets": {
+      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture": {
+        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
+        "kind": "glb",
+        "metadata": {
+          "importSource": "workspacePath",
+          "importedFrom": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
+          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
+          "provider": "manual",
+          "source": "manual"
+        },
+        "name": "Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture",
+        "source": "manual",
+        "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
+      }
+    },
     "nodes": {
+      "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node": {
+        "assetRef": {
+          "kind": "uri",
+          "uri": "/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb"
+        },
+        "children": [],
+        "id": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node",
+        "metadata": {
+          "assetId": "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture",
+          "localPath": "public/assets/models/Meshy_AI_Tiny_Village_in_a_Woo_0511004150_texture.glb",
+          "provider": "manual",
+          "source": "manual"
+        },
+        "name": "meshy_ai_tiny_village_in_a_woo_0511004150_texture Product",
+        "semanticRole": "product",
+        "semantics": {
+          "role": "product",
+          "source": "import"
+        },
+        "transform": {
+          "position": [
+            -5.025475241292788,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "type": "mesh",
+        "visible": true
+      },
       "default-cube-1": {
         "children": [],
         "id": "default-cube-1",
@@ -28,7 +83,8 @@
       },
       "default-root": {
         "children": [
-          "default-cube-1"
+          "default-cube-1",
+          "asset-meshy_ai_tiny_village_in_a_woo_0511004150_texture-node"
         ],
         "id": "default-root",
         "metadata": {},

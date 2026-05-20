@@ -32,6 +32,9 @@ describe('App — core editing flows (component)', () => {
   it('keeps deferred semantic/demo actions out of the primary MVP toolbar', () => {
     render(<App />);
 
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Load kit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Structure Scene' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Make Interactive' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Arrange Products' })).not.toBeInTheDocument();
@@ -57,11 +60,9 @@ describe('App — core editing flows (component)', () => {
     expect(cube?.transform.position[0]).toBeCloseTo(2.25, 2);
   });
 
-  it('loads, selects, edits, logs UPDATE_TRANSFORM, then undo/redoes the scene change', async () => {
+  it('selects, edits, logs UPDATE_TRANSFORM, then undo/redoes the scene change', async () => {
     render(<App />);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'default');
-    await user.click(screen.getByRole('button', { name: 'Load kit' }));
     await user.click(treeCubeButton());
 
     const inspector = screen.getByRole('complementary');
@@ -155,7 +156,7 @@ describe('App — core editing flows (component)', () => {
     expect(useSceneStore.getState().scene.nodes['default-cube-1']?.transform.position[0]).toBe(6);
   });
 
-  it('clears command log when loading a starter scene as a session boundary', async () => {
+  it('clears command log when resetting the scene as a session boundary', async () => {
     render(<App />);
 
     await act(() => {
@@ -167,10 +168,9 @@ describe('App — core editing flows (component)', () => {
     });
     expect(useSceneStore.getState().commandLog).toHaveLength(1);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'gallery');
-    await user.click(screen.getByRole('button', { name: 'Load kit' }));
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(useSceneStore.getState().scene.rootId).toBe('gallery-root');
+    expect(useSceneStore.getState().scene.rootId).toBe('default-root');
     expect(useSceneStore.getState().commandLog).toHaveLength(0);
     expect(useSceneStore.getState().past).toHaveLength(0);
     expect(useSceneStore.getState().future).toHaveLength(0);

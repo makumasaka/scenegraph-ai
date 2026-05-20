@@ -93,28 +93,6 @@ describe('sceneStore — history + command log regression', () => {
     expect(useSceneStore.getState().scene.nodes[cube]!.transform.position[0]).toBe(3);
   });
 
-  it('importSceneJson dispatches REPLACE_SCENE', () => {
-    const cube = useSceneStore.getState().scene.nodes[
-      useSceneStore.getState().scene.rootId
-    ]!.children[0]!;
-    useSceneStore.getState().dispatch({
-      type: 'UPDATE_TRANSFORM',
-      nodeId: cube,
-      patch: { position: [0, 2, 0] },
-    });
-    const text = JSON.stringify({
-      format: 'dioramai-scene',
-      version: 1,
-      data: getStarterScene('gallery'),
-    });
-    const ok = useSceneStore.getState().importSceneJson(text);
-    expect(ok).toBe(true);
-    expect(useSceneStore.getState().scene.rootId).toBe('gallery-root');
-    expect(useSceneStore.getState().commandLog).toHaveLength(0);
-    expect(useSceneStore.getState().past).toHaveLength(0);
-    expect(useSceneStore.getState().future).toHaveLength(0);
-  });
-
   it('exportSceneJson roundtrips through parseSceneJson', () => {
     const text = useSceneStore.getState().exportSceneJson();
     const parsed = parseSceneJson(text);

@@ -120,8 +120,6 @@ describe('Milestone 7 Loop C canvas editing eval', () => {
 
     render(<App />);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'default');
-    await user.click(screen.getByRole('button', { name: 'Load kit' }));
     await user.click(screen.getByTestId('viewport-node-default-cube-1'));
 
     const inspector = screen.getByRole('complementary');

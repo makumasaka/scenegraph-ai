@@ -59,7 +59,7 @@ describe('SceneLoader GLB import', () => {
     await waitFor(() => {
       expect(postBridgeImportGlbAsset).toHaveBeenCalledWith(file, { importMode: 'single' });
     });
-    expect(await screen.findByText('Imported sample.glb')).toBeInTheDocument();
+    expect(await screen.findByText('Copied sample.glb into project')).toBeInTheDocument();
     expect(useSceneStore.getState().scene.rootId).toBe(scene.rootId);
     expect(useSceneStore.getState().bridgeConnected).toBe(true);
   });
